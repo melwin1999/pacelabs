@@ -1,0 +1,965 @@
+{
+  "block": {
+    "name": "Edinburgh Marathon 2026",
+    "type": "marathon",
+    "total_weeks": 16,
+    "current_week": 14,
+    "race_date": "2026-05-24",
+    "race_distance_km": 42.2,
+    "est_now_seconds": 15900,
+    "race_proj_seconds": 15300,
+    "status": "active"
+  },
+  "weeks": [
+    {
+      "week_number": 1,
+      "phase": "base",
+      "start_date": "2026-02-09",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-02-09",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Settle in. Conversational pace, no pressure. This is week 1 — the goal is just to move.",
+          "distance_km": 6.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Walk/jog, get loose" },
+            { "type": "steady", "km": 4.0, "pace": "7:50/km", "notes": "Z2 effort, comfortable breathing" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Walk it down" }
+          ]
+        },
+        {
+          "day_of_week": 2,
+          "scheduled_date": "2026-02-11",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Second run of the week. Same easy effort. Don't chase pace.",
+          "distance_km": 7.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy start" },
+            { "type": "steady", "km": 5.0, "pace": "7:50/km", "notes": "Z2, relaxed" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-02-15",
+          "type": "long",
+          "name": "Long Run",
+          "description": "First long run of the block. Very easy effort throughout. Time on feet, not pace.",
+          "distance_km": 14.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Take water. Gel at 45 min if you have one handy.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy start" },
+            { "type": "steady", "km": 12.0, "pace": "8:00/km", "notes": "Z2 throughout, walk any hills" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk the last 5 min" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 2,
+      "phase": "base",
+      "start_date": "2026-02-16",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-02-16",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Recovery from the long run. Short and easy.",
+          "distance_km": 6.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 4.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 2,
+          "scheduled_date": "2026-02-18",
+          "type": "easy",
+          "name": "Easy Run with Strides",
+          "description": "Easy run with 4 x 20-second strides at the end. Strides are not sprints — just controlled, smooth pickups.",
+          "distance_km": 8.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 5.5, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "strides", "reps": 4, "duration_seconds": 20, "rest_seconds": 60, "notes": "Smooth acceleration to 5:30/km, coast back down" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Easy jog home" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-02-22",
+          "type": "long",
+          "name": "Long Run",
+          "description": "Slight bump in distance from last week. Still all easy. Settle into marathon pace mindset.",
+          "distance_km": 16.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel or chews at 45 min and 90 min. Practice the fuelling habit now.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 14.0, "pace": "8:00/km", "notes": "Z2, no heroics" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk finish" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 3,
+      "phase": "base",
+      "start_date": "2026-02-23",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-02-23",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Monday easy. Let the long run settle.",
+          "distance_km": 7.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 5.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-02-26",
+          "type": "tempo",
+          "name": "Tempo Run",
+          "description": "First quality session of the block. Comfortably hard effort — you can speak in short sentences but not hold a conversation.",
+          "distance_km": 8.0,
+          "pace_target": "6:30/km",
+          "hr_zone": "Z3-Z4",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 2.0, "pace": "7:50/km", "notes": "Easy warm-up, build slowly" },
+            { "type": "steady", "km": 4.0, "pace": "6:30/km", "notes": "Comfortably hard. Don't blow up." },
+            { "type": "cooldown", "km": 2.0, "pace": "7:50/km", "notes": "Easy jog, shake it out" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-03-01",
+          "type": "long",
+          "name": "Long Run",
+          "description": "Building week. Keep it honest — easy effort only.",
+          "distance_km": 18.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel every 45 min from the start. Practice race-day fuelling.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 16.0, "pace": "8:00/km", "notes": "Z2 throughout" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk it in" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 4,
+      "phase": "base",
+      "start_date": "2026-03-02",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-03-02",
+          "type": "recovery",
+          "name": "Recovery Run",
+          "description": "Cutback week starts here. Short, easy, optional. If you feel tired, skip it.",
+          "distance_km": 5.0,
+          "pace_target": "8:10/km",
+          "hr_zone": "Z1-Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 0.5, "pace": "8:30/km", "notes": "Very easy" },
+            { "type": "steady", "km": 4.0, "pace": "8:10/km", "notes": "Z1-Z2, very relaxed" },
+            { "type": "cooldown", "km": 0.5, "pace": "8:30/km", "notes": "Walk home" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-03-05",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Cutback week midweek run. Just tick the box.",
+          "distance_km": 7.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 5.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-03-08",
+          "type": "long",
+          "name": "Cutback Long Run",
+          "description": "Cutback week — shorter long run to let the body absorb the past 3 weeks. Still easy.",
+          "distance_km": 14.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel at 45 min. Keep the habit even on a shorter day.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Easy" },
+            { "type": "steady", "km": 12.0, "pace": "8:00/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk finish" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 5,
+      "phase": "build",
+      "start_date": "2026-03-09",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-03-09",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Build phase begins. Monday easy.",
+          "distance_km": 7.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 5.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-03-12",
+          "type": "intervals",
+          "name": "Cruise Intervals",
+          "description": "5 x 1km at threshold pace with 90-second jog recoveries. First proper intervals of the block.",
+          "distance_km": 9.0,
+          "pace_target": "6:20/km",
+          "hr_zone": "Z4",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 2.0, "pace": "7:50/km", "notes": "Easy, include 2 strides at end" },
+            { "type": "interval", "reps": 5, "km": 1.0, "pace": "6:20/km", "rest_seconds": 90, "rest_type": "jog", "notes": "Controlled, not flat out. Consistent splits." },
+            { "type": "cooldown", "km": 2.0, "pace": "7:50/km", "notes": "Easy jog, shake the legs out" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-03-15",
+          "type": "long",
+          "name": "Long Run",
+          "description": "Back to building. Steady easy effort.",
+          "distance_km": 20.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel every 45 min. Carry water or plan a route with fountains.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 18.0, "pace": "8:00/km", "notes": "Z2 throughout" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk finish" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 6,
+      "phase": "build",
+      "start_date": "2026-03-16",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-03-16",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Monday recovery. Keep it easy after the 20km.",
+          "distance_km": 7.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 5.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-03-19",
+          "type": "tempo",
+          "name": "Progressive Tempo",
+          "description": "Start easy, finish comfortably hard. The last 3km should feel like a sustained effort.",
+          "distance_km": 10.0,
+          "pace_target": "6:30/km",
+          "hr_zone": "Z3-Z4",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 2.0, "pace": "7:50/km", "notes": "Easy warm-up" },
+            { "type": "progression", "segments": [
+              { "km": 2.0, "pace": "7:10/km", "notes": "Comfortable" },
+              { "km": 2.0, "pace": "6:45/km", "notes": "Getting there" },
+              { "km": 2.0, "pace": "6:20/km", "notes": "Comfortably hard" }
+            ]},
+            { "type": "cooldown", "km": 2.0, "pace": "7:50/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-03-22",
+          "type": "long",
+          "name": "Long Run",
+          "description": "21km this week. Halfway point feeling. Steady and controlled.",
+          "distance_km": 21.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel every 45 min. Aim for 3 gels today — practise taking them on the move.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 19.0, "pace": "8:00/km", "notes": "Z2 throughout" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk finish" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 7,
+      "phase": "build",
+      "start_date": "2026-03-23",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-03-23",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Monday easy. Absorb the 21km.",
+          "distance_km": 8.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 6.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-03-26",
+          "type": "intervals",
+          "name": "Threshold Intervals",
+          "description": "6 x 1km at threshold. One more rep than week 5. Focus on consistent splits.",
+          "distance_km": 10.0,
+          "pace_target": "6:20/km",
+          "hr_zone": "Z4",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 2.0, "pace": "7:50/km", "notes": "Easy, 2 strides at end" },
+            { "type": "interval", "reps": 6, "km": 1.0, "pace": "6:20/km", "rest_seconds": 90, "rest_type": "jog", "notes": "Controlled effort. Rep 6 should feel like rep 1." },
+            { "type": "cooldown", "km": 2.0, "pace": "7:50/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-03-29",
+          "type": "long",
+          "name": "Long Run",
+          "description": "22km. This is proper marathon training territory now.",
+          "distance_km": 22.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel every 40 min from 20 min in. Practice race-day cadence.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 20.0, "pace": "8:00/km", "notes": "Z2 throughout" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk finish" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 8,
+      "phase": "build",
+      "start_date": "2026-03-30",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-03-30",
+          "type": "recovery",
+          "name": "Recovery Run",
+          "description": "Cutback week. Easy and short.",
+          "distance_km": 5.0,
+          "pace_target": "8:10/km",
+          "hr_zone": "Z1-Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 0.5, "pace": "8:30/km", "notes": "Very easy" },
+            { "type": "steady", "km": 4.0, "pace": "8:10/km", "notes": "Z1-Z2" },
+            { "type": "cooldown", "km": 0.5, "pace": "8:30/km", "notes": "Walk" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-04-02",
+          "type": "easy",
+          "name": "Easy Run with Strides",
+          "description": "Cutback week but keep the legs moving. 4 strides at the end.",
+          "distance_km": 8.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 5.5, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "strides", "reps": 4, "duration_seconds": 20, "rest_seconds": 60, "notes": "Smooth and controlled" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-04-05",
+          "type": "long",
+          "name": "Cutback Long Run",
+          "description": "Shorter long run this week. Let the body absorb 4 weeks of building.",
+          "distance_km": 16.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel at 45 min and 80 min.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Easy" },
+            { "type": "steady", "km": 14.0, "pace": "8:00/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk finish" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 9,
+      "phase": "build",
+      "start_date": "2026-04-06",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-04-06",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Fresh from the cutback week. Monday easy.",
+          "distance_km": 8.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 6.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-04-09",
+          "type": "tempo",
+          "name": "Tempo Run",
+          "description": "Sustained comfortably-hard effort. You should want this to end at 4km in — that's the right difficulty.",
+          "distance_km": 10.0,
+          "pace_target": "6:30/km",
+          "hr_zone": "Z3-Z4",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 2.0, "pace": "7:50/km", "notes": "Easy warm-up" },
+            { "type": "steady", "km": 6.0, "pace": "6:30/km", "notes": "Comfortably hard throughout" },
+            { "type": "cooldown", "km": 2.0, "pace": "7:50/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-04-12",
+          "type": "long",
+          "name": "Long Run",
+          "description": "Back to big distances. 23km this week.",
+          "distance_km": 23.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel every 40 min from first 20 min. Aim for 4 gels across this run.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 21.0, "pace": "8:00/km", "notes": "Z2 throughout" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk finish" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 10,
+      "phase": "build",
+      "start_date": "2026-04-13",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-04-13",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Monday easy. The 23km will be in the legs.",
+          "distance_km": 8.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 6.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-04-16",
+          "type": "intervals",
+          "name": "Marathon Pace Intervals",
+          "description": "4 x 2km at goal marathon pace. This is the pace you want to run in Edinburgh. Get comfortable with it.",
+          "distance_km": 12.0,
+          "pace_target": "6:50/km",
+          "hr_zone": "Z3",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 2.0, "pace": "7:50/km", "notes": "Easy, 2 strides at end" },
+            { "type": "interval", "reps": 4, "km": 2.0, "pace": "6:50/km", "rest_seconds": 60, "rest_type": "jog", "notes": "Marathon pace — should feel sustainable. Not a sprint." },
+            { "type": "cooldown", "km": 2.0, "pace": "7:50/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-04-19",
+          "type": "long",
+          "name": "Long Run with Marathon Pace Finish",
+          "description": "24km with the last 5km at marathon goal pace. The hardest long run of the block.",
+          "distance_km": 24.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2-Z3",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel every 40 min from 20 min in. Take on fuel before the pace pickup.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 18.0, "pace": "8:00/km", "notes": "Z2 — conserve energy for the finish" },
+            { "type": "steady", "km": 5.0, "pace": "6:50/km", "notes": "Marathon goal pace — controlled push" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk it in, you've earned it" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 11,
+      "phase": "peak",
+      "start_date": "2026-04-20",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-04-20",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Peak phase. The hard work is nearly done. Monday easy — you need this after the MP finish long run.",
+          "distance_km": 8.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 6.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-04-23",
+          "type": "threshold",
+          "name": "Threshold Run",
+          "description": "Sustained threshold effort. Slightly faster than tempo — a notch below your max sustained pace.",
+          "distance_km": 10.0,
+          "pace_target": "6:10/km",
+          "hr_zone": "Z4",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 2.0, "pace": "7:50/km", "notes": "Easy warm-up" },
+            { "type": "steady", "km": 6.0, "pace": "6:10/km", "notes": "Hard but controlled. Threshold." },
+            { "type": "cooldown", "km": 2.0, "pace": "7:50/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-04-26",
+          "type": "long",
+          "name": "Long Run — Peak",
+          "description": "25km. This is your peak long run. Take it seriously. Fuel well. Move well.",
+          "distance_km": 25.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel every 40 min from 20 min in. 5 gels total. Test your full race-day fuelling strategy.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 23.0, "pace": "8:00/km", "notes": "Z2 throughout — no pace pickup today, just cover the distance" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk it in" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 12,
+      "phase": "peak",
+      "start_date": "2026-04-27",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-04-27",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "After the 25km peak long run, this is pure recovery. Easy.",
+          "distance_km": 7.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 5.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-04-30",
+          "type": "intervals",
+          "name": "VO2 Max Intervals",
+          "description": "5 x 800m at 5k effort with 2-minute walk/jog recovery. Short and sharp. Lift the ceiling.",
+          "distance_km": 9.0,
+          "pace_target": "5:50/km",
+          "hr_zone": "Z4-Z5",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 2.0, "pace": "7:50/km", "notes": "Easy, include 4 strides" },
+            { "type": "interval", "reps": 5, "km": 0.8, "pace": "5:50/km", "rest_seconds": 120, "rest_type": "walk/jog", "notes": "Hard effort. Full recovery between reps." },
+            { "type": "cooldown", "km": 2.5, "pace": "7:50/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-05-03",
+          "type": "long",
+          "name": "Long Run",
+          "description": "28km. Your longest run. After this, it's taper. Make it count.",
+          "distance_km": 28.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel every 40 min from 20 min in. Full race-day fuelling rehearsal — gels, water, everything.",
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 26.0, "pace": "8:00/km", "notes": "Z2 throughout. This is your fitness peak. Run it proud." },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk it in. Eat something immediately." }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 13,
+      "phase": "peak",
+      "start_date": "2026-05-04",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-05-04",
+          "type": "recovery",
+          "name": "Recovery Run",
+          "description": "Post-28km recovery. Go easy. Walk if you need to. You've done the big work.",
+          "distance_km": 6.0,
+          "pace_target": "8:10/km",
+          "hr_zone": "Z1-Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 0.5, "pace": "8:30/km", "notes": "Very easy" },
+            { "type": "steady", "km": 5.0, "pace": "8:10/km", "notes": "Z1-Z2, conversational, relaxed" },
+            { "type": "cooldown", "km": 0.5, "pace": "8:30/km", "notes": "Walk home" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-05-07",
+          "type": "tempo",
+          "name": "Last Quality Tempo",
+          "description": "Last proper quality session before taper begins. 4km at threshold. Short and sharp.",
+          "distance_km": 9.0,
+          "pace_target": "6:10/km",
+          "hr_zone": "Z4",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": true,
+          "structure": [
+            { "type": "warmup", "km": 2.5, "pace": "7:50/km", "notes": "Easy warm-up, 2 strides" },
+            { "type": "steady", "km": 4.0, "pace": "6:10/km", "notes": "Threshold — last quality of the block. Make it count." },
+            { "type": "cooldown", "km": 2.5, "pace": "7:50/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-05-10",
+          "type": "long",
+          "name": "Pre-Taper Long Run",
+          "description": "22km. Volume drops from here. Keep the effort easy — you're banking rest now, not fitness.",
+          "distance_km": 22.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "Gel at 45 min and 80 min. No need to push the fuelling today.",
+          "is_complete": false,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Very easy" },
+            { "type": "steady", "km": 20.0, "pace": "8:00/km", "notes": "Z2 throughout" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk finish" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 14,
+      "phase": "peak",
+      "start_date": "2026-05-11",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-05-11",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Volume is dropping. Keep this easy and relaxed. The hay is in the barn.",
+          "distance_km": 8.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": false,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 6.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-05-14",
+          "type": "intervals",
+          "name": "Sharpening Intervals",
+          "description": "6 x 400m at 5k effort, 90-second jog recovery. Short, sharp, keep the legs feeling quick.",
+          "distance_km": 7.0,
+          "pace_target": "5:40/km",
+          "hr_zone": "Z4-Z5",
+          "primary_metric": "pace",
+          "fuelling_note": null,
+          "is_complete": false,
+          "structure": [
+            { "type": "warmup", "km": 2.0, "pace": "7:50/km", "notes": "Easy, 4 strides" },
+            { "type": "interval", "reps": 6, "km": 0.4, "pace": "5:40/km", "rest_seconds": 90, "rest_type": "jog", "notes": "Sharp effort, full recovery. Not an all-out sprint." },
+            { "type": "cooldown", "km": 2.0, "pace": "7:50/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 6,
+          "scheduled_date": "2026-05-17",
+          "type": "long",
+          "name": "Last Long Run",
+          "description": "16km. This is the last long run of the block. Easy effort. Enjoy it.",
+          "distance_km": 16.0,
+          "pace_target": "8:00/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": "One gel at 45 min. Nothing more needed.",
+          "is_complete": false,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:20/km", "notes": "Easy" },
+            { "type": "steady", "km": 14.0, "pace": "8:00/km", "notes": "Z2 — easy and relaxed" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:20/km", "notes": "Walk finish" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 15,
+      "phase": "taper",
+      "start_date": "2026-05-18",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-05-18",
+          "type": "easy",
+          "name": "Easy Run",
+          "description": "Taper week. Short, easy. Your legs will feel odd — that's normal. Trust the process.",
+          "distance_km": 6.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": false,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 4.0, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Cool down" }
+          ]
+        },
+        {
+          "day_of_week": 3,
+          "scheduled_date": "2026-05-21",
+          "type": "easy",
+          "name": "Easy Run with Strides",
+          "description": "Short easy run to keep the legs sharp. 4 strides — controlled, not maximal.",
+          "distance_km": 6.0,
+          "pace_target": "7:50/km",
+          "hr_zone": "Z2",
+          "primary_metric": "hr",
+          "fuelling_note": null,
+          "is_complete": false,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:10/km", "notes": "Easy" },
+            { "type": "steady", "km": 3.5, "pace": "7:50/km", "notes": "Z2" },
+            { "type": "strides", "reps": 4, "duration_seconds": 20, "rest_seconds": 60, "notes": "Smooth and relaxed" },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Easy jog" }
+          ]
+        },
+        {
+          "day_of_week": 5,
+          "scheduled_date": "2026-05-23",
+          "type": "race",
+          "name": "Tune-Up Race",
+          "description": "Race day eve race. Short, controlled — not an all-out effort. Use it to run at a quick pace, feel the race environment, and check your kit. Don't chase a PB today.",
+          "distance_km": 5.0,
+          "pace_target": "6:00/km",
+          "hr_zone": "Z3-Z4",
+          "primary_metric": "pace",
+          "fuelling_note": "Small snack 2 hours before. No gels needed — it's 5km.",
+          "is_complete": false,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "7:50/km", "notes": "Easy jog to warm up" },
+            { "type": "race", "km": 5.0, "pace": "6:00/km", "notes": "Controlled race effort — think 85-90% effort. Save something for tomorrow." },
+            { "type": "cooldown", "km": 1.0, "pace": "8:10/km", "notes": "Easy cool down, stay on your feet briefly" }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 16,
+      "phase": "taper",
+      "start_date": "2026-05-25",
+      "workouts": [
+        {
+          "day_of_week": 0,
+          "scheduled_date": "2026-05-24",
+          "type": "race",
+          "name": "Edinburgh Marathon",
+          "description": "Race day. Everything you've built over 16 weeks comes out today. Start easy, settle into marathon pace, run your own race. You're ready.",
+          "distance_km": 42.2,
+          "pace_target": "6:50/km",
+          "hr_zone": "Z3",
+          "primary_metric": "pace",
+          "fuelling_note": "Gel every 40 min from km 10. Water at every station. Don't skip the early stations even if you feel fine.",
+          "is_complete": false,
+          "structure": [
+            { "type": "warmup", "km": 1.0, "pace": "8:00/km", "notes": "Easy 10-min jog before start, stay warm" },
+            { "type": "segment", "km": 10.0, "pace": "7:00/km", "notes": "First 10km — hold back. Everyone goes out too fast. Don't be them." },
+            { "type": "segment", "km": 21.0, "pace": "6:50/km", "notes": "km 10-31 — settle into marathon pace. This is your race." },
+            { "type": "segment", "km": 10.0, "pace": "6:40/km", "notes": "Final 10km — if you have it, give it. If not, hold form and keep moving." },
+            { "type": "segment", "km": 1.2, "pace": "6:20/km", "notes": "The finish. Empty the tank." }
+          ]
+        }
+      ]
+    }
+  ]
+}
