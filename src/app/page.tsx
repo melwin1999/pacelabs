@@ -36,15 +36,31 @@ export default async function PlanPage() {
   const currentWeek = workouts.filter(w => w.week_number === typedBlock.current_week)
 
   const plannedKm = currentWeek.reduce((sum, w) => sum + (w.distance_km ?? 0), 0)
-  const doneKm = currentWeek.filter(w => w.is_complete).reduce((sum, w) => sum + (w.distance_km ?? 0), 0)
+  const doneKm = currentWeek
+    .filter(w => w.is_complete)
+    .reduce((sum, w) => sum + (w.distance_km ?? 0), 0)
   const sessionCount = currentWeek.filter(w => w.type !== 'rest').length
-  const completedCount = currentWeek.filter(w => w.is_complete && w.type !== 'rest').length
+  const completedCount = currentWeek
+    .filter(w => w.is_complete && w.type !== 'rest').length
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
       <RaceHeroCard block={typedBlock} />
-      <StatsStrip plannedKm={plannedKm} doneKm={doneKm} sessionCount={sessionCount} completedCount={completedCount} />
-      <WeekView workouts={currentWeek} weekNumber={typedBlock.current_week} />
+      <StatsStrip
+        plannedKm={plannedKm}
+        doneKm={doneKm}
+        sessionCount={sessionCount}
+        completedCount={completedCount}
+      />
+
+      {/* Phase 4C will insert the AdaptBanner here */}
+
+      <WeekView
+        workouts={currentWeek}
+        weekNumber={typedBlock.current_week}
+        blockId={typedBlock.id}
+        totalWeeks={typedBlock.total_weeks}
+      />
       <CoachNudge />
       <QuickQuestions />
       <PushToGarminButton />
