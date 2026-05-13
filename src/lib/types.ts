@@ -64,3 +64,13 @@ export type PlanChange = {
   reason: string | null;
   created_at: string;
 };
+
+export type WorkoutStructureStep = {
+  type: 'warmup' | 'interval' | 'cooldown' | 'steady' | 'rest';
+  km?: number;
+  pace?: string;
+  pace_min?: number;
+  pace_max?: number;
+  reps?: number;
+  notes?: string;
+};
