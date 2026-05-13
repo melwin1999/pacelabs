@@ -1,3 +1,5 @@
+import type { WorkoutStructureStep } from './types'
+
 export type Block = {
   id: string;
   name: string;
@@ -21,6 +23,23 @@ export type Phase = {
   end_week: number;
 };
 
+export type WorkoutStructureStep = {
+  type: 'warmup' | 'interval' | 'cooldown' | 'steady' | 'rest';
+  km?: number;
+  pace?: string;
+  pace_min?: number;
+  pace_max?: number;
+  reps?: number;
+  notes?: string;
+  rest_seconds?: number;
+  rest_type?: string;
+  segments?: Array<{
+    km: number;
+    pace?: string;
+    notes?: string;
+  }>;
+};
+
 export type Workout = {
   id: string;
   block_id: string;
@@ -39,7 +58,7 @@ export type Workout = {
   hr_zone: string;
   primary_metric: 'pace' | 'hr';
   fuelling_note: string | null;
-  structure: any;
+  structure: WorkoutStructureStep[];
   is_complete: boolean;
   skipped: boolean;
   skipped_reason: string | null;
@@ -59,21 +78,4 @@ export type PlanChange = {
   source: 'manual_drag' | 'coach_chat' | 'auto_adapt' | 'skip';
   reason: string | null;
   created_at: string;
-};
-
-export type WorkoutStructureStep = {
-  type: 'warmup' | 'interval' | 'cooldown' | 'steady' | 'rest';
-  km?: number;
-  pace?: string;
-  pace_min?: number;
-  pace_max?: number;
-  reps?: number;
-  notes?: string;
-  rest_seconds?: number;
-  rest_type?: string;
-  segments?: Array<{
-    km: number;
-    pace?: string;
-    notes?: string;
-  }>;
 };
