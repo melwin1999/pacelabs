@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Workout } from '@/lib/types'
 import { formatWorkoutPace } from '@/lib/utils'
@@ -285,3 +285,98 @@ export default function WeekView({
                           : <Circle size={24} style={{ color: 'var(--border)' }} strokeWidth={1.5} />}
                       </button>
                     )}
+                  </div>
+                </div>
+              </div>
+
+              {menuOpen && (
+                <div
+                  className="absolute right-0 z-50 rounded-xl py-1 min-w-[160px]"
+                  style={{
+                    top: '100%',
+                    marginTop: '4px',
+                    backgroundColor: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                  }}
+                >
+                  {!isSkipped ? (
+                    <button
+                      onClick={() => { setOpenMenuId(null); setSkipTarget(workout) }}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:opacity-80"
+                      style={{ color: '#F97316' }}
+                    >
+                      <SkipForward size={14} />
+                      Skip session
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => { setOpenMenuId(null); undoSkip(workout) }}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:opacity-80"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      <SkipForward size={14} />
+                      Un-skip
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setOpenMenuId(null); setMoveDate(workout.scheduled_date); setShowMoveSheet({ workout }) }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:opacity-80"
+                    style={{ color: 'var(--text)' }}
+                  >
+                    <Calendar size={14} />
+                    Move to…
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {sorted.length === 0 && (
+          <p className="text-sm text-center py-8" style={{ color: 'var(--text-muted)' }}>No workouts this week.</p>
+        )}
+      </div>
+
+      {skipTarget && (
+        <SkipModal
+          workoutName={skipTarget.name}
+          onConfirm={confirmSkip}
+          onCancel={() => setSkipTarget(null)}
+        />
+      )}
+
+      {showMoveSheet && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setShowMoveSheet(null)}>
+          <div className="w-full max-w-sm rounded-2xl p-5 space-y-4"
+            style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
+            onClick={e => e.stopPropagation()}>
+            <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>Move to a different day</p>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{showMoveSheet.workout.name}</p>
+            <input type="date" value={moveDate} onChange={e => setMoveDate(e.target.value)}
+              className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+              style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+            <div className="flex gap-2">
+              <button onClick={() => setShowMoveSheet(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                Cancel
+              </button>
+              <button onClick={confirmMove} disabled={!moveDate}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40"
+                style={{ backgroundColor: '#F97316', color: '#fff' }}>
+                Move
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {openMenuId && (
+        <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
+      )}
+    </div>
+  )
+}
