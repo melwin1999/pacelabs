@@ -47,3 +47,33 @@ export type Workout = {
 };
 
 export type PlanChange = {
+  id: string;
+  block_id: string;
+  workout_id: string | null;
+  change_type: 'moved' | 'swapped' | 'skipped' | 'edited' | 'added' | 'removed';
+  from_date: string | null;
+  to_date: string | null;
+  field_changed: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  source: 'manual_drag' | 'coach_chat' | 'auto_adapt' | 'skip';
+  reason: string | null;
+  created_at: string;
+};
+
+export type WorkoutStructureStep = {
+  type: 'warmup' | 'interval' | 'cooldown' | 'steady' | 'rest';
+  km?: number;
+  pace?: string;
+  pace_min?: number;
+  pace_max?: number;
+  reps?: number;
+  notes?: string;
+  rest_seconds?: number;
+  rest_type?: string;
+  segments?: Array<{
+    km: number;
+    pace?: string;
+    notes?: string;
+  }>;
+};
