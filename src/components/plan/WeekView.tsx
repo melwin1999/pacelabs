@@ -304,7 +304,7 @@ export default function WeekView({
               onDragLeave={handleDragLeave}
               onDrop={e => handleDrop(e, workout)}
               onDragEnd={handleDragEnd}
-              className="flex items-stretch rounded-xl overflow-hidden transition-all"
+              className="flex items-stretch rounded-xl transition-all"
               style={{
                 backgroundColor: 'var(--bg-card)',
                 border: isDragOver
@@ -386,7 +386,7 @@ export default function WeekView({
 
                       {openMenuId === workout.id && (
                         <div
-                          className="absolute right-0 top-7 z-20 rounded-xl py-1 min-w-[140px]"
+                          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-[160px]"
                           style={{
                             backgroundColor: 'var(--bg-card)',
                             border: '1px solid var(--border)',
