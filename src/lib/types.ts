@@ -73,4 +73,6 @@ export type WorkoutStructureStep = {
   pace_max?: number;
   reps?: number;
   notes?: string;
+  rest_seconds?: number;
+  rest_type?: string;
 };
