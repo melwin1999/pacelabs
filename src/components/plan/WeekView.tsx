@@ -162,18 +162,25 @@ export default function WeekView({
 
   function handleDragEnd() { setDraggingId(null); setDragOverId(null); setWarnings([]) }
 
-  async function confirmMove() {
+async function confirmMove() {
     if (!showMoveSheet || !moveDate) return
     const workout = showMoveSheet.workout
-    setShowMoveSheet(null)
     const chosen = parseISO(moveDate)
     const dayOfWeek = (chosen.getDay() + 6) % 7
+    setShowMoveSheet(null)
+    // Optimistic update — move instantly in UI
+    setLocalWorkouts(prev => prev.map(w => w.id === workout.id
+      ? { ...w, scheduled_date: moveDate, day_of_week: dayOfWeek }
+      : w
+    ))
     try {
       await fetch('/api/workouts/move', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workoutId: workout.id, newDate: moveDate, newDayOfWeek: dayOfWeek, newWeekNumber: workout.week_number }),
       })
-    } catch { } finally { router.refresh() }
+    } catch {
+      setLocalWorkouts(workouts) // revert on failure
+    } finally { router.refresh() }
   }
 
   const sorted = [...localWorkouts].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
