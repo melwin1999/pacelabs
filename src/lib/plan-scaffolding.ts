@@ -48,7 +48,9 @@ function buildVolumeCurve(input: WizardInput, phases: Phase[]): number[] {
   const { total_weeks, current_weekly_km, aggressiveness, volume_aggressiveness, advanced_load } = input
   const agg = (advanced_load && volume_aggressiveness) ? volume_aggressiveness : aggressiveness
 
-  const targetPeakMultiplier = { conservative: 1.2, moderate: 1.5, aggressive: 1.8 }[agg]
+  const raceBoost = input.race_distance_km >= 42 ? 1.25 : input.race_distance_km >= 21 ? 1.1 : 1.0
+  const basePeakMultiplier = { conservative: 1.2, moderate: 1.5, aggressive: 1.8 }[agg]
+  const targetPeakMultiplier = Math.min(basePeakMultiplier * raceBoost, 2.2)
   const typicalIncrease = { conservative: 0.07, moderate: 0.10, aggressive: 0.12 }[agg]
 
   const week1Volume = Math.round(current_weekly_km * 0.85)
@@ -108,17 +110,28 @@ function buildVolumeCurve(input: WizardInput, phases: Phase[]): number[] {
 
 // ─── 3. Long run ──────────────────────────────────────────────────────────────
 
-function longRunKm(weeklyVolumeKm: number, raceDistanceKm: number): number {
+function longRunKm(weeklyVolumeKm: number, raceDistanceKm: number, template: WizardInput['template']): number {
+  // Hansons: hard cap at 26km by design (cumulative fatigue model)
+  if (template === 'hansons') {
+    return Math.round(Math.min(weeklyVolumeKm * 0.40, 26))
+  }
+
   let pctOfWeekly: number
   if (weeklyVolumeKm <= 50) pctOfWeekly = 0.45
   else if (weeklyVolumeKm <= 75) pctOfWeekly = 0.38
-  else pctOfWeekly = 0.30
+  else pctOfWeekly = 0.32
 
   const fromWeekly = weeklyVolumeKm * pctOfWeekly
   const fromRace = raceDistanceKm * 0.85
-  const hardCap = raceDistanceKm >= 30 ? 38 : 28
+  const hardCap = raceDistanceKm >= 42 ? 38 : raceDistanceKm >= 21 ? 28 : 22
 
-  return Math.round(Math.min(fromWeekly, fromRace, hardCap))
+  // Minimum long run floors for marathon/half — prevents absurdly short long runs
+  // even at low volume (the runner needs to build to this before race day)
+  const floor = raceDistanceKm >= 42 ? Math.min(weeklyVolumeKm * 0.35, 24)
+    : raceDistanceKm >= 21 ? Math.min(weeklyVolumeKm * 0.35, 18)
+    : 0
+
+  return Math.round(Math.max(floor, Math.min(fromWeekly, fromRace, hardCap)))
 }
 
 // ─── 4. Quality session count ─────────────────────────────────────────────────
@@ -315,7 +328,7 @@ export function buildPlanSkeleton(input: WizardInput): PlanSkeleton {
       is_b_race_taper_week: false,
       is_b_race_recovery_week: false,
       target_volume_km: targetVolumeKm,
-      long_run_km: longRunKm(targetVolumeKm, input.race_distance_km),
+      long_run_km: longRunKm(targetVolumeKm, input.race_distance_km, input.template),
       quality_session_count: qualityCount(
         phase, w, taperPhase.end_week, input.template, input.days_per_week
       ),

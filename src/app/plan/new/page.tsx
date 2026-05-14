@@ -578,48 +578,86 @@ export default function NewPlanPage() {
                 <Sparkles className="w-5 h-5" /> Generate Plan
               </button>
             ) : (
-              <div className="rounded-2xl p-5 space-y-4" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                {/* Week bars */}
-                {progress?.totalWeeks && (
-                  <div className="space-y-1.5">
-                    <div className="flex flex-wrap gap-1">
-                      {Array.from({ length: progress.totalWeeks }, (_, i) => {
-                        const weekNum = i + 1;
-                        const done = (progress.weeksComplete ?? 0) >= weekNum;
-                        const active = !done && (progress.weeksComplete ?? 0) >= weekNum - 4;
-                        return (
-                          <div key={weekNum}
-                            className="rounded transition-all duration-500"
-                            style={{
-                              height: '8px',
-                              width: `${Math.floor(96 / (progress.totalWeeks ?? 1))}%`,
-                              minWidth: '6px',
-                              backgroundColor: done ? 'var(--accent)' : active ? '#F9731655' : 'var(--border)',
-                              transform: done ? 'scaleY(1.3)' : 'scaleY(1)',
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                {/* Overall bar */}
+              <div className="rounded-2xl p-5 space-y-5" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                 <div>
-                  <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
-                    <div className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${progress?.percent ?? 0}%`, backgroundColor: 'var(--accent)' }} />
+                  <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>Building your plan</p>
+                  {progress?.totalWeeks ? (
+                    <div style={{ position: 'relative' }}>
+                      <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '52px' }}>
+                        {Array.from({ length: progress.totalWeeks }, (_, i) => {
+                          const weekNum = i + 1;
+                          const done = (progress.weeksComplete ?? 0) >= weekNum;
+                          const pending = !done;
+                          const phaseColors = ['#60A5FA','#60A5FA','#60A5FA','#60A5FA','#FB923C','#FB923C','#FB923C','#FB923C','#FB923C','#FB923C','#F87171','#F87171','#F87171','#F87171','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3'];
+                          const color = done ? (phaseColors[i] ?? '#F97316') : '#27272a';
+                          const heightPct = 40 + Math.sin(i * 0.8) * 20 + (i / progress.totalWeeks) * 30;
+                          return (
+                            <div
+                              key={weekNum}
+                              style={{
+                                flex: 1,
+                                height: `${Math.round(heightPct)}%`,
+                                backgroundColor: color,
+                                borderRadius: '3px 3px 0 0',
+                                transition: 'background-color 0.4s ease',
+                                position: 'relative',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {pending && (
+                                <div style={{
+                                  position: 'absolute',
+                                  inset: 0,
+                                  background: 'linear-gradient(90deg, transparent 0%, rgba(249,115,22,0.25) 50%, transparent 100%)',
+                                  animation: `shimmer ${1.5 + i * 0.05}s ease-in-out infinite`,
+                                  animationDelay: `${i * 0.06}s`,
+                                }} />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Week 1</span>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Week {progress.totalWeeks}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ height: '52px', borderRadius: '8px', backgroundColor: 'var(--border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  )}
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      {progress?.weeksComplete != null && progress.totalWeeks
+                        ? `${progress.weeksComplete} of ${progress.totalWeeks} weeks written`
+                        : 'Starting…'}
+                    </span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent)' }}>
+                      {progress?.percent ?? 0}%
+                    </span>
+                  </div>
+                  <div style={{ height: '4px', borderRadius: '2px', backgroundColor: 'var(--border)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: '2px', backgroundColor: 'var(--accent)', width: `${progress?.percent ?? 0}%`, transition: 'width 0.6s ease' }} />
                   </div>
                 </div>
-                {/* Message */}
-                <div className="flex items-center gap-2">
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" style={{ color: 'var(--accent)' }} />
-                  <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{progress?.message ?? 'Starting…'}</p>
+                  <p style={{ fontSize: '13px', color: 'var(--text)' }}>{progress?.message ?? 'Starting…'}</p>
                 </div>
-                {progress?.weeksComplete != null && progress.totalWeeks && (
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    {progress.weeksComplete} of {progress.totalWeeks} weeks written
-                  </p>
-                )}
+
+                <style>{`
+                  @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(300%); }
+                  }
+                  @keyframes pulse {
+                    0%, 100% { opacity: 0.4; }
+                    50% { opacity: 0.8; }
+                  }
+                `}</style>
               </div>
             )}
             {!generating && <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>Claude will generate all workouts. This takes ~60–90 seconds.</p>}
