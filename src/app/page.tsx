@@ -82,7 +82,7 @@ export default async function PlanPage({
           blockId={block.id}
           totalWeeks={block.total_weeks}
         />
-        <CoachNudge block={block} />
+        <CoachNudge />
         <QuickQuestions />
         <PushToGarminButton blockId={block.id} weekNumber={displayWeek} />
       </div>
