@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import AppShell from '@/components/layout/AppShell';
 import { Block, Workout, AdaptDraft, ProposedChange } from '@/lib/types';
@@ -42,7 +42,9 @@ function getPhaseForWeek(block: Block, weekNum: number): string | null {
   return p?.name ?? null;
 }
 
-export default function PreviewPage() {
+import { Suspense } from 'react';
+
+function PreviewPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const blockId = searchParams.get('id');
@@ -434,5 +436,13 @@ export default function PreviewPage() {
 
       </div>
     </AppShell>
+  );
+}
+
+export default function PreviewPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} /></div>}>
+      <PreviewPageInner />
+    </Suspense>
   );
 }
