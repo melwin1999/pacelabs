@@ -35,6 +35,21 @@ export default async function BlockPage() {
 
   const allWorkouts = (workouts ?? []) as Workout[];
 
+  const weekSummaries = Array.from({ length: block.total_weeks }, (_, i) => {
+    const weekNum = i + 1;
+    const weekWorkouts = allWorkouts.filter((w) => w.week_number === weekNum);
+    const nonRest = weekWorkouts.filter((w) => w.type !== "rest" && !w.skipped);
+    return {
+      weekNumber: weekNum,
+      plannedKm: nonRest.reduce((sum, w) => sum + (w.distance_km ?? 0), 0),
+      completedKm: nonRest
+        .filter((w) => w.is_complete)
+        .reduce((sum, w) => sum + (w.distance_km ?? 0), 0),
+      sessionsTotal: nonRest.length,
+      sessionsDone: nonRest.filter((w) => w.is_complete).length,
+    };
+  });
+
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
@@ -51,7 +66,12 @@ export default async function BlockPage() {
           </p>
         </div>
 
-        <VolumeChart block={block} workouts={allWorkouts} />
+        <VolumeChart
+          weekSummaries={weekSummaries}
+          phases={block.phases ?? []}
+          currentWeek={block.current_week}
+          totalWeeks={block.total_weeks}
+        />
         <PhaseStrip block={block} />
 
         <div className="space-y-2">
