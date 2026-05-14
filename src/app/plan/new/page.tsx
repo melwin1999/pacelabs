@@ -105,6 +105,7 @@ export default function NewPlanPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
   const [methodologyError, setMethodologyError] = useState('');
+  const [progress, setProgress] = useState<{ message: string; percent: number; weeksComplete?: number; totalWeeks?: number } | null>(null);
   // Track which input was last touched: 'weeks' or 'dates'
   const [scheduleMode, setScheduleMode] = useState<'weeks' | 'dates'>('weeks');
 
@@ -169,14 +170,36 @@ export default function NewPlanPage() {
   function back() { setStep(s => s - 1); setMethodologyError(''); }
 
   async function generate() {
-    setGenerating(true); setError('');
+    setGenerating(true); setError(''); setProgress(null);
     try {
       const res = await fetch('/api/blocks/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? 'Generation failed');
-      localStorage.removeItem(STORAGE_KEY);
-      router.push(`/plan/new/preview?id=${json.block_id}`);
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Something went wrong'); setGenerating(false); }
+      if (!res.ok || !res.body) throw new Error('Request failed');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const msg = JSON.parse(line);
+            if (msg.type === 'progress') setProgress(msg);
+            if (msg.type === 'error') throw new Error(msg.error);
+            if (msg.type === 'complete') {
+              localStorage.removeItem(STORAGE_KEY);
+              router.push(`/plan/new/preview?id=${msg.block_id}`);
+              return;
+            }
+          } catch (parseErr) {
+            if (parseErr instanceof Error && parseErr.message !== 'Unexpected token') throw parseErr;
+          }
+        }
+      }
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Something went wrong'); setGenerating(false); setProgress(null); }
   }
 
   const inp = "w-full rounded-xl px-4 py-3 text-sm outline-none";
@@ -548,14 +571,58 @@ export default function NewPlanPage() {
               ))}
             </div>
             {error && <p className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: '#7f1d1d', color: '#fca5a5' }}>{error}</p>}
-            <button onClick={generate} disabled={generating}
-              className="w-full rounded-xl py-4 font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-              style={{ backgroundColor: generating ? 'var(--border)' : 'var(--accent)', color: '#fff' }}>
-              {generating
-                ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating your plan… (up to 60s)</>
-                : <><Sparkles className="w-5 h-5" /> Generate Plan</>}
-            </button>
-            <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>Claude will generate all workouts. This takes ~30–60 seconds.</p>
+            {!generating ? (
+              <button onClick={generate}
+                className="w-full rounded-xl py-4 font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+                style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>
+                <Sparkles className="w-5 h-5" /> Generate Plan
+              </button>
+            ) : (
+              <div className="rounded-2xl p-5 space-y-4" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                {/* Week bars */}
+                {progress?.totalWeeks && (
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap gap-1">
+                      {Array.from({ length: progress.totalWeeks }, (_, i) => {
+                        const weekNum = i + 1;
+                        const done = (progress.weeksComplete ?? 0) >= weekNum;
+                        const active = !done && (progress.weeksComplete ?? 0) >= weekNum - 4;
+                        return (
+                          <div key={weekNum}
+                            className="rounded transition-all duration-500"
+                            style={{
+                              height: '8px',
+                              width: `${Math.floor(96 / progress.totalWeeks)}%`,
+                              minWidth: '6px',
+                              backgroundColor: done ? 'var(--accent)' : active ? '#F9731655' : 'var(--border)',
+                              transform: done ? 'scaleY(1.3)' : 'scaleY(1)',
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {/* Overall bar */}
+                <div>
+                  <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
+                    <div className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${progress?.percent ?? 0}%`, backgroundColor: 'var(--accent)' }} />
+                  </div>
+                </div>
+                {/* Message */}
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" style={{ color: 'var(--accent)' }} />
+                  <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{progress?.message ?? 'Starting…'}</p>
+                </div>
+                {progress?.weeksComplete != null && progress.totalWeeks && (
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {progress.weeksComplete} of {progress.totalWeeks} weeks written
+                  </p>
+                )}
+              </div>
+            )}
+            {!generating && <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>Claude will generate all workouts. This takes ~60–90 seconds.</p>}
           </div>
         )}
 
