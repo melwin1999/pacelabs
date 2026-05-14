@@ -1,9 +1,7 @@
 'use client'
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Calendar, LayoutGrid, Activity, BarChart3, MessageCircle, Settings } from 'lucide-react'
-import { clsx } from 'clsx'
+import { Calendar, LayoutGrid, Activity, BarChart3, MessageCircle, Settings, Plus } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/',         label: 'Plan',     icon: Calendar      },
@@ -21,17 +19,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
-
-      {/* Desktop sidebar — hidden on mobile */}
+      {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-60 shrink-0 fixed top-0 left-0 h-full z-30"
         style={{ backgroundColor: 'var(--bg-card)', borderRight: '1px solid var(--border)' }}>
-
         <div className="px-6 py-6" style={{ borderBottom: '1px solid var(--border)' }}>
           <span className="text-xl font-extrabold tracking-tight" style={{ color: 'var(--text)' }}>
             Pace<span style={{ color: 'var(--accent)' }}>Labs</span>
           </span>
         </div>
-
         <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActive(href)
@@ -48,10 +43,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             )
           })}
         </nav>
-
-        <div className="px-6 py-4" style={{ borderTop: '1px solid var(--border)' }}>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Edinburgh Marathon</p>
-          <p className="text-xs font-semibold" style={{ color: 'var(--text)' }}>24 May 2026</p>
+        <div className="px-3 py-4" style={{ borderTop: '1px solid var(--border)' }}>
+          <Link
+            href="/plan/new"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full"
+            style={{
+              backgroundColor: pathname.startsWith('/plan/new') ? 'var(--accent)' : 'transparent',
+              color: pathname.startsWith('/plan/new') ? '#fff' : 'var(--text-muted)',
+            }}
+          >
+            <Plus size={18} />
+            New plan
+          </Link>
         </div>
       </aside>
 
@@ -60,7 +63,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Mobile bottom nav — hidden on desktop */}
+      {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30"
         style={{ backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
         <div className="flex items-center justify-around h-16 px-2">
@@ -75,9 +78,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             )
           })}
+          <Link
+            href="/plan/new"
+            className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors"
+            style={{ color: pathname.startsWith('/plan/new') ? 'var(--accent)' : 'var(--text-muted)' }}
+          >
+            <Plus size={20} strokeWidth={pathname.startsWith('/plan/new') ? 2.5 : 1.8} />
+            <span className="text-[10px] font-medium">New</span>
+          </Link>
         </div>
       </nav>
-
     </div>
   )
 }
