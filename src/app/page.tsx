@@ -1,85 +1,79 @@
-import { supabase } from '@/lib/supabase'
-import { Block, Workout, AdaptDraft } from '@/lib/types'
-import RaceHeroCard from '@/components/plan/RaceHeroCard'
-import StatsStrip from '@/components/plan/StatsStrip'
-import WeekView from '@/components/plan/WeekView'
-import CoachNudge from '@/components/plan/CoachNudge'
-import QuickQuestions from '@/components/plan/QuickQuestions'
-import PushToGarminButton from '@/components/plan/PushToGarminButton'
-import AdaptBanner from '@/components/plan/AdaptBanner'
+import { createServerClient } from "@/lib/supabase";
+import { Block, Workout, AdaptDraft } from "@/lib/types";
+import AppShell from "@/components/layout/AppShell";
+import RaceHeroCard from "@/components/plan/RaceHeroCard";
+import StatsStrip from "@/components/plan/StatsStrip";
+import WeekView from "@/components/plan/WeekView";
+import CoachNudge from "@/components/plan/CoachNudge";
+import QuickQuestions from "@/components/plan/QuickQuestions";
+import PushToGarminButton from "@/components/plan/PushToGarminButton";
+import AdaptBanner from "@/components/plan/AdaptBanner";
+import EmptyState from "@/components/plan/EmptyState";
 
-export const revalidate = 0
+export const dynamic = "force-dynamic";
 
-export default async function PlanPage({ searchParams }: { searchParams: { week?: string } }) {
-  const weekOverride = searchParams.week ? parseInt(searchParams.week) : null
+export default async function PlanPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ week?: string }>;
+}) {
+  const supabase = createServerClient();
+  const { data: blocks } = await supabase
+    .from("blocks")
+    .select("*")
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1);
 
-  const { data: block, error } = await supabase
-    .from('blocks')
-    .select('*')
-    .eq('status', 'active')
-    .single()
+  const block = blocks?.[0] as Block | undefined;
 
-  if (error || !block) {
+  if (!block) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p style={{ color: 'var(--text-muted)' }}>No active training block found.</p>
-      </div>
-    )
+      <AppShell>
+        <EmptyState />
+      </AppShell>
+    );
   }
 
-  const typedBlock = block as Block
-  const displayWeek = weekOverride ?? typedBlock.current_week
+  const params = await searchParams;
+  const weekOverride = params.week ? parseInt(params.week, 10) : null;
+  const displayWeek =
+    weekOverride && weekOverride >= 1 && weekOverride <= block.total_weeks
+      ? weekOverride
+      : block.current_week;
 
-  const { data: allWorkouts } = await supabase
-    .from('workouts')
-    .select('*')
-    .eq('block_id', typedBlock.id)
-    .order('scheduled_date', { ascending: true })
+  const { data: workouts } = await supabase
+    .from("workouts")
+    .select("*")
+    .eq("block_id", block.id)
+    .eq("week_number", displayWeek)
+    .order("day_of_week", { ascending: true });
 
-  const workouts = (allWorkouts as Workout[]) ?? []
-  const weekWorkouts = workouts.filter(w => w.week_number === displayWeek)
+  const { data: drafts } = await supabase
+    .from("adapt_drafts")
+    .select("*")
+    .eq("block_id", block.id)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(1);
 
-  const plannedKm = weekWorkouts.reduce((sum, w) => sum + (w.distance_km ?? 0), 0)
-  const doneKm = weekWorkouts
-    .filter(w => w.is_complete)
-    .reduce((sum, w) => sum + (w.distance_km ?? 0), 0)
-  const sessionCount = weekWorkouts.filter(w => w.type !== 'rest').length
-  const completedCount = weekWorkouts
-    .filter(w => w.is_complete && w.type !== 'rest').length
-
-  // Fetch pending adapt draft if one exists
-  const { data: draftData } = await supabase
-    .from('adapt_drafts')
-    .select('*')
-    .eq('block_id', typedBlock.id)
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single()
-
-  const pendingDraft = draftData as AdaptDraft | null
+  const pendingDraft = drafts?.[0] as AdaptDraft | undefined;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
-      <RaceHeroCard block={typedBlock} />
-      <StatsStrip
-        plannedKm={plannedKm}
-        doneKm={doneKm}
-        sessionCount={sessionCount}
-        completedCount={completedCount}
-      />
-
-      {pendingDraft && <AdaptBanner draft={pendingDraft} />}
-
-      <WeekView
-        workouts={weekWorkouts}
-        weekNumber={displayWeek}
-        blockId={typedBlock.id}
-        totalWeeks={typedBlock.total_weeks}
-      />
-      <CoachNudge />
-      <QuickQuestions />
-      <PushToGarminButton />
-    </div>
-  )
+    <AppShell>
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        <RaceHeroCard block={block} />
+        <StatsStrip block={block} workouts={(workouts ?? []) as Workout[]} />
+        {pendingDraft && <AdaptBanner draft={pendingDraft} />}
+        <WeekView
+          block={block}
+          workouts={(workouts ?? []) as Workout[]}
+          displayWeek={displayWeek}
+        />
+        <CoachNudge block={block} />
+        <QuickQuestions />
+        <PushToGarminButton blockId={block.id} weekNumber={displayWeek} />
+      </div>
+    </AppShell>
+  );
 }

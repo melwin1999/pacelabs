@@ -9,7 +9,7 @@ export type Block = {
   race_distance_km: number | null;
   est_now_seconds: number | null;
   race_proj_seconds: number | null;
-  status: 'active' | 'archived' | 'completed';
+  status: 'active' | 'archived' | 'completed' | 'draft';
   phases: Phase[] | null;
   adaptation_aggressiveness: 'conservative' | 'moderate' | 'aggressive';
   created_at: string;
@@ -96,4 +96,24 @@ export type AdaptDraft = {
   rejection_reason: string | null;
   created_at: string;
   resolved_at: string | null;
+};
+
+// Phase 5 — wizard input shape
+export type WizardInput = {
+  goal_type: 'marathon' | 'half' | '10k' | '5k' | 'base' | 'other';
+  race_date: string;
+  race_distance_km: number;
+  benchmark_distance_km: number;
+  benchmark_time_seconds: number;
+  benchmark_notes: string;
+  peak_weekly_km: number;
+  fitness_notes: string;
+  total_weeks: number;
+  days_per_week: number;
+  long_run_day: 'saturday' | 'sunday';
+  schedule_notes: string;
+  template: 'pfitzinger' | 'daniels' | 'hansons' | 'norwegian' | 'claude';
+  template_notes: string;
+  aggressiveness: 'conservative' | 'moderate' | 'aggressive';
+  general_notes: string;
 };
