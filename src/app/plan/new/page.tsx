@@ -68,6 +68,14 @@ const TEMPLATES = [
       'Cumulative fatigue philosophy. Long runs capped shorter, but you run frequently and rarely fully fresh. Two quality sessions per week. Good for consistent runners who prefer frequent moderate efforts over brutal long runs.',
   },
   {
+    value: 'higdon',
+    label: 'Hal Higdon',
+    badge: 'Beginner-friendly',
+    badgeColor: '#22C55E',
+    description:
+      'The classic beginner methodology. Long runs are the centrepiece, almost everything else is easy pace, and speedwork is minimal or absent in the base plans. Built around consistency and finishing feeling good rather than chasing a time. Huge community support and very well-documented. The most accessible starting point for newer runners.',
+  },
+  {
     value: 'norwegian',
     label: 'Norwegian',
     badge: 'Advanced',

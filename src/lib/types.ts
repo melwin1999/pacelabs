@@ -112,7 +112,7 @@ export type WizardInput = {
   days_per_week: number;
   long_run_day: 'saturday' | 'sunday';
   schedule_notes: string;
-  template: 'pfitzinger' | 'daniels' | 'hansons' | 'norwegian' | 'claude';
+  template: 'pfitzinger' | 'daniels' | 'hansons' | 'higdon' | 'norwegian' | 'claude';
   template_notes: string;
   aggressiveness: 'conservative' | 'moderate' | 'aggressive';
   general_notes: string;
