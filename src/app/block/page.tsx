@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { Block, Workout } from "@/lib/types";
 import AppShell from "@/components/layout/AppShell";
 import VolumeChart from "@/components/block/VolumeChart";
@@ -9,8 +9,7 @@ import EmptyState from "@/components/plan/EmptyState";
 export const dynamic = "force-dynamic";
 
 export default async function BlockPage() {
-  const supabase = createServerClient();
-  const { data: blocks } = await supabase
+  const { data: blocks } = await supabaseAdmin
     .from("blocks")
     .select("*")
     .eq("status", "active")
@@ -27,7 +26,7 @@ export default async function BlockPage() {
     );
   }
 
-  const { data: workouts } = await supabase
+  const { data: workouts } = await supabaseAdmin
     .from("workouts")
     .select("*")
     .eq("block_id", block.id)

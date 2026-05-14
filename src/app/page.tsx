@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { Block, Workout, AdaptDraft } from "@/lib/types";
 import AppShell from "@/components/layout/AppShell";
 import RaceHeroCard from "@/components/plan/RaceHeroCard";
@@ -17,8 +17,7 @@ export default async function PlanPage({
 }: {
   searchParams: Promise<{ week?: string }>;
 }) {
-  const supabase = createServerClient();
-  const { data: blocks } = await supabase
+  const { data: blocks } = await supabaseAdmin
     .from("blocks")
     .select("*")
     .eq("status", "active")
@@ -42,14 +41,14 @@ export default async function PlanPage({
       ? weekOverride
       : block.current_week;
 
-  const { data: workouts } = await supabase
+  const { data: workouts } = await supabaseAdmin
     .from("workouts")
     .select("*")
     .eq("block_id", block.id)
     .eq("week_number", displayWeek)
     .order("day_of_week", { ascending: true });
 
-  const { data: drafts } = await supabase
+  const { data: drafts } = await supabaseAdmin
     .from("adapt_drafts")
     .select("*")
     .eq("block_id", block.id)
