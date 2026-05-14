@@ -111,7 +111,7 @@ const AGGRESSIVENESS = [
   },
 ];
 
-const WEEK_OPTIONS = [8, 12, 16, 20];
+const WEEK_OPTIONS = [8, 12, 16, 20, 24];
 const DAYS_OPTIONS = [3, 4, 5, 6];
 
 function parseTimeToSeconds(mmss: string): number {
@@ -445,7 +445,7 @@ export default function NewPlanPage() {
                 <button
                   onClick={() => {
                     const val = prompt('Enter number of weeks (e.g. 14)');
-                    if (val && !isNaN(parseInt(val))) update('total_weeks', parseInt(val));
+                    if (val && !isNaN(parseInt(val))) update('total_weeks', Math.min(24, parseInt(val)));
                   }}
                   className="flex-1 rounded-xl py-3 text-sm font-semibold transition-all"
                   style={{
