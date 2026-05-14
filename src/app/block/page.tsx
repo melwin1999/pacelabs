@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase";
-import { Block, Workout } from "@/lib/types";
+import { Block, Workout, Phase } from "@/lib/types";
 import AppShell from "@/components/layout/AppShell";
 import VolumeChart from "@/components/block/VolumeChart";
 import PhaseStrip from "@/components/block/PhaseStrip";
@@ -7,6 +7,13 @@ import WeekRow from "@/components/block/WeekRow";
 import EmptyState from "@/components/plan/EmptyState";
 
 export const dynamic = "force-dynamic";
+
+function getPhaseForWeek(phases: Phase[], weekNum: number): string | null {
+  const phase = phases.find(
+    (p) => weekNum >= p.start_week && weekNum <= p.end_week
+  );
+  return phase?.name ?? null;
+}
 
 export default async function BlockPage() {
   const { data: blocks } = await supabaseAdmin
@@ -34,6 +41,7 @@ export default async function BlockPage() {
     .order("day_of_week", { ascending: true });
 
   const allWorkouts = (workouts ?? []) as Workout[];
+  const phases = block.phases ?? [];
 
   const weekSummaries = Array.from({ length: block.total_weeks }, (_, i) => {
     const weekNum = i + 1;
@@ -68,23 +76,34 @@ export default async function BlockPage() {
 
         <VolumeChart
           weekSummaries={weekSummaries}
-          phases={block.phases ?? []}
+          phases={phases}
           currentWeek={block.current_week}
           totalWeeks={block.total_weeks}
         />
-        <PhaseStrip block={block} />
+
+        <PhaseStrip
+          phases={phases}
+          totalWeeks={block.total_weeks}
+        />
 
         <div className="space-y-2">
-          {Array.from({ length: block.total_weeks }, (_, i) => i + 1).map(
-            (weekNum) => (
+          {Array.from({ length: block.total_weeks }, (_, i) => {
+            const weekNum = i + 1;
+            const summary = weekSummaries[i];
+            const weekWorkouts = allWorkouts.filter((w) => w.week_number === weekNum);
+            return (
               <WeekRow
                 key={weekNum}
-                block={block}
                 weekNumber={weekNum}
-                workouts={allWorkouts.filter((w) => w.week_number === weekNum)}
+                plannedKm={summary.plannedKm}
+                completedKm={summary.completedKm}
+                sessionsTotal={summary.sessionsTotal}
+                sessionsDone={summary.sessionsDone}
+                workouts={weekWorkouts}
+                phaseName={getPhaseForWeek(phases, weekNum)}
               />
-            )
-          )}
+            );
+          })}
         </div>
       </div>
     </AppShell>
