@@ -87,16 +87,7 @@ export type PlanChange = {
 
 export type ProposedChange = {
   workout_id?: string;
-  change_type:
-    | 'reschedule'
-    | 'skip'
-    | 'skipped'
-    | 'modify_distance'
-    | 'modify_pace'
-    | 'modify_type'
-    | 'add_workout'
-    | 'delete_workout'
-    | 'edited';
+  change_type: string;
   from_date?: string;
   to_date?: string;
   field_changed?: string;
