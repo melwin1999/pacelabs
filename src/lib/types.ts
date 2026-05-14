@@ -87,6 +87,7 @@ export type PlanChange = {
 
 export type ProposedChange = {
   workout_id?: string;
+  workout_name?: string;
   change_type: string;
   from_date?: string;
   to_date?: string;
