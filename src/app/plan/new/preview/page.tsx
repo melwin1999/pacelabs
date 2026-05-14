@@ -274,7 +274,7 @@ export default function PreviewPage() {
                           {w.type !== 'rest' && (
                             <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                               {w.distance_km > 0 ? `${w.distance_km} km` : ''}
-                              {w.pace_min_seconds ? ` · ${formatWorkoutPace(w.pace_min_seconds, w.pace_max_seconds ?? w.pace_min_seconds)}` : ''}
+                              {w.pace_min_seconds ? ` · ${formatWorkoutPace(w.pace_min_seconds, w.pace_max_seconds ?? w.pace_min_seconds, null)}` : ''}
                             </div>
                           )}
                           {w.description && (
