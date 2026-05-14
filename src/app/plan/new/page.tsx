@@ -590,7 +590,7 @@ export default function NewPlanPage() {
                           const pending = !done;
                           const phaseColors = ['#60A5FA','#60A5FA','#60A5FA','#60A5FA','#FB923C','#FB923C','#FB923C','#FB923C','#FB923C','#FB923C','#F87171','#F87171','#F87171','#F87171','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3'];
                           const color = done ? (phaseColors[i] ?? '#F97316') : '#27272a';
-                          const heightPct = 40 + Math.sin(i * 0.8) * 20 + (i / progress.totalWeeks) * 30;
+                          const heightPct = 40 + Math.sin(i * 0.8) * 20 + (i / (progress.totalWeeks ?? 1)) * 30;
                           return (
                             <div
                               key={weekNum}
