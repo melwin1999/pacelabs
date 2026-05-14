@@ -112,7 +112,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
         </div>
       )}
 
-      {workout.structure?.length > 0 && (
+      {(workout.structure?.length ?? 0) > 0 && (
         <div className="rounded-xl px-4 mb-6"
           style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <p className="text-xs font-bold uppercase tracking-wide py-3"
