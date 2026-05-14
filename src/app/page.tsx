@@ -9,7 +9,9 @@ import PushToGarminButton from '@/components/plan/PushToGarminButton'
 
 export const revalidate = 0
 
-export default async function PlanPage() {
+export default async function PlanPage({ searchParams }: { searchParams: { week?: string } }) {
+  const weekOverride = searchParams.week ? parseInt(searchParams.week) : null
+
   const { data: block, error } = await supabase
     .from('blocks')
     .select('*')
@@ -25,6 +27,7 @@ export default async function PlanPage() {
   }
 
   const typedBlock = block as Block
+  const displayWeek = weekOverride ?? typedBlock.current_week
 
   const { data: allWorkouts } = await supabase
     .from('workouts')
@@ -33,14 +36,14 @@ export default async function PlanPage() {
     .order('scheduled_date', { ascending: true })
 
   const workouts = (allWorkouts as Workout[]) ?? []
-  const currentWeek = workouts.filter(w => w.week_number === typedBlock.current_week)
+  const weekWorkouts = workouts.filter(w => w.week_number === displayWeek)
 
-  const plannedKm = currentWeek.reduce((sum, w) => sum + (w.distance_km ?? 0), 0)
-  const doneKm = currentWeek
+  const plannedKm = weekWorkouts.reduce((sum, w) => sum + (w.distance_km ?? 0), 0)
+  const doneKm = weekWorkouts
     .filter(w => w.is_complete)
     .reduce((sum, w) => sum + (w.distance_km ?? 0), 0)
-  const sessionCount = currentWeek.filter(w => w.type !== 'rest').length
-  const completedCount = currentWeek
+  const sessionCount = weekWorkouts.filter(w => w.type !== 'rest').length
+  const completedCount = weekWorkouts
     .filter(w => w.is_complete && w.type !== 'rest').length
 
   return (
@@ -56,8 +59,8 @@ export default async function PlanPage() {
       {/* Phase 4C will insert the AdaptBanner here */}
 
       <WeekView
-        workouts={currentWeek}
-        weekNumber={typedBlock.current_week}
+        workouts={weekWorkouts}
+        weekNumber={displayWeek}
         blockId={typedBlock.id}
         totalWeeks={typedBlock.total_weeks}
       />
