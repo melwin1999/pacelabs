@@ -101,6 +101,8 @@ export default async function SettingsPage({
               <Link
                 key={f.key}
                 href={`/settings?source=${f.key}`}
+                scroll={false}
+                prefetch={false}
                 className="px-3 py-1.5 rounded-full text-xs font-medium"
                 style={{
                   background: active ? "var(--accent)" : "var(--bg-card)",
