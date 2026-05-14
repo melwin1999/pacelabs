@@ -55,6 +55,8 @@ LONG RUN DAY: ${input.long_run_day}
 RECENT PEAK WEEKLY KM: ${input.peak_weekly_km}km
 BENCHMARK: ${input.benchmark_time_seconds > 0 ? `${Math.floor(input.benchmark_time_seconds/60)}:${String(input.benchmark_time_seconds%60).padStart(2,'0')} for ${input.benchmark_distance_km}km` : 'not provided'}
 ${benchmarkPace ? `BENCHMARK PACE: ${benchmarkPace}s/km` : ''}
+PACE PROJECTION INSTRUCTIONS: Use Riegel's formula to project times: T2 = T1 × (D2/D1)^1.06. For example, a 2:45:00 half marathon (9900s for 21.0975km) projects to: 9900 × (42.195/21.0975)^1.06 = 9900 × 2.0^1.06 = 9900 × 2.085 = ~20640s = ~5:44:00 marathon. est_now_seconds is the projected current finish time at goal distance. race_proj_seconds should be 3-5% faster than est_now assuming training goes well. DO NOT invert the formula or use pace directly — always use total time and total distance.
+${input.general_notes ? `RUNNER NOTES (goal): ${input.general_notes}` : ''}
 ${input.general_notes ? `RUNNER NOTES (goal): ${input.general_notes}` : ''}
 ${input.fitness_notes ? `RUNNER NOTES (fitness): ${input.fitness_notes}` : ''}
 ${input.schedule_notes ? `RUNNER NOTES (schedule): ${input.schedule_notes}` : ''}
