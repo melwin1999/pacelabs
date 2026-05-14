@@ -1,13 +1,90 @@
-// src/app/plan/new/page.tsx
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import type { WizardInput } from '@/lib/types'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import AppShell from '@/components/layout/AppShell';
+import { WizardInput } from '@/lib/types';
+import { ChevronRight, ChevronLeft, Sparkles, Loader2, Plus, Trash2 } from 'lucide-react';
 
-const STORAGE_KEY = 'pacelabs_wizard_input'
+const STORAGE_KEY = 'pacelabs_wizard_v2';
 
-const defaultInput: WizardInput = {
+const STEPS = [
+  'Goal',
+  'Race details',
+  'Your fitness',
+  'Schedule',
+  'Template',
+  'Aggressiveness',
+  'B-Races',
+  'Review & generate',
+];
+
+const GOAL_TYPES = [
+  { value: 'marathon', label: 'Marathon' },
+  { value: 'half', label: 'Half Marathon' },
+  { value: '10k', label: '10K' },
+  { value: '5k', label: '5K' },
+  { value: 'base', label: 'Base Building' },
+  { value: 'other', label: 'Other' },
+];
+
+const RACE_DISTANCES: Record<string, number> = {
+  marathon: 42.195, half: 21.0975, '10k': 10, '5k': 5, base: 0, other: 0,
+};
+
+const BENCHMARK_DISTANCES = [
+  { label: '5K', value: 5 },
+  { label: '10K', value: 10 },
+  { label: 'Half Marathon', value: 21.0975 },
+  { label: 'Marathon', value: 42.195 },
+  { label: 'Other', value: 0 },
+];
+
+const TEMPLATES = [
+  { value: 'claude', label: "Claude's Own", badge: 'Recommended', badgeColor: '#F97316', description: "Hybrid approach built from scratch based on your inputs. Borrows from published methodologies and optimises for your specific situation, fitness level, and schedule." },
+  { value: 'daniels', label: 'Daniels (VDOT)', badge: 'All levels', badgeColor: '#22C55E', description: 'Every workout has an exact pace target derived from your current fitness. Strong threshold and interval work, moderate volume. Great if you like data and structure.' },
+  { value: 'pfitzinger', label: 'Pfitzinger', badge: 'Advanced', badgeColor: '#F87171', description: 'Medium-long runs mid-week, lactate threshold sessions, long runs with marathon-pace segments. High volume. Best for runners at 60+ km/week.' },
+  { value: 'hansons', label: 'Hansons', badge: 'Intermediate', badgeColor: '#FB923C', description: 'Cumulative fatigue philosophy. Long runs capped shorter but you run frequently. Two quality sessions per week.' },
+  { value: 'higdon', label: 'Hal Higdon', badge: 'Beginner-friendly', badgeColor: '#22C55E', description: 'Long runs are the centrepiece, almost everything else is easy. Built around consistency and finishing feeling good.' },
+  { value: 'norwegian', label: 'Norwegian', badge: 'Advanced', badgeColor: '#F87171', description: 'High-volume, threshold-heavy. Double threshold days. Not recommended for beginners — assumes a strong aerobic base.' },
+];
+
+const MIN_DAYS: Record<string, number> = {
+  pfitzinger: 5, norwegian: 5, daniels: 4, hansons: 5, higdon: 3, claude: 3,
+};
+
+const AGGRESSIVENESS = [
+  { value: 'conservative', label: 'Conservative', description: 'Prioritises consistency and injury prevention. Lower peak volume, more recovery.' },
+  { value: 'moderate', label: 'Moderate', description: 'Balanced progression. Standard training load with room to adapt. Good for most runners.' },
+  { value: 'aggressive', label: 'Aggressive', description: 'Higher volume and intensity progression. Pushes closer to your limits. Best with a strong base.' },
+];
+
+const WEEK_OPTIONS = [8, 10, 12, 14, 16, 18, 20, 22, 24];
+const DAYS_OPTIONS = [3, 4, 5, 6, 7];
+
+function parseTimeToSeconds(val: string): number {
+  const parts = val.split(':');
+  if (parts.length === 3) {
+    const [h, m, s] = parts.map(Number);
+    if (!isNaN(h) && !isNaN(m) && !isNaN(s)) return h * 3600 + m * 60 + s;
+  }
+  if (parts.length === 2) {
+    const [m, s] = parts.map(Number);
+    if (!isNaN(m) && !isNaN(s)) return m * 60 + s;
+  }
+  return 0;
+}
+
+function formatSeconds(s: number): string {
+  if (s <= 0) return '';
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+const defaultWizard: WizardInput = {
   goal_type: 'marathon',
   general_notes: '',
   race_date: '',
@@ -33,455 +110,408 @@ const defaultInput: WizardInput = {
   volume_aggressiveness: undefined,
   quality_aggressiveness: undefined,
   b_races: [],
-}
+};
 
 export default function NewPlanPage() {
-  const router = useRouter()
-  const [input, setInput] = useState<WizardInput>(defaultInput)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [step, setStep] = useState(0);
+  const [data, setData] = useState<WizardInput>(defaultWizard);
+  const [benchmarkInput, setBenchmarkInput] = useState('');
+  const [customBenchmarkKm, setCustomBenchmarkKm] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState('');
+  const [methodologyError, setMethodologyError] = useState('');
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      try { setInput(JSON.parse(saved)) } catch {}
-    }
-  }, [])
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) { try { setData(JSON.parse(saved)); } catch {} }
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(input))
-  }, [input])
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }, [data]);
 
-  function update(patch: Partial<WizardInput>) {
-    setInput(prev => ({ ...prev, ...patch }))
+  function update<K extends keyof WizardInput>(key: K, value: WizardInput[K]) {
+    setData(prev => ({ ...prev, [key]: value }));
   }
 
-  async function handleGenerate() {
-    setLoading(true)
-    setError(null)
+  function canAdvance(): boolean {
+    if (step === 0) return !!data.goal_type;
+    if (step === 1) return !!data.race_date && !!data.start_date && data.race_distance_km > 0;
+    if (step === 2) return data.benchmark_time_seconds > 0 && data.benchmark_distance_km > 0 && data.current_weekly_km > 0;
+    if (step === 3) return data.total_weeks > 0 && data.days_per_week > 0;
+    if (step === 4) {
+      const min = MIN_DAYS[data.template];
+      if (data.days_per_week < min) { setMethodologyError(`${data.template.charAt(0).toUpperCase() + data.template.slice(1)} requires at least ${min} days/week. Choose a different methodology or increase days.`); return false; }
+      setMethodologyError('');
+      return !!data.template;
+    }
+    if (step === 5) return !!data.aggressiveness;
+    return true;
+  }
+
+  function next() { if (canAdvance()) setStep(s => s + 1); }
+  function back() { setStep(s => s - 1); setMethodologyError(''); }
+
+  async function generate() {
+    setGenerating(true);
+    setError('');
     try {
       const res = await fetch('/api/blocks/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(input),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Generation failed')
-      localStorage.removeItem(STORAGE_KEY)
-      router.push(`/plan/new/preview?id=${data.block_id}`)
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Generation failed');
+      localStorage.removeItem(STORAGE_KEY);
+      router.push(`/plan/new/preview?id=${json.block_id}`);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Something went wrong')
-    } finally {
-      setLoading(false)
+      setError(e instanceof Error ? e.message : 'Something went wrong');
+      setGenerating(false);
     }
   }
 
+  const inputClass = "w-full rounded-xl px-4 py-3 text-sm outline-none";
+  const inputStyle = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)' };
+
   return (
-    <div className="min-h-screen p-6 max-w-2xl mx-auto" style={{ color: 'var(--text)' }}>
-      <h1 className="text-2xl font-bold mb-6">New Training Plan</h1>
+    <AppShell>
+      <div className="max-w-lg mx-auto px-4 py-6">
 
-      <div className="space-y-6">
-
-        {/* Goal */}
-        <section className="rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h2 className="font-semibold mb-3">Goal</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Race type</label>
-              <select
-                className="w-full rounded-lg px-3 py-2 text-sm"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                value={input.goal_type}
-                onChange={e => update({ goal_type: e.target.value as WizardInput['goal_type'], race_distance_km: e.target.value === 'marathon' ? 42.195 : e.target.value === 'half' ? 21.0975 : e.target.value === '10k' ? 10 : e.target.value === '5k' ? 5 : 42.195 })}
-              >
-                <option value="marathon">Marathon</option>
-                <option value="half">Half Marathon</option>
-                <option value="10k">10K</option>
-                <option value="5k">5K</option>
-                <option value="base">Base Building</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Notes (optional)</label>
-              <textarea
-                className="w-full rounded-lg px-3 py-2 text-sm resize-none"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                rows={2}
-                placeholder="Anything else about your goal..."
-                value={input.general_notes}
-                onChange={e => update({ general_notes: e.target.value })}
-              />
-            </div>
+        {/* Progress bar */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Step {step + 1} of {STEPS.length}</span>
+            <span className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>{STEPS[step]}</span>
           </div>
-        </section>
-
-        {/* Race details */}
-        <section className="rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h2 className="font-semibold mb-3">Race Details</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Race date</label>
-              <input
-                type="date"
-                className="w-full rounded-lg px-3 py-2 text-sm"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                value={input.race_date}
-                onChange={e => update({ race_date: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Course type</label>
-              <select
-                className="w-full rounded-lg px-3 py-2 text-sm"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                value={input.course_type}
-                onChange={e => update({ course_type: e.target.value as WizardInput['course_type'] })}
-              >
-                <option value="flat">Flat</option>
-                <option value="rolling">Rolling</option>
-                <option value="hilly">Hilly</option>
-                <option value="mountainous">Mountainous</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Elevation gain (m, optional)</label>
-              <input
-                type="number"
-                className="w-full rounded-lg px-3 py-2 text-sm"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                placeholder="Leave blank to use course type estimate"
-                value={input.elevation_gain_m ?? ''}
-                onChange={e => update({ elevation_gain_m: e.target.value ? Number(e.target.value) : undefined })}
-              />
-            </div>
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Race notes (optional)</label>
-              <textarea
-                className="w-full rounded-lg px-3 py-2 text-sm resize-none"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                rows={2}
-                placeholder="e.g. point-to-point, altitude, weather..."
-                value={input.race_notes}
-                onChange={e => update({ race_notes: e.target.value })}
-              />
-            </div>
+          <div className="w-full h-1.5 rounded-full" style={{ backgroundColor: 'var(--border)' }}>
+            <div className="h-1.5 rounded-full transition-all duration-300" style={{ width: `${((step + 1) / STEPS.length) * 100}%`, backgroundColor: 'var(--accent)' }} />
           </div>
-        </section>
+        </div>
 
-        {/* Fitness */}
-        <section className="rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h2 className="font-semibold mb-3">Current Fitness</h2>
-          <div className="space-y-3">
+        {/* Step 0 — Goal */}
+        {step === 0 && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>What are you training for?</h1>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Benchmark distance (km)</label>
-                <input
-                  type="number"
-                  className="w-full rounded-lg px-3 py-2 text-sm"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                  value={input.benchmark_distance_km}
-                  onChange={e => update({ benchmark_distance_km: Number(e.target.value) })}
-                />
-              </div>
-              <div>
-                <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Benchmark time (seconds)</label>
-                <input
-                  type="number"
-                  className="w-full rounded-lg px-3 py-2 text-sm"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                  value={input.benchmark_time_seconds}
-                  onChange={e => update({ benchmark_time_seconds: Number(e.target.value) })}
-                />
-              </div>
+              {GOAL_TYPES.map(g => (
+                <button key={g.value} onClick={() => { update('goal_type', g.value as WizardInput['goal_type']); update('race_distance_km', RACE_DISTANCES[g.value] ?? 0); }}
+                  className="rounded-xl p-4 text-left transition-all"
+                  style={{ backgroundColor: data.goal_type === g.value ? 'var(--accent)' : 'var(--bg-card)', border: `1.5px solid ${data.goal_type === g.value ? 'var(--accent)' : 'var(--border)'}`, color: data.goal_type === g.value ? '#fff' : 'var(--text)' }}>
+                  <div className="font-semibold text-sm">{g.label}</div>
+                </button>
+              ))}
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Current weekly km (4-week avg)</label>
-                <input
-                  type="number"
-                  className="w-full rounded-lg px-3 py-2 text-sm"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                  value={input.current_weekly_km}
-                  onChange={e => update({ current_weekly_km: Number(e.target.value) })}
-                />
-              </div>
-              <div>
-                <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Runs per week (avg)</label>
-                <input
-                  type="number"
-                  className="w-full rounded-lg px-3 py-2 text-sm"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                  value={input.current_runs_per_week}
-                  onChange={e => update({ current_runs_per_week: Number(e.target.value) })}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Peak training history (optional)</label>
-              <input
-                type="text"
-                className="w-full rounded-lg px-3 py-2 text-sm"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                placeholder="e.g. hit 65km/wk for 8 weeks in summer 2025"
-                value={input.peak_history_note}
-                onChange={e => update({ peak_history_note: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Fitness notes (optional)</label>
-              <textarea
-                className="w-full rounded-lg px-3 py-2 text-sm resize-none"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                rows={2}
-                placeholder="Injuries, recent illness, anything relevant..."
-                value={input.fitness_notes}
-                onChange={e => update({ fitness_notes: e.target.value })}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Schedule */}
-        <section className="rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h2 className="font-semibold mb-3">Schedule</h2>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Plan start date</label>
-                <input
-                  type="date"
-                  className="w-full rounded-lg px-3 py-2 text-sm"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                  value={input.start_date}
-                  onChange={e => update({ start_date: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Plan length (weeks)</label>
-                <input
-                  type="number"
-                  min={6}
-                  max={24}
-                  className="w-full rounded-lg px-3 py-2 text-sm"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                  value={input.total_weeks}
-                  onChange={e => update({ total_weeks: Number(e.target.value) })}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Days per week</label>
-                <input
-                  type="number"
-                  min={3}
-                  max={7}
-                  className="w-full rounded-lg px-3 py-2 text-sm"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                  value={input.days_per_week}
-                  onChange={e => update({ days_per_week: Number(e.target.value) })}
-                />
-              </div>
-              <div>
-                <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Long run day</label>
-                <select
-                  className="w-full rounded-lg px-3 py-2 text-sm"
-                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                  value={input.long_run_day}
-                  onChange={e => update({ long_run_day: e.target.value as 'saturday' | 'sunday' })}
-                >
-                  <option value="saturday">Saturday</option>
-                  <option value="sunday">Sunday</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Schedule notes (optional)</label>
-              <textarea
-                className="w-full rounded-lg px-3 py-2 text-sm resize-none"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                rows={2}
-                placeholder="Days you can't run, travel, work commitments..."
-                value={input.schedule_notes}
-                onChange={e => update({ schedule_notes: e.target.value })}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Methodology */}
-        <section className="rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h2 className="font-semibold mb-3">Methodology</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Training approach</label>
-              <select
-                className="w-full rounded-lg px-3 py-2 text-sm"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                value={input.template}
-                onChange={e => update({ template: e.target.value as WizardInput['template'] })}
-              >
-                <option value="claude">Claude&apos;s Own — Fully Customised</option>
-                <option value="daniels">Daniels</option>
-                <option value="pfitzinger">Pfitzinger</option>
-                <option value="hansons">Hansons</option>
-                <option value="higdon">Higdon</option>
-                <option value="norwegian">Norwegian</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Methodology notes (optional)</label>
-              <textarea
-                className="w-full rounded-lg px-3 py-2 text-sm resize-none"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                rows={2}
-                placeholder="Any preferences within this approach..."
-                value={input.template_notes}
-                onChange={e => update({ template_notes: e.target.value })}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Aggressiveness */}
-        <section className="rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h2 className="font-semibold mb-3">Training Load</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Aggressiveness</label>
-              <select
-                className="w-full rounded-lg px-3 py-2 text-sm"
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                value={input.aggressiveness}
-                onChange={e => update({ aggressiveness: e.target.value as WizardInput['aggressiveness'] })}
-              >
-                <option value="conservative">Conservative — safe progression, injury prevention first</option>
-                <option value="moderate">Moderate — balanced progression</option>
-                <option value="aggressive">Aggressive — maximum adaptation, higher injury risk</option>
-              </select>
-            </div>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={input.advanced_load}
-                onChange={e => update({ advanced_load: e.target.checked })}
-              />
-              Customise volume and intensity separately
-            </label>
-            {input.advanced_load && (
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <div>
-                  <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Volume aggressiveness</label>
-                  <select
-                    className="w-full rounded-lg px-3 py-2 text-sm"
-                    style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                    value={input.volume_aggressiveness ?? input.aggressiveness}
-                    onChange={e => update({ volume_aggressiveness: e.target.value as WizardInput['aggressiveness'] })}
-                  >
-                    <option value="conservative">Conservative</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="aggressive">Aggressive</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>Quality aggressiveness</label>
-                  <select
-                    className="w-full rounded-lg px-3 py-2 text-sm"
-                    style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                    value={input.quality_aggressiveness ?? input.aggressiveness}
-                    onChange={e => update({ quality_aggressiveness: e.target.value as WizardInput['aggressiveness'] })}
-                  >
-                    <option value="conservative">Conservative</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="aggressive">Aggressive</option>
-                  </select>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* B-races */}
-        <section className="rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h2 className="font-semibold mb-3">B-Races (optional)</h2>
-          <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>Tune-up races during your block. Claude will adjust surrounding weeks accordingly.</p>
-          {input.b_races.map((b, i) => (
-            <div key={i} className="mb-3 p-3 rounded-lg space-y-2" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Date</label>
-                  <input
-                    type="date"
-                    className="w-full rounded-lg px-2 py-1 text-sm"
-                    style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                    value={b.race_date}
-                    onChange={e => { const r = [...input.b_races]; r[i] = { ...r[i], race_date: e.target.value }; update({ b_races: r }) }}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Distance (km)</label>
-                  <input
-                    type="number"
-                    className="w-full rounded-lg px-2 py-1 text-sm"
-                    style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                    value={b.race_distance_km}
-                    onChange={e => { const r = [...input.b_races]; r[i] = { ...r[i], race_distance_km: Number(e.target.value) }; update({ b_races: r }) }}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs mb-1 block" style={{ color: 'var(--text-muted)' }}>Effort level</label>
-                <select
-                  className="w-full rounded-lg px-2 py-1 text-sm"
-                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                  value={b.effort_level}
-                  onChange={e => { const r = [...input.b_races]; r[i] = { ...r[i], effort_level: e.target.value as 'full_send' | 'hard' | 'tune_up' }; update({ b_races: r }) }}
-                >
-                  <option value="tune_up">Tune-up — replaces a quality session, no surrounding changes</option>
-                  <option value="hard">Hard — slight taper before, 2-3 easy days after</option>
-                  <option value="full_send">Full send — mini taper before, full recovery week after</option>
-                </select>
-              </div>
-              <button
-                className="text-xs"
-                style={{ color: 'var(--text-muted)' }}
-                onClick={() => update({ b_races: input.b_races.filter((_, j) => j !== i) })}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          <button
-            className="text-sm px-3 py-2 rounded-lg"
-            style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-            onClick={() => update({ b_races: [...input.b_races, { race_date: '', race_distance_km: 21.0975, effort_level: 'tune_up', notes: '' }] })}
-          >
-            + Add B-race
-          </button>
-        </section>
-
-        {/* Generate */}
-        {error && (
-          <div className="rounded-lg px-4 py-3 text-sm" style={{ background: '#7f1d1d', color: '#fca5a5' }}>
-            {error}
+            <textarea placeholder="Anything else? (optional) — e.g. 'First marathon' or 'Want to go sub-4'" value={data.general_notes}
+              onChange={e => update('general_notes', e.target.value)} rows={3} className={inputClass} style={inputStyle} />
           </div>
         )}
 
-        <button
-          className="w-full py-3 rounded-xl font-semibold text-white"
-          style={{ background: loading ? 'var(--border)' : 'var(--accent)' }}
-          disabled={loading}
-          onClick={handleGenerate}
-        >
-          {loading ? 'Generating your plan…' : 'Generate Plan'}
-        </button>
+        {/* Step 1 — Race details */}
+        {step === 1 && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>Race details</h1>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>RACE DATE</label>
+              <input type="date" value={data.race_date} onChange={e => update('race_date', e.target.value)} className={inputClass} style={inputStyle} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>PLAN START DATE</label>
+              <input type="date" value={data.start_date} onChange={e => update('start_date', e.target.value)} className={inputClass} style={inputStyle} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>RACE DISTANCE (KM)</label>
+              <input type="number" step="0.001" value={data.race_distance_km || ''} onChange={e => update('race_distance_km', parseFloat(e.target.value) || 0)} className={inputClass} style={inputStyle} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>COURSE TYPE</label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['flat', 'rolling', 'hilly', 'mountainous'] as const).map(c => (
+                  <button key={c} onClick={() => update('course_type', c)}
+                    className="rounded-xl px-3 py-2.5 text-sm font-semibold capitalize transition-all"
+                    style={{ backgroundColor: data.course_type === c ? 'var(--accent)' : 'var(--bg-card)', border: `1.5px solid ${data.course_type === c ? 'var(--accent)' : 'var(--border)'}`, color: data.course_type === c ? '#fff' : 'var(--text)' }}>
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>ELEVATION GAIN (M, OPTIONAL)</label>
+              <input type="number" placeholder="Leave blank to use course type estimate" value={data.elevation_gain_m ?? ''} onChange={e => update('elevation_gain_m', e.target.value ? Number(e.target.value) : undefined)} className={inputClass} style={inputStyle} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>RACE NOTES (OPTIONAL)</label>
+              <input type="text" placeholder="e.g. point-to-point, altitude, known fast course..." value={data.race_notes} onChange={e => update('race_notes', e.target.value)} className={inputClass} style={inputStyle} />
+            </div>
+          </div>
+        )}
 
-        <p className="text-xs text-center pb-8" style={{ color: 'var(--text-muted)' }}>
-          This replaces the old multi-step wizard. All fields are optional except race date and goal type.
-        </p>
+        {/* Step 2 — Fitness */}
+        {step === 2 && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>Your current fitness</h1>
+            <div>
+              <label className="text-xs font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>RECENT BENCHMARK RACE</label>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {BENCHMARK_DISTANCES.map(d => (
+                  <button key={d.value} onClick={() => { if (d.value > 0) update('benchmark_distance_km', d.value); setCustomBenchmarkKm(''); }}
+                    className="rounded-xl px-2 py-2 text-xs font-semibold transition-all"
+                    style={{ backgroundColor: data.benchmark_distance_km === d.value && d.value > 0 ? 'var(--accent)' : 'var(--bg-card)', border: `1.5px solid ${data.benchmark_distance_km === d.value && d.value > 0 ? 'var(--accent)' : 'var(--border)'}`, color: data.benchmark_distance_km === d.value && d.value > 0 ? '#fff' : 'var(--text)' }}>
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+              {/* Custom distance */}
+              <input type="text" placeholder="Custom distance (km)" value={customBenchmarkKm}
+                onChange={e => { setCustomBenchmarkKm(e.target.value); const v = parseFloat(e.target.value); if (!isNaN(v) && v > 0) update('benchmark_distance_km', v); }}
+                className={inputClass + ' mb-3'} style={inputStyle} />
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>FINISH TIME (MM:SS or H:MM:SS)</label>
+              <input type="text" placeholder="e.g. 48:30 or 1:52:00" value={benchmarkInput}
+                onChange={e => { setBenchmarkInput(e.target.value); update('benchmark_time_seconds', parseTimeToSeconds(e.target.value)); }}
+                className={inputClass} style={inputStyle} />
+              {data.benchmark_time_seconds > 0 && (
+                <p className="text-xs mt-1" style={{ color: 'var(--accent)' }}>Parsed: {formatSeconds(data.benchmark_time_seconds)}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>CURRENT WEEKLY KM (4-WEEK AVG)</label>
+                <input type="number" value={data.current_weekly_km || ''} onChange={e => update('current_weekly_km', parseFloat(e.target.value) || 0)} className={inputClass} style={inputStyle} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>RUNS PER WEEK (AVG)</label>
+                <input type="number" value={data.current_runs_per_week || ''} onChange={e => update('current_runs_per_week', parseInt(e.target.value) || 0)} className={inputClass} style={inputStyle} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>PEAK TRAINING HISTORY (OPTIONAL)</label>
+              <input type="text" placeholder="e.g. hit 65km/wk for 8 weeks in summer 2025" value={data.peak_history_note} onChange={e => update('peak_history_note', e.target.value)} className={inputClass} style={inputStyle} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>FITNESS NOTES (OPTIONAL)</label>
+              <textarea placeholder="Injuries, recent illness, anything relevant..." value={data.fitness_notes} onChange={e => update('fitness_notes', e.target.value)} rows={2} className={inputClass} style={inputStyle} />
+            </div>
+          </div>
+        )}
+
+        {/* Step 3 — Schedule */}
+        {step === 3 && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>Your schedule</h1>
+            <div>
+              <label className="text-xs font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>PLAN LENGTH (WEEKS)</label>
+              <div className="flex flex-wrap gap-2">
+                {WEEK_OPTIONS.map(w => (
+                  <button key={w} onClick={() => update('total_weeks', w)}
+                    className="rounded-xl px-4 py-2 text-sm font-semibold transition-all"
+                    style={{ backgroundColor: data.total_weeks === w ? 'var(--accent)' : 'var(--bg-card)', border: `1.5px solid ${data.total_weeks === w ? 'var(--accent)' : 'var(--border)'}`, color: data.total_weeks === w ? '#fff' : 'var(--text)' }}>
+                    {w}w
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>DAYS PER WEEK</label>
+              <div className="flex gap-2">
+                {DAYS_OPTIONS.map(d => (
+                  <button key={d} onClick={() => update('days_per_week', d)}
+                    className="rounded-xl px-4 py-2 text-sm font-semibold transition-all"
+                    style={{ backgroundColor: data.days_per_week === d ? 'var(--accent)' : 'var(--bg-card)', border: `1.5px solid ${data.days_per_week === d ? 'var(--accent)' : 'var(--border)'}`, color: data.days_per_week === d ? '#fff' : 'var(--text)' }}>
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>LONG RUN DAY</label>
+              <div className="flex gap-2">
+                {(['saturday', 'sunday'] as const).map(d => (
+                  <button key={d} onClick={() => update('long_run_day', d)}
+                    className="rounded-xl px-4 py-2 text-sm font-semibold capitalize transition-all"
+                    style={{ backgroundColor: data.long_run_day === d ? 'var(--accent)' : 'var(--bg-card)', border: `1.5px solid ${data.long_run_day === d ? 'var(--accent)' : 'var(--border)'}`, color: data.long_run_day === d ? '#fff' : 'var(--text)' }}>
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>SCHEDULE NOTES (OPTIONAL)</label>
+              <textarea placeholder="Days you can't run, travel, work commitments..." value={data.schedule_notes} onChange={e => update('schedule_notes', e.target.value)} rows={2} className={inputClass} style={inputStyle} />
+            </div>
+          </div>
+        )}
+
+        {/* Step 4 — Template */}
+        {step === 4 && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>Training methodology</h1>
+            <div className="space-y-3">
+              {TEMPLATES.map(t => (
+                <button key={t.value} onClick={() => { update('template', t.value as WizardInput['template']); setMethodologyError(''); }}
+                  className="w-full rounded-xl p-4 text-left transition-all"
+                  style={{ backgroundColor: data.template === t.value ? '#F9731611' : 'var(--bg-card)', border: `1.5px solid ${data.template === t.value ? 'var(--accent)' : 'var(--border)'}` }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-sm" style={{ color: 'var(--text)' }}>{t.label}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: t.badgeColor + '22', color: t.badgeColor }}>{t.badge}</span>
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{t.description}</p>
+                </button>
+              ))}
+            </div>
+            {methodologyError && <p className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: '#7f1d1d', color: '#fca5a5' }}>{methodologyError}</p>}
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>METHODOLOGY NOTES (OPTIONAL)</label>
+              <textarea placeholder="Any specific preferences within this approach..." value={data.template_notes} onChange={e => update('template_notes', e.target.value)} rows={2} className={inputClass} style={inputStyle} />
+            </div>
+          </div>
+        )}
+
+        {/* Step 5 — Aggressiveness */}
+        {step === 5 && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>Training load</h1>
+            <div className="space-y-3">
+              {AGGRESSIVENESS.map(a => (
+                <button key={a.value} onClick={() => update('aggressiveness', a.value as WizardInput['aggressiveness'])}
+                  className="w-full rounded-xl p-4 text-left transition-all"
+                  style={{ backgroundColor: data.aggressiveness === a.value ? '#F9731611' : 'var(--bg-card)', border: `1.5px solid ${data.aggressiveness === a.value ? 'var(--accent)' : 'var(--border)'}` }}>
+                  <div className="font-semibold text-sm mb-1" style={{ color: 'var(--text)' }}>{a.label}</div>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{a.description}</p>
+                </button>
+              ))}
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--text)' }}>
+                <input type="checkbox" checked={data.advanced_load} onChange={e => update('advanced_load', e.target.checked)} />
+                Customise volume and intensity separately
+              </label>
+              {data.advanced_load && (
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>VOLUME</label>
+                    <select value={data.volume_aggressiveness ?? data.aggressiveness} onChange={e => update('volume_aggressiveness', e.target.value as WizardInput['aggressiveness'])}
+                      className={inputClass} style={inputStyle}>
+                      <option value="conservative">Conservative</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="aggressive">Aggressive</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>INTENSITY</label>
+                    <select value={data.quality_aggressiveness ?? data.aggressiveness} onChange={e => update('quality_aggressiveness', e.target.value as WizardInput['aggressiveness'])}
+                      className={inputClass} style={inputStyle}>
+                      <option value="conservative">Conservative</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="aggressive">Aggressive</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Step 6 — B-Races */}
+        {step === 6 && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>B-Races</h1>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Optional tune-up races during your block. Claude will adjust surrounding weeks automatically.</p>
+            {data.b_races.map((b, i) => (
+              <div key={i} className="rounded-xl p-4 space-y-3" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>B-Race {i + 1}</span>
+                  <button onClick={() => update('b_races', data.b_races.filter((_, j) => j !== i))} style={{ color: 'var(--text-muted)' }}><Trash2 size={14} /></button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>DATE</label>
+                    <input type="date" value={b.race_date} onChange={e => { const r = [...data.b_races]; r[i] = { ...r[i], race_date: e.target.value }; update('b_races', r); }} className={inputClass} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>DISTANCE (KM)</label>
+                    <input type="number" value={b.race_distance_km} onChange={e => { const r = [...data.b_races]; r[i] = { ...r[i], race_distance_km: Number(e.target.value) }; update('b_races', r); }} className={inputClass} style={inputStyle} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>EFFORT LEVEL</label>
+                  <div className="space-y-1">
+                    {([['tune_up', 'Tune-up', 'Replaces a quality session, no surrounding changes'], ['hard', 'Hard effort', 'Slight taper before, 2-3 easy days after'], ['full_send', 'Full send', 'Mini taper before, full recovery week after']] as const).map(([val, label, desc]) => (
+                      <button key={val} onClick={() => { const r = [...data.b_races]; r[i] = { ...r[i], effort_level: val }; update('b_races', r); }}
+                        className="w-full rounded-lg px-3 py-2 text-left text-xs transition-all"
+                        style={{ backgroundColor: b.effort_level === val ? '#F9731611' : 'var(--bg)', border: `1px solid ${b.effort_level === val ? 'var(--accent)' : 'var(--border)'}`, color: 'var(--text)' }}>
+                        <span className="font-semibold">{label}</span> — {desc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>NOTES (OPTIONAL)</label>
+                  <input type="text" placeholder="e.g. local 10K, just for fun" value={b.notes} onChange={e => { const r = [...data.b_races]; r[i] = { ...r[i], notes: e.target.value }; update('b_races', r); }} className={inputClass} style={inputStyle} />
+                </div>
+              </div>
+            ))}
+            <button onClick={() => update('b_races', [...data.b_races, { race_date: '', race_distance_km: 10, effort_level: 'tune_up', notes: '' }])}
+              className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold w-full justify-center transition-all"
+              style={{ backgroundColor: 'var(--bg-card)', border: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
+              <Plus size={16} /> Add B-race
+            </button>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No B-races? Just tap Next.</p>
+          </div>
+        )}
+
+        {/* Step 7 — Review */}
+        {step === 7 && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>Ready to generate</h1>
+            <div className="rounded-xl p-4 space-y-2" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              {[
+                { label: 'Goal', value: data.goal_type },
+                { label: 'Race date', value: data.race_date },
+                { label: 'Start date', value: data.start_date },
+                { label: 'Course', value: data.course_type },
+                { label: 'Benchmark', value: data.benchmark_time_seconds > 0 ? `${formatSeconds(data.benchmark_time_seconds)} for ${data.benchmark_distance_km}km` : '—' },
+                { label: 'Weekly km', value: `${data.current_weekly_km}km avg` },
+                { label: 'Plan length', value: `${data.total_weeks} weeks` },
+                { label: 'Days/week', value: data.days_per_week.toString() },
+                { label: 'Long run', value: data.long_run_day },
+                { label: 'Methodology', value: data.template },
+                { label: 'Aggressiveness', value: data.aggressiveness },
+                { label: 'B-races', value: data.b_races.length > 0 ? `${data.b_races.length} race(s)` : 'None' },
+              ].map(row => (
+                <div key={row.label} className="flex justify-between text-sm">
+                  <span style={{ color: 'var(--text-muted)' }}>{row.label}</span>
+                  <span className="font-semibold capitalize" style={{ color: 'var(--text)' }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+            {error && <p className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: '#7f1d1d', color: '#fca5a5' }}>{error}</p>}
+            <button onClick={generate} disabled={generating}
+              className="w-full rounded-xl py-4 font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+              style={{ backgroundColor: generating ? 'var(--border)' : 'var(--accent)', color: '#fff' }}>
+              {generating ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating your plan… (up to 60s)</> : <><Sparkles className="w-5 h-5" /> Generate Plan</>}
+            </button>
+            <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>Claude will generate all workouts for your full plan. This takes ~30-60 seconds.</p>
+          </div>
+        )}
+
+        {/* Nav buttons */}
+        <div className="flex gap-3 mt-8">
+          {step > 0 && (
+            <button onClick={back} className="flex items-center gap-1 px-4 py-3 rounded-xl text-sm font-semibold"
+              style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)' }}>
+              <ChevronLeft className="w-4 h-4" /> Back
+            </button>
+          )}
+          {step < STEPS.length - 1 && (
+            <button onClick={next} className="flex-1 flex items-center justify-center gap-1 px-4 py-3 rounded-xl text-sm font-semibold"
+              style={{ backgroundColor: canAdvance() ? 'var(--accent)' : 'var(--border)', color: '#fff' }}>
+              Next <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
 
       </div>
-    </div>
-  )
+    </AppShell>
+  );
 }
