@@ -153,7 +153,7 @@ export default function NewPlanPage() {
     if (step === 0) return !!data.goal_type;
     if (step === 1) return !!data.race_date && data.race_distance_km > 0;
     if (step === 2) return data.benchmark_time_seconds > 0 && data.benchmark_distance_km > 0 && data.current_weekly_km > 0;
-    if (step === 3) return data.total_weeks >= 6 && !!data.start_date && !!data.race_date && data.days_per_week > 0;
+    if (step === 3) return data.total_weeks >= 6 && data.total_weeks <= 24 && data.days_per_week > 0;
     if (step === 4) {
       const min = MIN_DAYS[data.template];
       if (data.days_per_week < min) { setMethodologyError(`${data.template.charAt(0).toUpperCase() + data.template.slice(1)} requires at least ${min} days/week. Choose a different methodology or increase days per week.`); return false; }
