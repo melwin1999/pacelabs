@@ -101,6 +101,7 @@ export default async function BlockPage() {
                 sessionsDone={summary.sessionsDone}
                 workouts={weekWorkouts}
                 phaseName={getPhaseForWeek(phases, weekNum)}
+                isCurrent={weekNum === block.current_week}
               />
             );
           })}
