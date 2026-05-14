@@ -182,7 +182,7 @@ export default function PreviewPage() {
             {block.name}
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-            {block.total_weeks} weeks · {block.days_per_week ?? '—'} days/week ·{' '}
+            {block.total_weeks} weeks ·{' '}
             {block.adaptation_aggressiveness}
           </p>
         </div>
