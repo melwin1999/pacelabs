@@ -85,7 +85,7 @@ Return ONLY this JSON structure with no markdown or backticks:
       "scheduled_date": "YYYY-MM-DD",
       "type": "easy",
       "name": "string",
-      "description": "string",
+      "description": "",
       "distance_km": number,
       "pace_min_seconds": number,
       "pace_max_seconds": number,
@@ -97,7 +97,7 @@ Return ONLY this JSON structure with no markdown or backticks:
   ]
 }
 
-Generate all ${input.total_weeks * 7} workouts. Start week 1 on the Monday on or after today. Race falls in the final week. Keep descriptions SHORT (1 sentence max) to stay within token limits.`;
+Generate all ${input.total_weeks * 7} workouts. Start week 1 on the Monday on or after today. Race falls in the final week. Keep ALL string fields as short as possible — name max 4 words, description empty string, fuelling_note max 5 words. Minimise token usage.`;
 }
 
 export async function POST(req: NextRequest) {
