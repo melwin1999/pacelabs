@@ -89,7 +89,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
         <div className="flex items-center gap-4 mt-4 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
           {[
             { label: 'Distance', value: `${workout.distance_km} km` },
-            { label: 'Pace target', value: workout.pace_target },
+            { label: 'Pace target', value: workout.pace_min_seconds ? `${Math.floor(workout.pace_min_seconds/60)}:${String(workout.pace_min_seconds%60).padStart(2,'0')}/km` : '—' },
             { label: 'HR zone', value: workout.hr_zone },
             { label: 'Primary', value: workout.primary_metric, accent: true },
           ].map(stat => (
