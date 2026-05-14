@@ -101,7 +101,8 @@ Output only valid JSON, no markdown, no explanation.`
     try {
       parsed = JSON.parse(clean)
     } catch {
-      return NextResponse.json({ error: 'Failed to parse plan from Claude. Please try again.' }, { status: 500 })
+      console.error('PARSE FAIL. stop_reason:', response.stop_reason, 'raw length:', raw.length, 'last 300 chars:', raw.slice(-300))
+      return NextResponse.json({ error: `Failed to parse plan from Claude. Stop reason: ${response.stop_reason}. Raw length: ${raw.length}` }, { status: 500 })
     }
 
     // Step 3: insert block as draft
