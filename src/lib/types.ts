@@ -31,11 +31,7 @@ export type WorkoutStructureStep = {
   notes?: string;
   rest_seconds?: number;
   rest_type?: string;
-  segments?: Array<{
-    km: number;
-    pace?: string;
-    notes?: string;
-  }>;
+  segments?: Array<{ km: number; pace?: string; notes?: string; }>;
 };
 
 export type Workout = {
@@ -76,4 +72,28 @@ export type PlanChange = {
   source: 'manual_drag' | 'coach_chat' | 'auto_adapt' | 'skip';
   reason: string | null;
   created_at: string;
+};
+
+export type ProposedChange = {
+  workout_id: string;
+  workout_name: string;
+  change_type: 'edited' | 'moved' | 'skipped' | 'swapped' | 'added' | 'removed';
+  field_changed?: string;
+  old_value?: string;
+  new_value?: string;
+  from_date?: string;
+  to_date?: string;
+  reason?: string;
+};
+
+export type AdaptDraft = {
+  id: string;
+  block_id: string;
+  triggered_by: 'cron_sunday' | 'last_run_synced' | 'coach_chat';
+  status: 'pending' | 'accepted' | 'rejected' | 'expired' | 'rolled_over';
+  rationale: string | null;
+  proposed_changes: ProposedChange[];
+  rejection_reason: string | null;
+  created_at: string;
+  resolved_at: string | null;
 };

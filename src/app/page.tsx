@@ -1,11 +1,12 @@
 import { supabase } from '@/lib/supabase'
-import { Block, Workout } from '@/lib/types'
+import { Block, Workout, AdaptDraft } from '@/lib/types'
 import RaceHeroCard from '@/components/plan/RaceHeroCard'
 import StatsStrip from '@/components/plan/StatsStrip'
 import WeekView from '@/components/plan/WeekView'
 import CoachNudge from '@/components/plan/CoachNudge'
 import QuickQuestions from '@/components/plan/QuickQuestions'
 import PushToGarminButton from '@/components/plan/PushToGarminButton'
+import AdaptBanner from '@/components/plan/AdaptBanner'
 
 export const revalidate = 0
 
@@ -46,6 +47,18 @@ export default async function PlanPage({ searchParams }: { searchParams: { week?
   const completedCount = weekWorkouts
     .filter(w => w.is_complete && w.type !== 'rest').length
 
+  // Fetch pending adapt draft if one exists
+  const { data: draftData } = await supabase
+    .from('adapt_drafts')
+    .select('*')
+    .eq('block_id', typedBlock.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  const pendingDraft = draftData as AdaptDraft | null
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
       <RaceHeroCard block={typedBlock} />
@@ -56,7 +69,7 @@ export default async function PlanPage({ searchParams }: { searchParams: { week?
         completedCount={completedCount}
       />
 
-      {/* Phase 4C will insert the AdaptBanner here */}
+      {pendingDraft && <AdaptBanner draft={pendingDraft} />}
 
       <WeekView
         workouts={weekWorkouts}
