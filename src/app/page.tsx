@@ -58,15 +58,27 @@ export default async function PlanPage({
 
   const pendingDraft = drafts?.[0] as AdaptDraft | undefined;
 
+  const w = (workouts ?? []) as Workout[];
+  const nonRest = w.filter((x) => x.type !== "rest" && !x.skipped);
+  const plannedKm = nonRest.reduce((sum, x) => sum + (x.distance_km ?? 0), 0);
+  const doneKm = nonRest.filter((x) => x.is_complete).reduce((sum, x) => sum + (x.distance_km ?? 0), 0);
+  const sessionCount = nonRest.length;
+  const completedCount = nonRest.filter((x) => x.is_complete).length;
+
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         <RaceHeroCard block={block} />
-        <StatsStrip block={block} workouts={(workouts ?? []) as Workout[]} />
+        <StatsStrip
+          plannedKm={plannedKm}
+          doneKm={doneKm}
+          sessionCount={sessionCount}
+          completedCount={completedCount}
+        />
         {pendingDraft && <AdaptBanner draft={pendingDraft} />}
         <WeekView
           block={block}
-          workouts={(workouts ?? []) as Workout[]}
+          workouts={w}
           displayWeek={displayWeek}
         />
         <CoachNudge block={block} />
