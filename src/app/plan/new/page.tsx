@@ -119,27 +119,29 @@ export default function NewPlanPage() {
     setData(prev => ({ ...prev, [key]: value }));
   }
 
-  // When weeks change → recompute end date from start date
+  // Weeks quick-select → move START DATE backward from race date
   function setWeeks(weeks: number) {
     const clamped = Math.max(6, Math.min(24, weeks));
     setScheduleMode('weeks');
     update('total_weeks', clamped);
-    if (data.start_date) update('race_date', addWeeks(data.start_date, clamped));
+    if (data.race_date) {
+      const race = new Date(data.race_date);
+      race.setDate(race.getDate() - clamped * 7);
+      update('start_date', race.toISOString().split('T')[0]);
+    }
   }
 
-  // When start date changes → recompute weeks from start→race, or push race date
+  // Start date changed manually → recompute weeks, race date stays fixed
   function setStartDate(val: string) {
     setScheduleMode('dates');
     update('start_date', val);
     if (data.race_date && val) {
       const w = weeksBetween(val, data.race_date);
       update('total_weeks', w);
-    } else if (val && data.total_weeks) {
-      update('race_date', addWeeks(val, data.total_weeks));
     }
   }
 
-  // When race date changes → recompute weeks
+  // Race date only changes here (step 1 sets it, this is the schedule step override)
   function setRaceDate(val: string) {
     setScheduleMode('dates');
     update('race_date', val);
