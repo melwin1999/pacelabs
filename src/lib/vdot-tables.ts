@@ -92,7 +92,6 @@ const VDOT_RACE_TIMES: Record<number, { '5k': number; '10k': number; 'half': num
   44: { '5k': 1098, '10k': 2268, half: 5040, marathon: 10614 },
   45: { '5k': 1077, '10k': 2226, half: 4944, marathon: 10392 },
   46: { '5k': 1057, '10k': 2184, half: 4851, marathon: 10182 },
-  47: { '5k': 1038, '10k': 2145, half: 4761, manhattan: 9978 } as never,
   47: { '5k': 1038, '10k': 2145, half: 4761, marathon: 9978 },
   48: { '5k': 1020, '10k': 2108, half: 4677, marathon: 9786 },
   49: { '5k': 1003, '10k': 2073, half: 4596, marathon: 9600 },
