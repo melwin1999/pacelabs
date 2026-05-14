@@ -94,7 +94,8 @@ export type ProposedChange = {
     | 'modify_pace'
     | 'modify_type'
     | 'add_workout'
-    | 'delete_workout';
+    | 'delete_workout'
+    | 'edited';
   from_date?: string;
   to_date?: string;
   field_changed?: string;
