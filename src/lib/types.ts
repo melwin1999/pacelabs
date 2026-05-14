@@ -90,6 +90,7 @@ export type ProposedChange = {
   change_type:
     | 'reschedule'
     | 'skip'
+    | 'skipped'
     | 'modify_distance'
     | 'modify_pace'
     | 'modify_type'
