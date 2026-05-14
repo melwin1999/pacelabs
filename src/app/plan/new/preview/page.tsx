@@ -161,6 +161,13 @@ function PreviewPageInner() {
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{block.total_weeks} weeks · {block.adaptation_aggressiveness}</p>
         </div>
 
+        {block.goal && (
+          <div className="rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--accent)' }}>Why this plan?</p>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{block.goal}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-3 gap-3 rounded-xl p-4" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           {[
             { label: 'Est. now', value: block.est_now_seconds ? formatTime(block.est_now_seconds) : '—' },

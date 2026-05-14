@@ -110,7 +110,7 @@ Output only valid JSON, no markdown, no explanation.`
       .insert({
         name: skeleton.block_meta.name,
         type: input.goal_type,
-        goal: input.general_notes || null,
+        goal: parsed.why_summary || input.general_notes || null,
         total_weeks: skeleton.block_meta.total_weeks,
         current_week: 1,
         race_date: skeleton.block_meta.race_date,
