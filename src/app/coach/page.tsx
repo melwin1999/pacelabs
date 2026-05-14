@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send } from "lucide-react";
+import Link from "next/link";
+import { Send, History } from "lucide-react";
+import InlineProposalCard from "@/components/coach/InlineProposalCard";
+import { AdaptDraft } from "@/lib/types";
 
 type Message = {
   id?: string;
   role: "user" | "assistant";
   content: string;
+  adapt_draft_id?: string | null;
+  adapt_draft?: AdaptDraft | null;
 };
 
 const QUICK_QUESTIONS = [
@@ -23,25 +28,22 @@ export default function CoachPage() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Load past messages on mount
-  useEffect(() => {
-    async function loadHistory() {
-      try {
-        const res = await fetch("/api/chat/history");
-        const data = await res.json();
-        if (data.messages) {
-          setMessages(data.messages);
-        }
-      } catch (err) {
-        console.error("Failed to load history:", err);
-      } finally {
-        setLoadingHistory(false);
-      }
+  async function loadHistory() {
+    try {
+      const res = await fetch("/api/chat/history");
+      const data = await res.json();
+      if (data.messages) setMessages(data.messages);
+    } catch (err) {
+      console.error("Failed to load history:", err);
+    } finally {
+      setLoadingHistory(false);
     }
+  }
+
+  useEffect(() => {
     loadHistory();
   }, []);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
@@ -56,7 +58,6 @@ export default function CoachPage() {
     setSending(true);
     setInput("");
 
-    // Optimistically show the user message
     setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
 
     try {
@@ -65,26 +66,33 @@ export default function CoachPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: trimmed }),
       });
-
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Request failed");
 
-      if (!res.ok) {
-        throw new Error(data.error || "Request failed");
+      // If a draft was created, fetch it so we can render the inline card immediately
+      let draft: AdaptDraft | null = null;
+      if (data.adapt_draft_id) {
+        // Easiest: reload full history so message ids + draft data are correct
+        await loadHistory();
+        setSending(false);
+        return;
       }
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.reply },
+        {
+          role: "assistant",
+          content: data.reply,
+          adapt_draft_id: data.adapt_draft_id ?? null,
+          adapt_draft: draft,
+        },
       ]);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Something went wrong.";
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content: `Error: ${errorMessage}`,
-        },
+        { role: "assistant", content: `Error: ${errorMessage}` },
       ]);
     } finally {
       setSending(false);
@@ -99,20 +107,40 @@ export default function CoachPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-3xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-extrabold tracking-tight mb-4">Coach</h1>
+    <div
+      className="flex flex-col h-screen max-w-3xl mx-auto px-4 py-6"
+      style={{ color: "var(--text)" }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h1
+          className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+          style={{ letterSpacing: "-0.04em" }}
+        >
+          Coach
+        </h1>
+        <Link
+          href="/coach/history"
+          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg"
+          style={{
+            color: "var(--text-muted)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          <History size={14} />
+          History
+        </Link>
+      </div>
 
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto space-y-4 pb-4"
-      >
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pb-4">
         {loadingHistory && (
-          <p className="text-sm text-zinc-500">Loading conversation...</p>
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            Loading conversation...
+          </p>
         )}
 
         {!loadingHistory && messages.length === 0 && (
           <div className="space-y-3">
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               Ask me anything about your training.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -120,7 +148,12 @@ export default function CoachPage() {
                 <button
                   key={q}
                   onClick={() => sendMessage(q)}
-                  className="text-left text-sm px-3 py-2 rounded-lg border border-zinc-300 hover:border-[#F97316] hover:bg-zinc-50 transition"
+                  className="text-left text-sm px-3 py-2 rounded-lg transition"
+                  style={{
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
+                  }}
                 >
                   {q}
                 </button>
@@ -130,34 +163,59 @@ export default function CoachPage() {
         )}
 
         {messages.map((m, i) => (
-          <div
-            key={m.id ?? i}
-            className={`flex ${
-              m.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
+          <div key={m.id ?? i}>
             <div
-              className={`max-w-[85%] px-4 py-2.5 rounded-2xl whitespace-pre-wrap text-sm leading-relaxed ${
-                m.role === "user"
-                  ? "bg-[#F97316] text-white"
-                  : "bg-zinc-100 text-zinc-900"
+              className={`flex ${
+                m.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              {m.content}
+              <div
+                className="max-w-[85%] px-4 py-2.5 rounded-2xl whitespace-pre-wrap text-sm leading-relaxed"
+                style={
+                  m.role === "user"
+                    ? { background: "var(--accent)", color: "#09090B" }
+                    : {
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text)",
+                      }
+                }
+              >
+                {m.content}
+              </div>
             </div>
+
+            {/* Inline proposal card for assistant messages with a linked draft */}
+            {m.role === "assistant" && m.adapt_draft && (
+              <div className="flex justify-start mt-2">
+                <div className="max-w-[85%] w-full">
+                  <InlineProposalCard
+                    draft={m.adapt_draft}
+                    onResolved={loadHistory}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         ))}
 
         {sending && (
           <div className="flex justify-start">
-            <div className="px-4 py-2.5 rounded-2xl bg-zinc-100 text-zinc-500 text-sm">
+            <div
+              className="px-4 py-2.5 rounded-2xl text-sm"
+              style={{
+                background: "var(--bg-card)",
+                color: "var(--text-muted)",
+                border: "1px solid var(--border)",
+              }}
+            >
               Thinking...
             </div>
           </div>
         )}
       </div>
 
-      <div className="border-t border-zinc-200 pt-3">
+      <div className="pt-3" style={{ borderTop: "1px solid var(--border)" }}>
         <div className="flex gap-2 items-end">
           <textarea
             value={input}
@@ -166,12 +224,18 @@ export default function CoachPage() {
             placeholder="Ask your coach..."
             rows={1}
             disabled={sending}
-            className="flex-1 resize-none px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F97316] text-sm"
+            className="flex-1 resize-none px-3 py-2 rounded-lg focus:outline-none text-sm"
+            style={{
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              color: "var(--text)",
+            }}
           />
           <button
             onClick={() => sendMessage(input)}
             disabled={sending || !input.trim()}
-            className="bg-[#F97316] text-white p-2 rounded-lg disabled:opacity-40"
+            className="p-2 rounded-lg disabled:opacity-40"
+            style={{ background: "var(--accent)", color: "#09090B" }}
             aria-label="Send message"
           >
             <Send size={18} />
