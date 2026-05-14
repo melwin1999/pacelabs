@@ -592,7 +592,7 @@ export default function NewPlanPage() {
                             className="rounded transition-all duration-500"
                             style={{
                               height: '8px',
-                              width: `${Math.floor(96 / progress.totalWeeks)}%`,
+                              width: `${Math.floor(96 / (progress.totalWeeks ?? 1))}%`,
                               minWidth: '6px',
                               backgroundColor: done ? 'var(--accent)' : active ? '#F9731655' : 'var(--border)',
                               transform: done ? 'scaleY(1.3)' : 'scaleY(1)',
