@@ -4,12 +4,11 @@ import { ProposedChange } from '@/lib/types'
 
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const draftId = params.id
+    const { id: draftId } = await params
 
-    // Fetch the draft
     const { data: draft, error: draftError } = await supabaseAdmin
       .from('adapt_drafts')
       .select('*')
@@ -25,7 +24,6 @@ export async function POST(
 
     const changes: ProposedChange[] = draft.proposed_changes ?? []
 
-    // Apply each change to the workout
     for (const change of changes) {
       if (!change.workout_id) continue
 
@@ -57,7 +55,6 @@ export async function POST(
           .eq('id', change.workout_id)
       }
 
-      // Log to plan_changes
       await supabaseAdmin.from('plan_changes').insert({
         block_id: draft.block_id,
         workout_id: change.workout_id,
@@ -72,7 +69,6 @@ export async function POST(
       })
     }
 
-    // Mark draft as accepted
     await supabaseAdmin
       .from('adapt_drafts')
       .update({ status: 'accepted', resolved_at: new Date().toISOString() })
