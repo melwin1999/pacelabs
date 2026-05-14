@@ -42,8 +42,6 @@ function getPhaseForWeek(block: Block, weekNum: number): string | null {
   return p?.name ?? null;
 }
 
-import { Suspense } from 'react';
-
 function PreviewPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -87,7 +85,6 @@ function PreviewPageInner() {
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setSending(true);
-
     try {
       const res = await fetch('/api/chat/preview', {
         method: 'POST',
@@ -95,14 +92,8 @@ function PreviewPageInner() {
         body: JSON.stringify({ block_id: blockId, message: userMsg, history: messages }),
       });
       const json = await res.json();
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: json.reply,
-        draft: json.draft ?? null,
-      }]);
-      if (json.draft) {
-        setDraftStates(prev => ({ ...prev, [json.draft.id]: 'pending' }));
-      }
+      setMessages(prev => [...prev, { role: 'assistant', content: json.reply, draft: json.draft ?? null }]);
+      if (json.draft) setDraftStates(prev => ({ ...prev, [json.draft.id]: 'pending' }));
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Try again.' }]);
     }
@@ -111,28 +102,19 @@ function PreviewPageInner() {
 
   async function acceptDraft(draft: AdaptDraft) {
     const res = await fetch(`/api/adapt/${draft.id}/accept`, { method: 'POST' });
-    if (res.ok) {
-      setDraftStates(prev => ({ ...prev, [draft.id]: 'accepted' }));
-      loadBlock();
-    }
+    if (res.ok) { setDraftStates(prev => ({ ...prev, [draft.id]: 'accepted' })); loadBlock(); }
   }
 
   async function rejectDraft(draft: AdaptDraft) {
     const res = await fetch(`/api/adapt/${draft.id}/reject`, { method: 'POST' });
-    if (res.ok) {
-      setDraftStates(prev => ({ ...prev, [draft.id]: 'rejected' }));
-    }
+    if (res.ok) setDraftStates(prev => ({ ...prev, [draft.id]: 'rejected' }));
   }
 
   async function activate() {
     if (!blockId) return;
     setActivating(true);
     const res = await fetch(`/api/blocks/${blockId}/activate`, { method: 'POST' });
-    if (res.ok) {
-      router.push('/');
-    } else {
-      setActivating(false);
-    }
+    if (res.ok) { router.push('/'); } else { setActivating(false); }
   }
 
   if (loading) {
@@ -169,31 +151,17 @@ function PreviewPageInner() {
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-
-        {/* Header */}
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span
-              className="text-xs px-2 py-0.5 rounded-full font-semibold"
-              style={{ backgroundColor: '#F9731622', color: 'var(--accent)' }}
-            >
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: '#F9731622', color: 'var(--accent)' }}>
               DRAFT
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>
-            {block.name}
-          </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-            {block.total_weeks} weeks ·{' '}
-            {block.adaptation_aggressiveness}
-          </p>
+          <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>{block.name}</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{block.total_weeks} weeks · {block.adaptation_aggressiveness}</p>
         </div>
 
-        {/* Stats strip */}
-        <div
-          className="grid grid-cols-3 gap-3 rounded-xl p-4"
-          style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
-        >
+        <div className="grid grid-cols-3 gap-3 rounded-xl p-4" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           {[
             { label: 'Est. now', value: block.est_now_seconds ? formatTime(block.est_now_seconds) : '—' },
             { label: 'Race proj.', value: block.race_proj_seconds ? formatTime(block.race_proj_seconds) : '—' },
@@ -206,72 +174,33 @@ function PreviewPageInner() {
           ))}
         </div>
 
-        {/* Week list */}
         <div className="space-y-2">
           {weekSummaries.map(({ weekNumber, totalKm, sessions, phase }) => {
             const phaseColor = phase ? (PHASE_COLOURS[phase] ?? '#A3A3A3') : '#A3A3A3';
             const isExpanded = expandedWeeks.has(weekNumber);
-            const weekWorkouts = workouts
-              .filter(w => w.week_number === weekNumber)
-              .sort((a, b) => a.day_of_week - b.day_of_week);
-
+            const weekWorkouts = workouts.filter(w => w.week_number === weekNumber).sort((a, b) => a.day_of_week - b.day_of_week);
             return (
-              <div
-                key={weekNumber}
-                className="rounded-xl overflow-hidden"
-                style={{ border: '1px solid var(--border)' }}
-              >
-                <button
-                  onClick={() => toggleWeek(weekNumber)}
-                  className="w-full px-4 py-3 flex items-center gap-3 text-left"
-                  style={{ backgroundColor: 'var(--bg-card)' }}
-                >
-                  <div
-                    className="w-1 h-8 rounded-full shrink-0"
-                    style={{ backgroundColor: phaseColor }}
-                  />
+              <div key={weekNumber} className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+                <button onClick={() => toggleWeek(weekNumber)} className="w-full px-4 py-3 flex items-center gap-3 text-left" style={{ backgroundColor: 'var(--bg-card)' }}>
+                  <div className="w-1 h-8 rounded-full shrink-0" style={{ backgroundColor: phaseColor }} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
-                        Week {weekNumber}
-                      </span>
-                      {phase && (
-                        <span className="text-xs px-1.5 py-0.5 rounded font-semibold"
-                          style={{ backgroundColor: phaseColor + '22', color: phaseColor }}>
-                          {phase}
-                        </span>
-                      )}
+                      <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Week {weekNumber}</span>
+                      {phase && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: phaseColor + '22', color: phaseColor }}>{phase}</span>}
                     </div>
-                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {totalKm.toFixed(1)} km · {sessions} sessions
-                    </div>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{totalKm.toFixed(1)} km · {sessions} sessions</div>
                   </div>
-                  {isExpanded
-                    ? <ChevronUp className="w-4 h-4 shrink-0" style={{ color: 'var(--text-muted)' }} />
-                    : <ChevronDown className="w-4 h-4 shrink-0" style={{ color: 'var(--text-muted)' }} />
-                  }
+                  {isExpanded ? <ChevronUp className="w-4 h-4 shrink-0" style={{ color: 'var(--text-muted)' }} /> : <ChevronDown className="w-4 h-4 shrink-0" style={{ color: 'var(--text-muted)' }} />}
                 </button>
-
                 {isExpanded && (
                   <div style={{ borderTop: '1px solid var(--border)' }}>
                     {weekWorkouts.map(w => (
-                      <div
-                        key={w.id}
-                        className="px-4 py-3 flex items-start gap-3"
-                        style={{ borderBottom: '1px solid var(--border)' }}
-                      >
-                        <div
-                          className="w-2 h-2 rounded-full mt-1.5 shrink-0"
-                          style={{ backgroundColor: TYPE_COLOURS[w.type] ?? '#A3A3A3' }}
-                        />
+                      <div key={w.id} className="px-4 py-3 flex items-start gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                        <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: TYPE_COLOURS[w.type] ?? '#A3A3A3' }} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                              {DAY_LABELS[w.day_of_week]}
-                            </span>
-                            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
-                              {w.name}
-                            </span>
+                            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{DAY_LABELS[w.day_of_week]}</span>
+                            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{w.name}</span>
                           </div>
                           {w.type !== 'rest' && (
                             <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
@@ -279,11 +208,7 @@ function PreviewPageInner() {
                               {w.pace_min_seconds ? ` · ${formatWorkoutPace(w.pace_min_seconds, w.pace_max_seconds ?? w.pace_min_seconds, null)}` : ''}
                             </div>
                           )}
-                          {w.description && (
-                            <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                              {w.description}
-                            </p>
-                          )}
+                          {w.description && <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{w.description}</p>}
                         </div>
                       </div>
                     ))}
@@ -294,72 +219,33 @@ function PreviewPageInner() {
           })}
         </div>
 
-        {/* Chat panel */}
-        <div
-          className="rounded-xl overflow-hidden"
-          style={{ border: '1px solid var(--border)' }}
-        >
+        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
           <div className="px-4 py-3 flex items-center gap-2" style={{ backgroundColor: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
             <Sparkles className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
-              Refine with Claude
-            </span>
+            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Refine with Claude</span>
           </div>
-
           {messages.length > 0 && (
             <div className="px-4 py-3 space-y-4 max-h-96 overflow-y-auto" style={{ backgroundColor: 'var(--bg-card)' }}>
               {messages.map((m, i) => (
                 <div key={i}>
                   <div className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className="max-w-[85%] rounded-xl px-3 py-2 text-sm"
-                      style={{
-                        backgroundColor: m.role === 'user' ? 'var(--accent)' : 'var(--bg)',
-                        color: m.role === 'user' ? '#fff' : 'var(--text)',
-                        border: m.role === 'assistant' ? '1px solid var(--border)' : 'none',
-                      }}
-                    >
+                    <div className="max-w-[85%] rounded-xl px-3 py-2 text-sm" style={{ backgroundColor: m.role === 'user' ? 'var(--accent)' : 'var(--bg)', color: m.role === 'user' ? '#fff' : 'var(--text)', border: m.role === 'assistant' ? '1px solid var(--border)' : 'none' }}>
                       {m.content}
                     </div>
                   </div>
-
-                  {/* Inline proposal card */}
                   {m.draft && draftStates[m.draft.id] === 'pending' && (
-                    <div
-                      className="mt-2 rounded-xl p-3 space-y-2"
-                      style={{ border: '1.5px solid var(--accent)', backgroundColor: 'var(--bg-card)' }}
-                    >
-                      <p className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>
-                        PROPOSED CHANGES
-                      </p>
+                    <div className="mt-2 rounded-xl p-3 space-y-2" style={{ border: '1.5px solid var(--accent)', backgroundColor: 'var(--bg-card)' }}>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>PROPOSED CHANGES</p>
                       {m.draft.proposed_changes.map((c: ProposedChange, ci: number) => (
                         <div key={ci} className="text-xs" style={{ color: 'var(--text)' }}>
                           <span className="font-semibold">{c.workout_name}</span>
-                          {c.field_changed && (
-                            <span style={{ color: 'var(--text-muted)' }}>
-                              {' '}— {c.field_changed}: {c.old_value} → {c.new_value}
-                            </span>
-                          )}
-                          {c.reason && (
-                            <span style={{ color: 'var(--text-muted)' }}> ({c.reason})</span>
-                          )}
+                          {c.field_changed && <span style={{ color: 'var(--text-muted)' }}> — {c.field_changed}: {c.old_value} → {c.new_value}</span>}
+                          {c.reason && <span style={{ color: 'var(--text-muted)' }}> ({c.reason})</span>}
                         </div>
                       ))}
                       <div className="flex gap-2 mt-2">
-                        <button
-                          onClick={() => acceptDraft(m.draft!)}
-                          className="flex-1 rounded-lg py-1.5 text-xs font-semibold"
-                          style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => rejectDraft(m.draft!)}
-                          className="flex-1 rounded-lg py-1.5 text-xs font-semibold"
-                          style={{ border: '1px solid var(--border)', color: 'var(--text)', backgroundColor: 'transparent' }}
-                        >
-                          Reject
-                        </button>
+                        <button onClick={() => acceptDraft(m.draft!)} className="flex-1 rounded-lg py-1.5 text-xs font-semibold" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>Accept</button>
+                        <button onClick={() => rejectDraft(m.draft!)} className="flex-1 rounded-lg py-1.5 text-xs font-semibold" style={{ border: '1px solid var(--border)', color: 'var(--text)', backgroundColor: 'transparent' }}>Reject</button>
                       </div>
                     </div>
                   )}
@@ -370,9 +256,7 @@ function PreviewPageInner() {
                     </div>
                   )}
                   {m.draft && draftStates[m.draft.id] === 'rejected' && (
-                    <div className="mt-2">
-                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Changes rejected</span>
-                    </div>
+                    <div className="mt-2"><span className="text-xs" style={{ color: 'var(--text-muted)' }}>Changes rejected</span></div>
                   )}
                 </div>
               ))}
@@ -386,54 +270,20 @@ function PreviewPageInner() {
               <div ref={chatEndRef} />
             </div>
           )}
-
           <div className="px-3 py-3 flex gap-2" style={{ backgroundColor: 'var(--bg-card)', borderTop: messages.length > 0 ? '1px solid var(--border)' : 'none' }}>
-            <input
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-              placeholder="e.g. Make week 8 lighter, I have a wedding"
-              className="flex-1 rounded-xl px-3 py-2 text-sm"
-              style={{
-                backgroundColor: 'var(--bg)',
-                border: '1px solid var(--border)',
-                color: 'var(--text)',
-              }}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!input.trim() || sending}
-              className="rounded-xl px-3 py-2"
-              style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
-            >
+            <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} placeholder="e.g. Make week 8 lighter, I have a wedding" className="flex-1 rounded-xl px-3 py-2 text-sm" style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+            <button onClick={sendMessage} disabled={!input.trim() || sending} className="rounded-xl px-3 py-2" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>
               <Send className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Accept plan button */}
-        <div
-          className="rounded-xl p-4 space-y-3"
-          style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
-        >
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Happy with the plan? Accepting will archive your current active block and start this one at week 1.
-          </p>
-          <button
-            onClick={activate}
-            disabled={activating}
-            className="w-full rounded-xl py-4 font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-            style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
-          >
-            {activating ? (
-              <><Loader2 className="w-5 h-5 animate-spin" /> Activating…</>
-            ) : (
-              <><CheckCircle2 className="w-5 h-5" /> Accept plan & start training</>
-            )}
+        <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Happy with the plan? Accepting will archive your current active block and start this one at week 1.</p>
+          <button onClick={activate} disabled={activating} className="w-full rounded-xl py-4 font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>
+            {activating ? <><Loader2 className="w-5 h-5 animate-spin" /> Activating…</> : <><CheckCircle2 className="w-5 h-5" /> Accept plan & start training</>}
           </button>
         </div>
-
       </div>
     </AppShell>
   );
