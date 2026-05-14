@@ -211,7 +211,7 @@ async function confirmMove() {
           const colour = TYPE_COLOURS[workout.type] ?? '#A3A3A3'
           const dayLabel = DAY_LABELS[workout.day_of_week] ?? '?'
           const dateLabel = workout.scheduled_date ? format(parseISO(workout.scheduled_date), 'd MMM') : ''
-          const paceDisplay = formatWorkoutPace(workout.pace_min_seconds, workout.pace_max_seconds, workout.pace_target)
+          const paceDisplay = formatWorkoutPace(workout.pace_min_seconds ?? null, workout.pace_max_seconds ?? null, null)
           const menuOpen = openMenuId === workout.id
 
           return (
