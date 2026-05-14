@@ -77,9 +77,10 @@ export default async function PlanPage({
         />
         {pendingDraft && <AdaptBanner draft={pendingDraft} />}
         <WeekView
-          block={block}
           workouts={w}
-          displayWeek={displayWeek}
+          weekNumber={displayWeek}
+          blockId={block.id}
+          totalWeeks={block.total_weeks}
         />
         <CoachNudge block={block} />
         <QuickQuestions />
