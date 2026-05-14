@@ -531,7 +531,7 @@ export default function NewPlanPage() {
                   onClick={() => update('template', t.value as WizardInput['template'])}
                   className="w-full rounded-xl p-4 text-left transition-all"
                   style={{
-                    backgroundColor: data.template === t.value ? 'var(--bg-card)' : 'var(--bg-card)',
+                    backgroundColor: 'var(--bg-card)',
                     border: `1.5px solid ${data.template === t.value ? 'var(--accent)' : 'var(--border)'}`,
                   }}
                 >
@@ -652,15 +652,9 @@ export default function NewPlanPage() {
               style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
             >
               {generating ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Generating your plan…
-                </>
+                <><Loader2 className="w-5 h-5 animate-spin" /> Generating your plan…</>
               ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  Generate plan
-                </>
+                <><Sparkles className="w-5 h-5" /> Generate plan</>
               )}
             </button>
             <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
