@@ -17,7 +17,7 @@ function getPhases(block: Block): { label: string; done: boolean; active: boolea
 
   if (phases.length > 0) {
     const uniqueNames = Array.from(new Set(phases.map((p: { name: string }) => p.name)))
-    return uniqueNames.map((name, i) => {
+    return uniqueNames.map((name) => {
       const phaseWeeks = phases.filter((p: { name: string }) => p.name === name)
       const lastWeek = Math.max(...phaseWeeks.map((p: { end_week: number }) => p.end_week))
       const firstWeek = Math.min(...phaseWeeks.map((p: { start_week: number }) => p.start_week))
@@ -27,7 +27,6 @@ function getPhases(block: Block): { label: string; done: boolean; active: boolea
     })
   }
 
-  // Fallback: derive from week percentage
   const derived = [
     { label: 'Base', threshold: 0.25 },
     { label: 'Build', threshold: 0.625 },
@@ -88,109 +87,123 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         {/* Big number + week badge */}
         {daysToGo !== null ? (
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
-  <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-    <p style={{
-      fontSize: '100px', fontWeight: 900, lineHeight: 1,
-      letterSpacing: '-6px',
-      background: 'linear-gradient(160deg, #ffffff 20%, #71717a 100%)',
-      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-      backgroundClip: 'text',
-    }}>
-      {daysToGo}
-    </p>
-    <p style={{ fontSize: '18px', fontWeight: 600, color: '#52525b', letterSpacing: '-0.3px' }}>days to go</p>
-  </div>
-  <span style={{
-    fontSize: '12px', fontWeight: 700, color: '#f97316',
-    background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)',
-    padding: '4px 10px', borderRadius: '100px', display: 'inline-block', marginTop: '8px',
-  }}>
-    Week {block.current_week}/{block.total_weeks}
-  </span>
-</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+              <p style={{
+                fontSize: '100px', fontWeight: 900, lineHeight: 1,
+                letterSpacing: '-6px',
+                background: 'linear-gradient(160deg, #ffffff 20%, #71717a 100%)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}>
+                {daysToGo}
+              </p>
+              <p style={{ fontSize: '18px', fontWeight: 600, color: '#52525b', letterSpacing: '-0.3px' }}>days to go</p>
+            </div>
+            <span style={{
+              fontSize: '12px', fontWeight: 700, color: '#f97316',
+              background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)',
+              padding: '4px 10px', borderRadius: '100px', display: 'inline-block', marginTop: '8px',
+            }}>
+              Week {block.current_week}/{block.total_weeks}
+            </span>
+          </div>
         ) : (
           <p style={{ fontSize: '15px', color: '#52525b', marginBottom: '20px' }}>No race date set</p>
         )}
 
-        {/* Phase journey */}
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', position: 'relative' }}>
-          {phases.map((phase, i) => (
-            <div key={phase.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', position: 'relative' }}>
-              {/* Connector line */}
-              {i < phases.length - 1 && (
-                <div style={{
-                  position: 'absolute', top: '5px', left: '50%', width: '100%', height: '2px',
-                  background: phase.done ? '#10b981' : '#1f1f1f',
-                  zIndex: 0,
-                }} />
-              )}
-              {/* Dot */}
-              <div style={{
-                width: phase.active ? '13px' : '10px',
-                height: phase.active ? '13px' : '10px',
-                borderRadius: '50%',
-                background: phase.active ? '#f97316' : phase.done ? '#10b981' : '#1f1f1f',
-                border: `2px solid ${phase.active ? '#f97316' : phase.done ? '#10b981' : '#2e2e2e'}`,
-                boxShadow: phase.active ? '0 0 10px rgba(249,115,22,0.6)' : 'none',
-                position: 'relative', zIndex: 1,
-                transition: 'all 0.2s',
-              }} />
-              {/* Label */}
-              <p style={{
-                fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
-                textTransform: 'uppercase',
-                color: phase.active ? '#f97316' : phase.done ? '#10b981' : '#3f3f46',
+        {/* 
+          BOTH BARS IN ONE WRAPPER — guaranteed same width 
+          Phase journey + time cards + progress bar all share this container
+        */}
+        <div style={{ width: '100%' }}>
+
+          {/* Phase journey */}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+            {phases.map((phase, i) => (
+              <div key={phase.label} style={{
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: i === 0 ? 'flex-start' : i === phases.length - 1 ? 'flex-end' : 'center',
+                gap: '6px', position: 'relative',
               }}>
-                {phase.label}
+                {i < phases.length - 1 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: i === 0 ? '5px' : '5px',
+                    left: i === 0 ? '5px' : '50%',
+                    right: i === phases.length - 2 ? '5px' : undefined,
+                    width: i === 0 ? 'calc(100% - 5px)' : i === phases.length - 2 ? 'calc(50% - 5px)' : '100%',
+                    height: '2px',
+                    background: phase.done ? '#10b981' : '#1f1f1f',
+                    zIndex: 0,
+                  }} />
+                )}
+                <div style={{
+                  width: phase.active ? '13px' : '10px',
+                  height: phase.active ? '13px' : '10px',
+                  borderRadius: '50%',
+                  background: phase.active ? '#f97316' : phase.done ? '#10b981' : '#1f1f1f',
+                  border: `2px solid ${phase.active ? '#f97316' : phase.done ? '#10b981' : '#2e2e2e'}`,
+                  boxShadow: phase.active ? '0 0 10px rgba(249,115,22,0.6)' : 'none',
+                  position: 'relative', zIndex: 1,
+                  flexShrink: 0,
+                }} />
+                <p style={{
+                  fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                  color: phase.active ? '#f97316' : phase.done ? '#10b981' : '#3f3f46',
+                }}>
+                  {phase.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Time cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+            <div style={{
+              background: 'rgba(255,255,255,0.04)', border: '1px solid #1f1f1f',
+              borderRadius: '14px', padding: '14px 16px', minWidth: 0,
+            }}>
+              <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#52525b', marginBottom: '6px' }}>Est. now</p>
+              <p style={{ fontSize: '22px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.5px' }}>{estNow}</p>
+              <p style={{ fontSize: '11px', color: '#52525b', marginTop: '3px' }}>if you raced today</p>
+            </div>
+            <div style={{
+              background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)',
+              borderRadius: '14px', padding: '14px 16px', minWidth: 0,
+            }}>
+              <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(249,115,22,0.6)', marginBottom: '6px' }}>Race proj.</p>
+              <p style={{ fontSize: '22px', fontWeight: 800, color: '#f97316', letterSpacing: '-0.5px' }}>{raceProj}</p>
+              <p style={{ fontSize: '11px', color: '#52525b', marginTop: '3px' }}>
+                {block.race_date ? `on ${new Date(block.race_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : ''}
               </p>
             </div>
-          ))}
-        </div>
-
-        {/* Time cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px', width: '100%' }}>
-          <div style={{
-            background: 'rgba(255,255,255,0.04)', border: '1px solid #1f1f1f',
-            borderRadius: '14px', padding: '14px 16px', minWidth: 0,
-          }}>
-            <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#52525b', marginBottom: '6px' }}>Est. now</p>
-            <p style={{ fontSize: '22px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.5px' }}>{estNow}</p>
-            <p style={{ fontSize: '11px', color: '#52525b', marginTop: '3px' }}>if you raced today</p>
           </div>
-          <div style={{
-            background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)',
-            borderRadius: '14px', padding: '14px 16px', minWidth: 0,
-          }}>
-            <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(249,115,22,0.6)', marginBottom: '6px' }}>Race proj.</p>
-            <p style={{ fontSize: '22px', fontWeight: 800, color: '#f97316', letterSpacing: '-0.5px' }}>{raceProj}</p>
-            <p style={{ fontSize: '11px', color: '#52525b', marginTop: '3px' }}>
-              {block.race_date ? `on ${new Date(block.race_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : ''}
-            </p>
-          </div>
-        </div>
 
-        {/* Progress bar */}
-        {block.est_now_seconds && block.race_proj_seconds && (
-          <>
-            <div style={{ height: '3px', background: '#1f1f1f', borderRadius: '10px', position: 'relative', marginBottom: '4px', marginLeft: '4%', marginRight: '4%' }}>
-              <div style={{
-                height: '3px', borderRadius: '10px', position: 'relative',
-                width: `${progress}%`,
-                background: 'linear-gradient(90deg, #c2410c, #f97316)',
-              }}>
+          {/* Progress bar — same container as phase bar, guaranteed same width */}
+          {block.est_now_seconds && block.race_proj_seconds && (
+            <>
+              <div style={{ height: '3px', background: '#1f1f1f', borderRadius: '10px', position: 'relative', marginBottom: '4px' }}>
                 <div style={{
-                  width: '11px', height: '11px', background: '#f97316',
-                  borderRadius: '50%', position: 'absolute', right: '-5px', top: '-4px',
-                  boxShadow: '0 0 10px rgba(249,115,22,0.7)',
-                }} />
+                  height: '3px', borderRadius: '10px', position: 'relative',
+                  width: `${progress}%`,
+                  background: 'linear-gradient(90deg, #c2410c, #f97316)',
+                }}>
+                  <div style={{
+                    width: '11px', height: '11px', background: '#f97316',
+                    borderRadius: '50%', position: 'absolute', right: '-5px', top: '-4px',
+                    boxShadow: '0 0 10px rgba(249,115,22,0.7)',
+                  }} />
+                </div>
               </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '6px', marginLeft: '4%', marginRight: '4%' }}>
-              <span style={{ color: '#52525b' }}>Est. now {estNow}</span>
-              <span style={{ color: '#f97316', fontWeight: 600 }}>Race proj. {raceProj}</span>
-            </div>
-          </>
-        )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '6px' }}>
+                <span style={{ color: '#52525b' }}>Est. now {estNow}</span>
+                <span style={{ color: '#f97316', fontWeight: 600 }}>Race proj. {raceProj}</span>
+              </div>
+            </>
+          )}
+
+        </div>
       </div>
     </div>
   )
