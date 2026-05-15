@@ -31,7 +31,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Logo */}
         <div style={{ padding: '28px 24px 20px' }}>
-          <span style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.5px', color: '#f1f5f9' }}>
+          <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.5px', color: '#f1f5f9' }}>
             Pace<span style={{
   color: '#f97316',
   textShadow: '0 0 20px rgba(249,115,22,0.5)',

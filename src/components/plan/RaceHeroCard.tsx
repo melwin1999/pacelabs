@@ -118,45 +118,39 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         <div style={{ width: '100%' }}>
 
           {/* Phase journey */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-            {phases.map((phase, i) => (
-              <div key={phase.label} style={{
-                flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: i === 0 ? 'flex-start' : i === phases.length - 1 ? 'flex-end' : 'center',
-                gap: '6px', position: 'relative',
-              }}>
-                {i < phases.length - 1 && (
-                  <div style={{
-                    position: 'absolute',
-                    top: i === 0 ? '5px' : '5px',
-                    left: i === 0 ? '5px' : '50%',
-                    right: i === phases.length - 2 ? '5px' : undefined,
-                    width: i === 0 ? 'calc(100% - 5px)' : i === phases.length - 2 ? 'calc(50% - 5px)' : '100%',
-                    height: '2px',
-                    background: phase.done ? '#10b981' : '#1f1f1f',
-                    zIndex: 0,
-                  }} />
-                )}
-                <div style={{
-                  width: phase.active ? '13px' : '10px',
-                  height: phase.active ? '13px' : '10px',
-                  borderRadius: '50%',
-                  background: phase.active ? '#f97316' : phase.done ? '#10b981' : '#1f1f1f',
-                  border: `2px solid ${phase.active ? '#f97316' : phase.done ? '#10b981' : '#2e2e2e'}`,
-                  boxShadow: phase.active ? '0 0 10px rgba(249,115,22,0.6)' : 'none',
-                  position: 'relative', zIndex: 1,
-                  flexShrink: 0,
-                }} />
-                <p style={{
-                  fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
-                  textTransform: 'uppercase',
-                  color: phase.active ? '#f97316' : phase.done ? '#10b981' : '#3f3f46',
-                }}>
-                  {phase.label}
-                </p>
-              </div>
-            ))}
-          </div>
+<div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+  {phases.map((phase, i) => (
+    <div key={phase.label} style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', gap: '6px', position: 'relative',
+    }}>
+      {i < phases.length - 1 && (
+        <div style={{
+          position: 'absolute', top: '5px', left: '50%',
+          width: '100%', height: '2px',
+          background: phase.done ? '#10b981' : '#1f1f1f',
+          zIndex: 0,
+        }} />
+      )}
+      <div style={{
+        width: phase.active ? '13px' : '10px',
+        height: phase.active ? '13px' : '10px',
+        borderRadius: '50%',
+        background: phase.active ? '#f97316' : phase.done ? '#10b981' : '#1f1f1f',
+        border: `2px solid ${phase.active ? '#f97316' : phase.done ? '#10b981' : '#2e2e2e'}`,
+        boxShadow: phase.active ? '0 0 10px rgba(249,115,22,0.6)' : 'none',
+        position: 'relative', zIndex: 1, flexShrink: 0,
+      }} />
+      <p style={{
+        fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
+        textTransform: 'uppercase',
+        color: phase.active ? '#f97316' : phase.done ? '#10b981' : '#3f3f46',
+      }}>
+        {phase.label}
+      </p>
+    </div>
+  ))}
+</div>
 
           {/* Time cards */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
