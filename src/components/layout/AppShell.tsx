@@ -86,14 +86,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Mobile bottom nav */}
       <nav className="md:hidden" style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
-        background: 'rgba(8,12,20,0.96)',
-        backdropFilter: 'blur(16px)',
-        borderTop: '1px solid #161c28',
-        height: '62px', display: 'flex', alignItems: 'center',
-      }}>
+  position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
+  background: 'rgba(8,12,20,0.97)',
+  backdropFilter: 'blur(16px)',
+  borderTop: '1px solid #161c28',
+  height: '62px', alignItems: 'center',
+}}>
         {[...NAV_ITEMS, { href: '/plan/new', label: 'New', icon: Plus }].map(({ href, label, icon: Icon }) => {
           const active = isActive(href)
           return (

@@ -60,7 +60,7 @@ export default async function BlockPage() {
 
   return (
     <AppShell>
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div>
           <h1
             className="text-2xl mb-1"
