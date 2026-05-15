@@ -17,8 +17,8 @@ export default function StatsStrip({ plannedKm, doneKm, sessionCount, completedC
     <div style={{
       display: 'grid',
       gridTemplateColumns: 'repeat(4, 1fr)',
-      background: '#0d1117',
-      border: '1px solid #161c28',
+      background: '#111111',
+      border: '1px solid #1f1f1f',
       borderRadius: '16px',
       overflow: 'hidden',
     }}>
@@ -26,11 +26,11 @@ export default function StatsStrip({ plannedKm, doneKm, sessionCount, completedC
         <div key={stat.label} style={{
           padding: '14px 6px',
           textAlign: 'center',
-          borderRight: i < 3 ? '1px solid #161c28' : 'none',
+          borderRight: i < 3 ? '1px solid #1f1f1f' : 'none',
           transition: 'background 0.18s ease',
           cursor: 'default',
         }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#111827')}
+          onMouseEnter={e => (e.currentTarget.style.background = '#1a1a1a')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
           <p style={{

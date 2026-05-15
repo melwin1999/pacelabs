@@ -227,11 +227,11 @@ export default function WeekView({
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '13px 14px',
-                  background: isToday ? 'rgba(249,115,22,0.04)' : '#0d1117',
+                  background: isToday ? 'rgba(249,115,22,0.04)' : '#111111',
                   border: isDragOver ? '1px solid #f97316'
                     : isToday ? '1px solid rgba(249,115,22,0.3)'
                     : isHovered ? '1px solid #334155'
-                    : '1px solid #161c28',
+                    : '1px solid #1f1f1f',
                   borderRadius: '13px',
                   opacity: isDragging ? 0.35 : (isComplete || isSkipped) ? 0.5 : 1,
                   transform: isDragOver ? 'scale(1.01)' : isHovered && !isDragging ? 'scale(1.005)' : 'scale(1)',
@@ -331,7 +331,7 @@ export default function WeekView({
                 <div style={{
                   position: 'absolute', right: 0, top: 'calc(100% + 4px)', zIndex: 50,
                   borderRadius: '12px', padding: '4px', minWidth: '160px',
-                  background: '#111827', border: '1px solid #1e293b',
+                  background: '#1a1a1a', border: '1px solid ##2e2e2e',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
                 }}>
                   {!isSkipped ? (
@@ -353,7 +353,7 @@ export default function WeekView({
                         background: 'transparent', border: 'none', cursor: 'pointer',
                         borderRadius: '8px', textAlign: 'left', transition: 'background 0.15s',
                       }}
-                      onMouseEnter={e => (e.currentTarget.style.background = '#1e293b')}
+                      onMouseEnter={e => (e.currentTarget.style.background = '##2e2e2e')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     ><SkipForward size={14} /> Un-skip</button>
                   )}
@@ -364,7 +364,7 @@ export default function WeekView({
                       background: 'transparent', border: 'none', cursor: 'pointer',
                       borderRadius: '8px', textAlign: 'left', transition: 'background 0.15s',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#1e293b')}
+                    onMouseEnter={e => (e.currentTarget.style.background = '##2e2e2e')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   ><Calendar size={14} /> Move to…</button>
                 </div>
@@ -390,7 +390,7 @@ export default function WeekView({
         }} onClick={() => setShowMoveSheet(null)}>
           <div style={{
             width: '100%', maxWidth: '400px', borderRadius: '20px', padding: '20px',
-            background: '#111827', border: '1px solid #1e293b',
+            background: '#1a1a1a', border: '1px solid ##2e2e2e',
             display: 'flex', flexDirection: 'column', gap: '16px',
           }} onClick={e => e.stopPropagation()}>
             <p style={{ fontSize: '15px', fontWeight: 700, color: '#f1f5f9' }}>Move to a different day</p>
@@ -398,13 +398,13 @@ export default function WeekView({
             <input type="date" value={moveDate} onChange={e => setMoveDate(e.target.value)}
               style={{
                 width: '100%', borderRadius: '12px', padding: '10px 14px',
-                background: '#0d1117', border: '1px solid #1e293b',
+                background: '#111111', border: '1px solid ##2e2e2e',
                 color: '#f1f5f9', fontSize: '14px', outline: 'none',
               }} />
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => setShowMoveSheet(null)} style={{
                 flex: 1, padding: '11px', borderRadius: '12px', fontSize: '14px',
-                fontWeight: 600, background: '#0d1117', border: '1px solid #1e293b',
+                fontWeight: 600, background: '#111111', border: '1px solid ##2e2e2e',
                 color: '#64748b', cursor: 'pointer',
               }}>Cancel</button>
               <button onClick={confirmMove} disabled={!moveDate} style={{

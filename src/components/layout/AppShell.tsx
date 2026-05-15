@@ -18,14 +18,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     href === '/' ? pathname === '/' : pathname.startsWith(href)
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#080c14' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0a' }}>
 
       {/* Desktop sidebar */}
       <aside style={{
         width: '200px', flexShrink: 0, position: 'fixed',
         top: 0, left: 0, height: '100%', zIndex: 30,
-        background: '#0a0d14',
-        borderRight: '1px solid #161c28',
+        background: '#0d0d0d',
+        borderRight: '1px solid #1f1f1f',
         display: 'flex', flexDirection: 'column',
       }} className="hidden md:flex">
 
@@ -90,7 +90,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
   background: 'rgba(8,12,20,0.97)',
   backdropFilter: 'blur(16px)',
-  borderTop: '1px solid #161c28',
+  borderTop: '1px solid #1f1f1f',
   height: '62px', alignItems: 'center',
 }}>
         {[...NAV_ITEMS, { href: '/plan/new', label: 'New', icon: Plus }].map(({ href, label, icon: Icon }) => {

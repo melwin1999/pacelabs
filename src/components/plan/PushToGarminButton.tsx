@@ -5,8 +5,8 @@ import { Upload } from 'lucide-react'
 export default function PushToGarminButton() {
   return (
     <div style={{
-      background: '#0d1117',
-      border: '1px solid #161c28',
+      background: '#111111',
+      border: '1px solid #1f1f1f',
       borderRadius: '16px', padding: '14px 16px',
       display: 'flex', alignItems: 'center', gap: '12px',
       marginBottom: '8px',

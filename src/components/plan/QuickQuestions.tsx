@@ -22,8 +22,8 @@ export default function QuickQuestions() {
         {QUESTIONS.map(q => (
           <button key={q} onClick={() => router.push('/coach')} style={{
             padding: '13px 15px',
-            background: '#0d1117',
-            border: '1px solid #161c28',
+            background: '#111111',
+            border: '1px solid #1f1f1f',
             borderRadius: '12px',
             fontSize: '13px', color: '#475569',
             display: 'flex', justifyContent: 'space-between',
@@ -33,7 +33,7 @@ export default function QuickQuestions() {
             width: '100%',
           }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#334155'; e.currentTarget.style.color = '#64748b' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#161c28'; e.currentTarget.style.color = '#475569' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#1f1f1f'; e.currentTarget.style.color = '#475569' }}
           >
             {q}
             <span style={{ color: '#1e2a3a', fontSize: '16px', marginLeft: '8px' }}>›</span>

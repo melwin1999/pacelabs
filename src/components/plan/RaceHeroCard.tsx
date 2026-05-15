@@ -21,8 +21,8 @@ export default function RaceHeroCard({ block }: { block: Block }) {
 
   return (
     <div style={{
-      background: '#0d1117',
-      border: '1px solid #161c28',
+      background: '#111111',
+      border: '1px solid #1f1f1f',
       borderRadius: '20px',
       overflow: 'hidden',
       position: 'relative',
@@ -96,7 +96,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         {/* Progress bar */}
         {block.est_now_seconds && block.race_proj_seconds && (
           <>
-            <div style={{ height: '3px', background: '#161c28', borderRadius: '10px', position: 'relative', marginBottom: '4px' }}>
+            <div style={{ height: '3px', background: '#1f1f1f', borderRadius: '10px', position: 'relative', marginBottom: '4px' }}>
               <div style={{
                 height: '3px', borderRadius: '10px', position: 'relative',
                 width: `${Math.min(100, Math.max(5, Math.round((block.current_week / block.total_weeks) * 100)))}%`,

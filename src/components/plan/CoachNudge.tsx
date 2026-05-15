@@ -3,7 +3,7 @@ import { MessageCircle } from 'lucide-react'
 export default function CoachNudge() {
   return (
     <div style={{
-      background: '#0d1117',
+      background: '#111111',
       border: '1px solid rgba(249,115,22,0.15)',
       borderRadius: '16px', padding: '16px',
     }}>
