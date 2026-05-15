@@ -32,12 +32,12 @@ const BENCHMARK_DISTANCES = [
 ];
 
 const TEMPLATES = [
-  { value: 'claude', label: "Claude's Own", badge: 'Recommended', badgeColor: '#F97316', description: "Hybrid approach built from scratch based on your inputs. Borrows from published methodologies and optimises for your specific situation, fitness level, and schedule." },
-  { value: 'daniels', label: 'Daniels (VDOT)', badge: 'All levels', badgeColor: '#22C55E', description: 'Every workout has an exact pace target derived from your current fitness. Strong threshold and interval work, moderate volume. Great if you like data and structure.' },
-  { value: 'pfitzinger', label: 'Pfitzinger', badge: 'Advanced', badgeColor: '#F87171', description: 'Medium-long runs mid-week, lactate threshold sessions, long runs with marathon-pace segments. High volume. Best for runners at 60+ km/week.' },
-  { value: 'hansons', label: 'Hansons', badge: 'Intermediate', badgeColor: '#FB923C', description: 'Cumulative fatigue philosophy. Long runs capped shorter but you run frequently. Two quality sessions per week.' },
-  { value: 'higdon', label: 'Hal Higdon', badge: 'Beginner-friendly', badgeColor: '#22C55E', description: 'Long runs are the centrepiece, almost everything else is easy. Built around consistency and finishing feeling good.' },
-  { value: 'norwegian', label: 'Norwegian', badge: 'Advanced', badgeColor: '#F87171', description: 'High-volume, threshold-heavy. Double threshold days. Not recommended for beginners — assumes a strong aerobic base.' },
+  { value: 'claude', label: "Claude's Own", badge: 'Fully Customised', badgeColor: '#F97316', description: "Hybrid approach built from scratch based on your inputs. Borrows from published methodologies and optimises for your specific situation, fitness level, and schedule." },
+  { value: 'higdon', label: 'Hal Higdon', badge: 'Beginner-friendly', badgeColor: '#22C55E', description: 'Long runs are the centrepiece, almost everything else is easy. Built around consistency and finishing feeling good. The most accessible marathon methodology.' },
+  { value: 'hansons', label: 'Hansons', badge: 'Intermediate', badgeColor: '#FB923C', description: 'Cumulative fatigue philosophy. Long runs capped at 26km, but you run 6 days/week and rarely feel fresh. Two quality sessions per week. More demanding than it looks.' },
+  { value: 'daniels', label: 'Daniels 2Q', badge: 'Intermediate–Advanced', badgeColor: '#22C55E', description: 'Two structured Quality sessions per week (Q1 = long quality run, Q2 = threshold/intervals). Everything else is strictly easy filler. VDOT-based paces scale to your fitness.' },
+  { value: 'norwegian', label: 'Norwegian', badge: 'Advanced', badgeColor: '#F87171', description: 'High-volume, double-threshold model. Two threshold sessions at lactate threshold per week. High easy volume, HR-controlled. Assumes a very strong aerobic base.' },
+  { value: 'pfitzinger', label: 'Pfitzinger', badge: 'Advanced', badgeColor: '#F87171', description: 'Medium-long midweek runs, lactate threshold sessions, long runs with marathon-pace segments. High volume. Pfitz himself says you should be within 5-10mi of peak before starting.' },
 ];
 
 const TIER_LABELS: Record<string, Record<string, string>> = {
@@ -50,11 +50,11 @@ const TIER_LABELS: Record<string, Record<string, string>> = {
 };
 
 const TIER_PEAKS: Record<string, Record<string, string>> = {
-  higdon:     { conservative: '~45km/wk peak', moderate: '~50km/wk peak', aggressive: '~65km/wk peak' },
+  higdon:     { conservative: '~45km/wk peak', moderate: '~55km/wk peak', aggressive: '~65km/wk peak' },
   daniels:    { conservative: '~55km/wk peak', moderate: '~70km/wk peak', aggressive: '~90km/wk peak' },
-  pfitzinger: { conservative: '~88km/wk peak', moderate: '~112km/wk peak', aggressive: '~136km/wk peak' },
-  hansons:    { conservative: '~65km/wk peak', moderate: '~80km/wk peak', aggressive: '~95km/wk peak' },
-  norwegian:  { conservative: '~75km/wk peak', moderate: '~95km/wk peak', aggressive: '~120km/wk peak' },
+  pfitzinger: { conservative: '~88km/wk peak · needs 40km+ base', moderate: '~112km/wk peak · needs 50km+ base', aggressive: '~136km/wk peak · needs 65km+ base' },
+  hansons:    { conservative: '~65km/wk peak', moderate: '~80km/wk peak · needs 20km+ base', aggressive: '~95km/wk peak · needs 40km+ base' },
+  norwegian:  { conservative: '~75km/wk peak · needs 35km+ base', moderate: '~95km/wk peak · needs 45km+ base', aggressive: '~120km/wk peak · needs 60km+ base' },
   claude:     { conservative: '~55km/wk peak', moderate: '~75km/wk peak', aggressive: '~95km/wk peak' },
 };
 

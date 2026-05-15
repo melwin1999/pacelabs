@@ -1,54 +1,57 @@
 // src/lib/plan-scaffolding.ts
-// All plan maths lives here. No Claude, no Supabase, no Next.js.
-// Input: WizardInput → Output: PlanSkeleton
-//
-// Design principle: each methodology + aggressiveness combination maps to a real-world
-// canonical training plan tier. Volume and long run progression mirror the actual plans.
-
 import { WizardInput, PlanSkeleton, PlanSkeletonWeek, Phase } from '@/lib/types'
 import { estimateVdot, getRaceTime, interpolatePaceZones } from '@/lib/vdot-tables'
 
 // ─── Methodology tiers ────────────────────────────────────────────────────────
-// Maps (template, aggressiveness) → real-world plan name + peak weekly volume (km)
-// + minimum recommended starting volume (km/wk)
 
-type Tier = { label: string; peakKm: number; minBaseKm: number; peakLongRunKm: number }
+type Tier = {
+  label: string
+  peakKm: number
+  minBaseKm: number       // soft warning below this
+  hardBlockKm: number     // hard block below this — plan is unsafe
+  peakLongRunKm: number
+  canOverride: boolean    // can user override the hard block with warning?
+}
 
 const METHODOLOGY_TIERS: Record<string, Record<string, Tier>> = {
   higdon: {
-    conservative: { label: 'Novice Supreme', peakKm: 45, minBaseKm: 5, peakLongRunKm: 32 },
-    moderate:     { label: 'Novice 1',       peakKm: 50, minBaseKm: 15, peakLongRunKm: 32 },
-    aggressive:   { label: 'Intermediate 1', peakKm: 65, minBaseKm: 30, peakLongRunKm: 32 },
+    conservative: { label: 'Novice Supreme', peakKm: 45,  minBaseKm: 5,  hardBlockKm: 0,  peakLongRunKm: 32, canOverride: false },
+    moderate:     { label: 'Novice 1',       peakKm: 55,  minBaseKm: 15, hardBlockKm: 0,  peakLongRunKm: 32, canOverride: false },
+    aggressive:   { label: 'Intermediate 1', peakKm: 65,  minBaseKm: 30, hardBlockKm: 15, peakLongRunKm: 32, canOverride: true },
   },
   daniels: {
-    conservative: { label: 'Novice (run/walk)', peakKm: 55, minBaseKm: 15, peakLongRunKm: 29 },
-    moderate:     { label: '2Q 18/55',          peakKm: 70, minBaseKm: 40, peakLongRunKm: 29 },
-    aggressive:   { label: '2Q 18/70+',         peakKm: 90, minBaseKm: 60, peakLongRunKm: 32 },
+    conservative: { label: 'Novice (run/walk)', peakKm: 55,  minBaseKm: 15, hardBlockKm: 0,  peakLongRunKm: 29, canOverride: false },
+    moderate:     { label: '2Q 18/55',          peakKm: 70,  minBaseKm: 40, hardBlockKm: 25, peakLongRunKm: 29, canOverride: true },
+    aggressive:   { label: '2Q 18/70+',         peakKm: 90,  minBaseKm: 60, hardBlockKm: 45, peakLongRunKm: 32, canOverride: true },
   },
   pfitzinger: {
-    conservative: { label: '18/55',  peakKm: 88,  minBaseKm: 40, peakLongRunKm: 32 },
-    moderate:     { label: '18/70',  peakKm: 112, minBaseKm: 50, peakLongRunKm: 35 },
-    aggressive:   { label: '18/85+', peakKm: 136, minBaseKm: 65, peakLongRunKm: 35 },
+    conservative: { label: '18/55',  peakKm: 88,  minBaseKm: 48, hardBlockKm: 40, peakLongRunKm: 32, canOverride: false },
+    moderate:     { label: '18/70',  peakKm: 112, minBaseKm: 65, hardBlockKm: 50, peakLongRunKm: 35, canOverride: false },
+    aggressive:   { label: '18/85+', peakKm: 136, minBaseKm: 80, hardBlockKm: 65, peakLongRunKm: 35, canOverride: false },
   },
   hansons: {
-    conservative: { label: 'Just Finish', peakKm: 65, minBaseKm: 15, peakLongRunKm: 26 },
-    moderate:     { label: 'Beginner',    peakKm: 80, minBaseKm: 30, peakLongRunKm: 26 },
-    aggressive:   { label: 'Advanced',    peakKm: 95, minBaseKm: 50, peakLongRunKm: 26 },
+    conservative: { label: 'Just Finish', peakKm: 65,  minBaseKm: 20, hardBlockKm: 0,  peakLongRunKm: 26, canOverride: false },
+    moderate:     { label: 'Beginner',    peakKm: 80,  minBaseKm: 30, hardBlockKm: 20, peakLongRunKm: 26, canOverride: true },
+    aggressive:   { label: 'Advanced',    peakKm: 95,  minBaseKm: 50, hardBlockKm: 40, peakLongRunKm: 26, canOverride: false },
   },
   norwegian: {
-    conservative: { label: 'Norwegian (low)',  peakKm: 75,  minBaseKm: 40, peakLongRunKm: 32 },
-    moderate:     { label: 'Norwegian (mid)',  peakKm: 95,  minBaseKm: 55, peakLongRunKm: 32 },
-    aggressive:   { label: 'Norwegian (high)', peakKm: 120, minBaseKm: 70, peakLongRunKm: 32 },
+    conservative: { label: 'Norwegian (low)',  peakKm: 75,  minBaseKm: 40, hardBlockKm: 35, peakLongRunKm: 32, canOverride: false },
+    moderate:     { label: 'Norwegian (mid)',  peakKm: 95,  minBaseKm: 55, hardBlockKm: 45, peakLongRunKm: 32, canOverride: false },
+    aggressive:   { label: 'Norwegian (high)', peakKm: 120, minBaseKm: 70, hardBlockKm: 60, peakLongRunKm: 32, canOverride: false },
   },
   claude: {
-    conservative: { label: "Claude's Own — gentle",   peakKm: 55, minBaseKm: 5,  peakLongRunKm: 32 },
-    moderate:     { label: "Claude's Own — balanced", peakKm: 75, minBaseKm: 20, peakLongRunKm: 32 },
-    aggressive:   { label: "Claude's Own — strong",   peakKm: 95, minBaseKm: 40, peakLongRunKm: 35 },
+    conservative: { label: 'Gentle',   peakKm: 55,  minBaseKm: 5,  hardBlockKm: 0, peakLongRunKm: 32, canOverride: false },
+    moderate:     { label: 'Balanced', peakKm: 75,  minBaseKm: 20, hardBlockKm: 0, peakLongRunKm: 32, canOverride: false },
+    aggressive:   { label: 'Strong',   peakKm: 95,  minBaseKm: 40, hardBlockKm: 0, peakLongRunKm: 35, canOverride: false },
   },
 }
 
 export function getTierLabel(template: WizardInput['template'], aggressiveness: WizardInput['aggressiveness']): string {
   return METHODOLOGY_TIERS[template]?.[aggressiveness]?.label ?? ''
+}
+
+export function getTier(template: WizardInput['template'], aggressiveness: WizardInput['aggressiveness']): Tier {
+  return METHODOLOGY_TIERS[template]?.[aggressiveness]
 }
 
 // ─── 1. Phase distribution ────────────────────────────────────────────────────
@@ -79,7 +82,6 @@ export function computePhases(totalWeeks: number): Phase[] {
   phases.push({ name: 'Peak', start_week: cursor, end_week: cursor + peakWeeks - 1 })
   cursor += peakWeeks
   phases.push({ name: 'Taper', start_week: cursor, end_week: cursor + taperWeeks - 1 })
-
   return phases
 }
 
@@ -89,22 +91,15 @@ function getPhaseForWeek(phases: Phase[], weekNumber: number): string {
 }
 
 // ─── 2. Volume curve ──────────────────────────────────────────────────────────
-// Target peak volume from methodology tier.
-// Ramp rate: 15% for low base (<30km), 12% mid (30-60km), 10% high (60+km).
-// Cutback week every 4 weeks drops 20% from previous.
 
 function buildVolumeCurve(input: WizardInput, phases: Phase[]): number[] {
   const { total_weeks, current_weekly_km, aggressiveness, template } = input
   const tier = METHODOLOGY_TIERS[template][aggressiveness]
   const targetPeak = tier.peakKm
-
-  // Determine ramp rate based on starting volume
   const baseLevel = current_weekly_km
   const rampRate = baseLevel < 30 ? 0.15 : baseLevel < 60 ? 0.12 : 0.10
-
   const week1Volume = Math.max(8, Math.round(current_weekly_km * 0.9))
   const peakVolume = targetPeak
-
   const taperStart = phases.find(p => p.name === 'Taper')!.start_week
   const buildUpWeeks = taperStart - 1
 
@@ -129,7 +124,6 @@ function buildVolumeCurve(input: WizardInput, phases: Phase[]): number[] {
       continue
     }
 
-    // Base / Build — progressive ramp limited by rampRate, target on smooth curve
     const progressFraction = Math.min(1, (w - 1) / Math.max(1, buildUpWeeks - 1))
     const target = Math.round(week1Volume + (peakVolume - week1Volume) * progressFraction)
 
@@ -145,13 +139,10 @@ function buildVolumeCurve(input: WizardInput, phases: Phase[]): number[] {
       base = actual
     }
   }
-
   return volumes
 }
 
 // ─── 3. Long run ──────────────────────────────────────────────────────────────
-// Long run follows its own progression curve from methodology tier's peakLongRunKm.
-// Cutback weeks drop the long run by ~30%.
 
 function longRunKm(
   weeklyVolumeKm: number,
@@ -163,7 +154,6 @@ function longRunKm(
   phase: string,
   isCutbackWeek: boolean
 ): number {
-  // Hansons: hard cap at 26km by design
   if (template === 'hansons') {
     const hansonsPeak = 26
     const planFrac = (weekNumber - 1) / Math.max(1, totalWeeks - 1)
@@ -174,49 +164,34 @@ function longRunKm(
     return Math.round(Math.min(target, weeklyVolumeKm * 0.42))
   }
 
-  // Taper: short long run
   if (phase === 'Taper') {
     const taperFrac = weekNumber / totalWeeks
-    return raceDistanceKm >= 42
-      ? (taperFrac > 0.95 ? 10 : 19)
-      : raceDistanceKm >= 21
-      ? (taperFrac > 0.95 ? 8 : 14)
+    return raceDistanceKm >= 42 ? (taperFrac > 0.95 ? 10 : 19)
+      : raceDistanceKm >= 21 ? (taperFrac > 0.95 ? 8 : 14)
       : 10
   }
 
-  // Get methodology-specific peak long run
   const tier = METHODOLOGY_TIERS[template][aggressiveness]
-  const peakLongRun = raceDistanceKm >= 42
-    ? tier.peakLongRunKm
-    : raceDistanceKm >= 21 ? 21
-    : raceDistanceKm >= 10 ? 15
-    : 12
+  const peakLongRun = raceDistanceKm >= 42 ? tier.peakLongRunKm
+    : raceDistanceKm >= 21 ? 18   // HM: peak long run 18km (shorter than race dist)
+    : raceDistanceKm >= 10 ? 13   // 10K: peak long run 13km
+    : 10                           // 5K: peak long run 10km
 
-  // Starting long run scales with race distance
   const startLongRun = raceDistanceKm >= 42 ? 12 : raceDistanceKm >= 21 ? 8 : 6
-
-  // Long run follows a curve through the plan
   const planFraction = (weekNumber - 1) / Math.max(1, totalWeeks - 1)
-  let targetLongRun: number
 
+  let targetLongRun: number
   if (phase === 'Base') {
-    // Build to ~50% of peak in base
     targetLongRun = startLongRun + (peakLongRun * 0.50 - startLongRun) * Math.min(1, planFraction * 2.5)
   } else if (phase === 'Build') {
-    // Build from 50% to 95% of peak
     const buildStart = peakLongRun * 0.50
     targetLongRun = buildStart + (peakLongRun * 0.95 - buildStart) * Math.min(1, (planFraction - 0.2) * 2)
   } else {
-    // Peak phase — hit peak
     targetLongRun = peakLongRun
   }
 
-  // Cutback week: drop long run 30%
   if (isCutbackWeek) targetLongRun *= 0.70
-
-  // Sanity cap: long run can't exceed 55% of weekly volume
   const volumeCap = weeklyVolumeKm * 0.55
-
   return Math.round(Math.min(targetLongRun, volumeCap, peakLongRun))
 }
 
@@ -232,6 +207,7 @@ function qualityCount(
   if (template === 'hansons') return Math.min(2, daysPerWeek - 2)
   if (template === 'higdon') return daysPerWeek <= 4 ? 0 : 1
   if (template === 'pfitzinger') return Math.min(2, daysPerWeek - 3)
+  if (template === 'daniels') return 2 // Always 2Q — that's the whole point
 
   const base: Record<string, number> = { Base: 1, Build: 2, Peak: 2, Taper: 1 }
   let count = base[phase] ?? 1
@@ -309,26 +285,16 @@ function computeVdotGain(input: WizardInput): number {
   const baseGain = { conservative: 2.5, moderate: 4.5, aggressive: 7.0 }[aggressiveness]
   const methodMult = { pfitzinger: 1.1, norwegian: 1.1, daniels: 1.0, hansons: 0.95, higdon: 0.9, claude: 1.0 }[template]
   const tier = METHODOLOGY_TIERS[template][aggressiveness]
-
-  // Volume adaptation factor:
-  // - If already near peak volume: small factor (little room to grow)
-  // - If well below peak volume: large factor (huge adaptation potential from building up)
-  // This is the inverse of the old logic which wrongly penalised low-base runners.
   const relativeVolume = current_weekly_km / Math.max(1, tier.peakKm)
   let volumeFactor: number
   if (relativeVolume >= 0.8) {
-    // Already near peak — adaptation limited to fitness/sharpening gains
     volumeFactor = 0.7
   } else if (relativeVolume >= 0.5) {
-    // Mid-range — moderate adaptation potential
     volumeFactor = 0.85
   } else {
-    // Well below peak — high adaptation potential from volume build
-    // Scale up slightly for longer plans (more time to adapt)
     const planBoost = Math.min(0.2, (total_weeks - 12) * 0.01)
     volumeFactor = Math.min(1.2, 1.0 + planBoost)
   }
-
   return Math.round((baseGain * methodMult * volumeFactor) * 10) / 10
 }
 
@@ -336,7 +302,7 @@ function computeVdotGain(input: WizardInput): number {
 
 function generateBlockName(input: WizardInput): string {
   const typeLabels: Record<string, string> = { marathon: 'Marathon', half: 'Half Marathon', '10k': '10K', '5k': '5K', base: 'Base Building', other: 'Training' }
-  const templateLabels: Record<string, string> = { pfitzinger: 'Pfitzinger', daniels: 'Daniels', hansons: 'Hansons', higdon: 'Higdon', norwegian: 'Norwegian', claude: 'Custom' }
+  const templateLabels: Record<string, string> = { pfitzinger: 'Pfitzinger', daniels: 'Daniels 2Q', hansons: 'Hansons', higdon: 'Higdon', norwegian: 'Norwegian', claude: 'Custom' }
   return `${input.total_weeks}-Week ${templateLabels[input.template]} ${typeLabels[input.goal_type]} Block`
 }
 
@@ -349,26 +315,32 @@ const MIN_DAYS_FOR_METHODOLOGY: Record<string, number> = {
 export function validateWizardInput(input: WizardInput): string | null {
   const minDays = MIN_DAYS_FOR_METHODOLOGY[input.template]
   if (input.days_per_week < minDays) {
-    const labels: Record<string, string> = { pfitzinger: 'Pfitzinger', norwegian: 'Norwegian', daniels: 'Daniels', hansons: 'Hansons', higdon: 'Higdon', claude: "Claude's Own" }
+    const labels: Record<string, string> = { pfitzinger: 'Pfitzinger', norwegian: 'Norwegian', daniels: 'Daniels 2Q', hansons: 'Hansons', higdon: 'Higdon', claude: "Claude's Own" }
     return `${labels[input.template]} requires at least ${minDays} running days per week. Consider Higdon, Daniels, or Claude's Own for ${input.days_per_week} days per week.`
   }
   if (input.total_weeks < 6) return 'Plan must be at least 6 weeks.'
-  if (input.total_weeks > 24) return 'Plan cannot exceed 24 weeks. For longer plans (true beginner couch-to-marathon or comeback from injury), we recommend Higdon\'s Novice Supreme (30 weeks) at halhigdon.com.'
+  if (input.total_weeks > 24) return 'Plan cannot exceed 24 weeks. For longer plans (true beginner couch-to-marathon), we recommend Higdon\'s Novice Supreme (30 weeks) at halhigdon.com.'
   if (!input.race_date) return 'Race date is required.'
   if (!input.start_date) return 'Start date is required.'
   if (input.benchmark_time_seconds <= 0) return 'Please enter a benchmark time.'
+
+  // Hard base mileage blocks
+  const tier = METHODOLOGY_TIERS[input.template]?.[input.aggressiveness]
+  if (tier && tier.hardBlockKm > 0 && input.current_weekly_km < tier.hardBlockKm) {
+    const methodLabels: Record<string, string> = { pfitzinger: 'Pfitzinger', norwegian: 'Norwegian', daniels: 'Daniels 2Q', hansons: 'Hansons', higdon: 'Higdon', claude: "Claude's Own" }
+    return `${methodLabels[input.template]} ${tier.label} requires a base of at least ${tier.hardBlockKm}km/week before starting. You're currently at ${input.current_weekly_km}km/week. ${tier.canOverride ? 'Consider a more conservative aggressiveness level, or build your base first.' : 'Build your base first, or choose a less demanding methodology.'}`
+  }
+
   return null
 }
 
 export function getWizardWarnings(input: WizardInput): string[] {
   const warnings: string[] = []
   const tier = METHODOLOGY_TIERS[input.template]?.[input.aggressiveness]
-  if (tier && input.current_weekly_km < tier.minBaseKm) {
+  if (tier && input.current_weekly_km < tier.minBaseKm && input.current_weekly_km >= tier.hardBlockKm) {
     warnings.push(
-      `${tier.label} typically assumes you can already run ${tier.minBaseKm}km/week. ` +
-      `Your current volume (${input.current_weekly_km}km/week) is lower — the plan will start gentler ` +
-      `but may not reach the canonical peak. Consider a base-building block first, or pick a more ` +
-      `conservative aggressiveness.`
+      `${tier.label} typically assumes ${tier.minBaseKm}km/week base. ` +
+      `Your current ${input.current_weekly_km}km/week is below this — your plan will start conservatively but may feel challenging. Consider building your base first for best results.`
     )
   }
   return warnings
