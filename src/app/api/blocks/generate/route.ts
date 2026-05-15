@@ -141,6 +141,7 @@ export async function POST(req: NextRequest) {
             status: 'draft',
             phases: skeleton.block_meta.phases,
             adaptation_aggressiveness: input.aggressiveness,
+            start_date: input.start_date || null,
           })
           .select().single()
 

@@ -114,7 +114,16 @@ function PreviewPageInner() {
     if (!blockId) return;
     setActivating(true);
     const res = await fetch(`/api/blocks/${blockId}/activate`, { method: 'POST' });
-    if (res.ok) { router.push('/'); } else { setActivating(false); }
+    if (res.ok) {
+      const json = await res.json();
+      if (json.queued) {
+        router.push('/?queued=1');
+      } else {
+        router.push('/');
+      }
+    } else {
+      setActivating(false);
+    }
   }
 
   if (loading) {
