@@ -148,10 +148,10 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         </div>
 
         {/* Time cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px', width: '100%' }}>
           <div style={{
             background: 'rgba(255,255,255,0.04)', border: '1px solid #1f1f1f',
-            borderRadius: '14px', padding: '14px 16px',
+            borderRadius: '14px', padding: '14px 16px', minWidth: 0,
           }}>
             <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#52525b', marginBottom: '6px' }}>Est. now</p>
             <p style={{ fontSize: '22px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.5px' }}>{estNow}</p>
@@ -159,7 +159,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
           </div>
           <div style={{
             background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)',
-            borderRadius: '14px', padding: '14px 16px',
+            borderRadius: '14px', padding: '14px 16px', minWidth: 0,
           }}>
             <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(249,115,22,0.6)', marginBottom: '6px' }}>Race proj.</p>
             <p style={{ fontSize: '22px', fontWeight: 800, color: '#f97316', letterSpacing: '-0.5px' }}>{raceProj}</p>

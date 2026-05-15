@@ -22,7 +22,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Desktop sidebar */}
       <aside style={{
-        width: '200px', flexShrink: 0, position: 'fixed',
+        width: '220px', flexShrink: 0, position: 'fixed',
         top: 0, left: 0, height: '100%', zIndex: 30,
         background: '#0d0d0d',
         borderRight: '1px solid #1f1f1f',
@@ -32,7 +32,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div style={{ padding: '28px 24px 20px' }}>
           <span style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.5px', color: '#f1f5f9' }}>
-            Pace<span style={{ color: '#f97316', textShadow: '0 0 20px rgba(249,115,22,0.5)' }}>Labs</span>
+            Pace<span style={{
+  color: '#f97316',
+  textShadow: '0 0 20px rgba(249,115,22,0.5)',
+  animation: 'labsGlow 3s ease-in-out infinite',
+}}>Labs</span>
           </span>
         </div>
 
@@ -82,7 +86,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main style={{ flex: 1, marginLeft: 0, paddingBottom: '80px', minHeight: '100vh' }}
-        className="md:ml-[200px] md:pb-0">
+        className="md:ml-[220px] md:pb-0">
         {children}
       </main>
 
