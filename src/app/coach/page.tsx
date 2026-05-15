@@ -109,8 +109,7 @@ export default function CoachPage() {
   return (
     <div
       className="flex flex-col h-screen"
-      style={{ maxWidth: '860px', margin: '0 auto', padding: '20px 24px' }}
-      style={{ color: "var(--text)" }}
+      style={{ maxWidth: '860px', margin: '0 auto', padding: '20px 24px', color: 'var(--text)' }}
     >
       <div className="flex items-center justify-between mb-4">
         <h1
