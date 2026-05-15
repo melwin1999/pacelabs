@@ -241,10 +241,11 @@ export default function WeekView({
               >
                 {/* Bold left colour bar */}
                 <div style={{
-                  width: '4px', flexShrink: 0,
-                  background: barColour,
-                  boxShadow: isToday ? `2px 0 8px ${barColour}66` : 'none',
-                }} />
+  width: '4px', flexShrink: 0, alignSelf: 'stretch',
+  background: barColour,
+  boxShadow: isToday ? `2px 0 8px ${barColour}66` : 'none',
+  minHeight: '56px',
+}} />
 
                 {/* Content */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, padding: '13px 14px' }}>

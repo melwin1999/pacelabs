@@ -88,26 +88,26 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         {/* Big number + week badge */}
         {daysToGo !== null ? (
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <p style={{
-              fontSize: '100px', fontWeight: 900, lineHeight: 0.85,
-              letterSpacing: '-6px',
-              background: 'linear-gradient(160deg, #ffffff 20%, #71717a 100%)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
-              {daysToGo}
-            </p>
-            <div style={{ textAlign: 'right', paddingTop: '8px' }}>
-              <p style={{ fontSize: '13px', color: '#52525b', fontWeight: 500, marginBottom: '6px' }}>days to go</p>
-              <span style={{
-                fontSize: '12px', fontWeight: 700, color: '#f97316',
-                background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)',
-                padding: '4px 10px', borderRadius: '100px', display: 'inline-block',
-              }}>
-                Week {block.current_week}/{block.total_weeks}
-              </span>
-            </div>
-          </div>
+  <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+    <p style={{
+      fontSize: '100px', fontWeight: 900, lineHeight: 0.85,
+      letterSpacing: '-6px',
+      background: 'linear-gradient(160deg, #ffffff 20%, #71717a 100%)',
+      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
+    }}>
+      {daysToGo}
+    </p>
+    <p style={{ fontSize: '18px', fontWeight: 600, color: '#52525b', letterSpacing: '-0.3px' }}>days to go</p>
+  </div>
+  <span style={{
+    fontSize: '12px', fontWeight: 700, color: '#f97316',
+    background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)',
+    padding: '4px 10px', borderRadius: '100px', display: 'inline-block', marginTop: '8px',
+  }}>
+    Week {block.current_week}/{block.total_weeks}
+  </span>
+</div>
         ) : (
           <p style={{ fontSize: '15px', color: '#52525b', marginBottom: '20px' }}>No race date set</p>
         )}
