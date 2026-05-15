@@ -190,7 +190,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
                   }} />
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '6px', marginLeft: '6%', marginRight: '6%' }}>
                 <span style={{ color: '#52525b' }}>Est. now {estNow}</span>
                 <span style={{ color: '#f97316', fontWeight: 600 }}>Race proj. {raceProj}</span>
               </div>
