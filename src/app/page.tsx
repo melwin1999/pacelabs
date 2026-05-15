@@ -44,12 +44,12 @@ export default async function PlanPage({
   if (!block) {
     return (
       <AppShell>
-        <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ maxWidth: '780px', margin: '0 auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {queuedBlock && (
-            <div style={{ background: '#0d1117', border: '1px solid #161c28', borderRadius: '16px', padding: '20px' }}>
-              <p style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Upcoming plan</p>
-              <p style={{ fontSize: '20px', fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.04em', marginBottom: '4px' }}>{queuedBlock.name}</p>
-              <p style={{ fontSize: '13px', color: '#475569' }}>
+            <div style={{ background: '#111111', border: '1px solid #1f1f1f', borderRadius: '16px', padding: '20px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Upcoming plan</p>
+              <p style={{ fontSize: '20px', fontWeight: 800, color: '#f5f5f5', letterSpacing: '-0.04em', marginBottom: '4px' }}>{queuedBlock.name}</p>
+              <p style={{ fontSize: '13px', color: '#a1a1aa' }}>
                 Starts {queuedBlock.start_date ? new Date(queuedBlock.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'soon'} · {queuedBlock.total_weeks} weeks
               </p>
             </div>
@@ -84,17 +84,16 @@ export default async function PlanPage({
 
   return (
     <AppShell>
-      {/* Queued banner — full width above grid */}
-      {queuedBlock && (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px 24px 0' }}>
+      <div style={{ maxWidth: '780px', margin: '0 auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {queuedBlock && (
           <div style={{
-            background: '#0d1117', border: '1px solid #161c28',
+            background: '#111111', border: '1px solid #1f1f1f',
             borderRadius: '12px', padding: '12px 16px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <div>
-              <p style={{ fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '2px' }}>Next up</p>
-              <p style={{ fontSize: '14px', fontWeight: 700, color: '#f1f5f9' }}>{queuedBlock.name}</p>
+              <p style={{ fontSize: '11px', fontWeight: 600, color: '#71717a', marginBottom: '2px' }}>Next up</p>
+              <p style={{ fontSize: '14px', fontWeight: 700, color: '#f5f5f5' }}>{queuedBlock.name}</p>
             </div>
             <p style={{ fontSize: '12px', color: '#f97316', fontWeight: 600 }}>
               Starts {queuedBlock.start_date
@@ -102,43 +101,24 @@ export default async function PlanPage({
                 : 'soon'}
             </p>
           </div>
-        </div>
-      )}
-
-      {/* Two-column grid */}
-      <div className="plan-grid" style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 320px',
-        gap: '20px',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '20px 24px',
-        alignItems: 'start',
-      }}>
-        {/* LEFT column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <RaceHeroCard block={block} />
-          <StatsStrip
-            plannedKm={plannedKm}
-            doneKm={doneKm}
-            sessionCount={sessionCount}
-            completedCount={completedCount}
-          />
-          {pendingDraft && <AdaptBanner draft={pendingDraft} />}
-          <WeekView
-            workouts={w}
-            weekNumber={displayWeek}
-            blockId={block.id}
-            totalWeeks={block.total_weeks}
-          />
-        </div>
-
-        {/* RIGHT column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', position: 'sticky', top: '20px' }}>
-          <PushToGarminButton />
-          <CoachNudge />
-          <QuickQuestions />
-        </div>
+        )}
+        <RaceHeroCard block={block} />
+        <StatsStrip
+          plannedKm={plannedKm}
+          doneKm={doneKm}
+          sessionCount={sessionCount}
+          completedCount={completedCount}
+        />
+        {pendingDraft && <AdaptBanner draft={pendingDraft} />}
+        <WeekView
+          workouts={w}
+          weekNumber={displayWeek}
+          blockId={block.id}
+          totalWeeks={block.total_weeks}
+        />
+        <CoachNudge />
+        <QuickQuestions />
+        <PushToGarminButton />
       </div>
     </AppShell>
   );
