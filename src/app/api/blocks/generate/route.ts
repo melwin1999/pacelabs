@@ -26,6 +26,15 @@ Days/week: ${input.days_per_week}, long run day: ${input.long_run_day}
 Runner notes: ${input.general_notes || 'none'}
 
 STRIDES: Add 4-6 strides at end of 1-2 easy runs per week from week 3+, when days_per_week >= 4.
+
+${input.template === 'daniels' ? `DANIELS 2Q RULES — CRITICAL:
+- Every week has exactly 2 Quality sessions: Q1 and Q2.
+- Q1 is always the longer, more important session. Name it "Q1 — [description]" e.g. "Q1 — Long Threshold Run" or "Q1 — Marathon Pace Long Run". Schedule on the weekend long run day.
+- Q2 is the midweek quality session. Name it "Q2 — [description]" e.g. "Q2 — Cruise Intervals" or "Q2 — Interval Session". Schedule midweek.
+- ALL other runs are strictly easy filler. Name them "E Run" or "Easy Run". Description must say "Easy filler run — keep this genuinely easy. Not a quality session." These exist purely to fill weekly mileage.
+- Q1 in Base phase: long easy run with strides at end. Q1 in Build/Peak: long run with embedded marathon-pace or threshold segments.
+- Q2 in Base phase: threshold cruise intervals (T pace). Q2 in Build/Peak: mix of threshold and interval work at I pace.
+- Never make filler runs feel important. The whole Daniels philosophy is: protect the Qs, make everything else easy.` : ''}
 WARMUP/COOLDOWN: All quality sessions get 1-1.5km warmup and cooldown.
 FUELLING (only runs >90min): 60-90min=30-60g carbs/hr, 90-180min=60-90g carbs/hr, 180min+=90-120g carbs/hr+sodium.
 
