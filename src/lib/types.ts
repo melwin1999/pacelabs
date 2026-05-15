@@ -14,6 +14,7 @@ export type Block = {
   status: 'active' | 'archived' | 'completed' | 'draft';
   phases: Phase[] | null;
   adaptation_aggressiveness: 'conservative' | 'moderate' | 'aggressive';
+  start_date?: string | null;
   created_at: string;
 };
 
