@@ -1,19 +1,27 @@
 // src/lib/vdot-tables.ts
 // Daniels VDOT pace tables — integer seconds per km
-// Sources: Daniels' Running Formula 3rd ed., tables 2.1–2.6
+// Extended down to VDOT 20 to support slower/beginner runners
 
 export type VdotPaces = {
-  easy_min: number   // slowest easy pace (s/km)
-  easy_max: number   // fastest easy pace (s/km)
-  marathon: number   // marathon pace (s/km)
-  threshold: number  // threshold/tempo pace (s/km)
-  interval: number   // interval pace / 5K pace (s/km)
-  repetition: number // repetition pace / mile pace (s/km)
+  easy_min: number
+  easy_max: number
+  marathon: number
+  threshold: number
+  interval: number
+  repetition: number
 }
 
-// Table keyed by VDOT (30–85, integer steps)
-// All values in seconds per km
 const VDOT_TABLE: Record<number, VdotPaces> = {
+  20: { easy_min: 570, easy_max: 514, marathon: 480, threshold: 448, interval: 422, repetition: 394 },
+  21: { easy_min: 554, easy_max: 499, marathon: 465, threshold: 434, interval: 409, repetition: 382 },
+  22: { easy_min: 539, easy_max: 485, marathon: 451, threshold: 421, interval: 396, repetition: 370 },
+  23: { easy_min: 524, easy_max: 472, marathon: 438, threshold: 409, interval: 385, repetition: 360 },
+  24: { easy_min: 510, easy_max: 459, marathon: 426, threshold: 397, interval: 374, repetition: 350 },
+  25: { easy_min: 497, easy_max: 447, marathon: 414, threshold: 386, interval: 363, repetition: 340 },
+  26: { easy_min: 484, easy_max: 436, marathon: 403, threshold: 376, interval: 354, repetition: 331 },
+  27: { easy_min: 472, easy_max: 425, marathon: 393, threshold: 366, interval: 345, repetition: 323 },
+  28: { easy_min: 461, easy_max: 415, marathon: 383, threshold: 357, interval: 336, repetition: 315 },
+  29: { easy_min: 450, easy_max: 405, marathon: 374, threshold: 348, interval: 328, repetition: 307 },
   30: { easy_min: 480, easy_max: 432, marathon: 403, threshold: 375, interval: 354, repetition: 330 },
   31: { easy_min: 470, easy_max: 423, marathon: 394, threshold: 367, interval: 346, repetition: 323 },
   32: { easy_min: 461, easy_max: 415, marathon: 385, threshold: 359, interval: 338, repetition: 316 },
@@ -72,9 +80,17 @@ const VDOT_TABLE: Record<number, VdotPaces> = {
   85: { easy_min: 264, easy_max: 236, marathon: 198, threshold: 182, interval: 168, repetition: 153 },
 }
 
-// Race time predictions from VDOT (seconds) for common distances
-// Uses Riegel formula: T2 = T1 * (D2/D1)^1.06
-const VDOT_RACE_TIMES: Record<number, { '5k': number; '10k': number; 'half': number; 'marathon': number }> = {
+const VDOT_RACE_TIMES: Record<number, { '5k': number; '10k': number; half: number; marathon: number }> = {
+  20: { '5k': 2400, '10k': 4980, half: 11100, marathon: 23580 },
+  21: { '5k': 2280, '10k': 4728, half: 10530, marathon: 22380 },
+  22: { '5k': 2172, '10k': 4500, half: 10020, marathon: 21300 },
+  23: { '5k': 2076, '10k': 4302, half: 9576, marathon: 20340 },
+  24: { '5k': 1986, '10k': 4116, half: 9162, marathon: 19464 },
+  25: { '5k': 1902, '10k': 3942, half: 8772, marathon: 18630 },
+  26: { '5k': 1824, '10k': 3780, half: 8412, marathon: 17880 },
+  27: { '5k': 1752, '10k': 3630, half: 8082, marathon: 17172 },
+  28: { '5k': 1686, '10k': 3492, half: 7770, marathon: 16512 },
+  29: { '5k': 1620, '10k': 3360, half: 7476, marathon: 15882 },
   30: { '5k': 1560, '10k': 3240, half: 7200, marathon: 15300 },
   31: { '5k': 1512, '10k': 3138, half: 6978, marathon: 14838 },
   32: { '5k': 1467, '10k': 3042, half: 6768, marathon: 14394 },
@@ -133,17 +149,14 @@ const VDOT_RACE_TIMES: Record<number, { '5k': number; '10k': number; 'half': num
   85: { '5k': 695,  '10k': 1450, half: 3180, marathon: 5832 },
 }
 
-// Clamp VDOT to table range
 function clampVdot(vdot: number): number {
-  return Math.min(85, Math.max(30, Math.round(vdot)))
+  return Math.min(85, Math.max(20, Math.round(vdot)))
 }
 
-// Look up pace zones for a given VDOT
 export function getPaceZones(vdot: number): VdotPaces {
   return VDOT_TABLE[clampVdot(vdot)]
 }
 
-// Interpolate pace zones between two VDOTs (for phase-by-phase progression)
 export function interpolatePaceZones(startVdot: number, targetVdot: number, fraction: number): VdotPaces {
   const start = VDOT_TABLE[clampVdot(startVdot)]
   const target = VDOT_TABLE[clampVdot(targetVdot)]
@@ -158,33 +171,25 @@ export function interpolatePaceZones(startVdot: number, targetVdot: number, frac
   }
 }
 
-// Estimate VDOT from a race performance using Riegel + binary search
-// distanceKm: race distance in km, timeSeconds: finish time in seconds
 export function estimateVdot(distanceKm: number, timeSeconds: number): number {
-  // Use Riegel to normalise to 5K equivalent, then binary-search VDOT table
-  // T_5k = timeSeconds * (5 / distanceKm)^1.06
-  const t5k = timeSeconds * Math.pow(5 / distanceKm, 1.06)
-
-  let best = 30
+  // Match directly against the input distance — no 5K conversion.
+  // This is more accurate, especially for HM and marathon benchmarks.
+  let best = 20
   let bestDiff = Infinity
-  for (let v = 30; v <= 85; v++) {
-    const tableT5k = VDOT_RACE_TIMES[v]['5k']
-    const diff = Math.abs(tableT5k - t5k)
+  for (let v = 20; v <= 85; v++) {
+    const predicted = getRaceTime(v, distanceKm)
+    const diff = Math.abs(predicted - timeSeconds)
     if (diff < bestDiff) { bestDiff = diff; best = v }
   }
   return best
 }
 
-// Get predicted race time in seconds for a given VDOT and distance
 export function getRaceTime(vdot: number, distanceKm: number): number {
   const clamped = clampVdot(vdot)
   const times = VDOT_RACE_TIMES[clamped]
-
   if (distanceKm <= 5.1) return times['5k']
   if (distanceKm <= 10.1) return times['10k']
-  if (distanceKm <= 21.2) return times['half']
-  if (distanceKm <= 42.3) return times['marathon']
-
-  // Ultramarathon / other — use Riegel from marathon
-  return Math.round(times['marathon'] * Math.pow(distanceKm / 42.195, 1.06))
+  if (distanceKm <= 21.2) return times.half
+  if (distanceKm <= 42.3) return times.marathon
+  return Math.round(times.marathon * Math.pow(distanceKm / 42.195, 1.06))
 }
