@@ -60,7 +60,7 @@ export default async function PlanPage({
     return (
       <AppShell>
         {queuedBlock ? (
-          <div className="max-w-2xl mx-auto px-4 py-5 space-y-3 w-full">
+          <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div className="rounded-2xl p-5 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
               <p className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Upcoming plan</p>
               <p className="text-xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>{queuedBlock.name}</p>
