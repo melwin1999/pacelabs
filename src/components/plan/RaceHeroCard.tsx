@@ -113,7 +113,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         )}
 
         {/* Phase journey */}
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', position: 'relative', marginLeft: '-4px', marginRight: '-4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', position: 'relative' }}>
           {phases.map((phase, i) => (
             <div key={phase.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', position: 'relative' }}>
               {/* Connector line */}
@@ -172,7 +172,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         {/* Progress bar */}
         {block.est_now_seconds && block.race_proj_seconds && (
           <>
-            <div style={{ height: '3px', background: '#1f1f1f', borderRadius: '10px', position: 'relative', marginBottom: '4px' }}>
+            <div style={{ height: '3px', background: '#1f1f1f', borderRadius: '10px', position: 'relative', marginBottom: '4px', marginLeft: '4%', marginRight: '4%' }}>
               <div style={{
                 height: '3px', borderRadius: '10px', position: 'relative',
                 width: `${progress}%`,
@@ -185,7 +185,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
                 }} />
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '6px', marginLeft: '4%', marginRight: '4%' }}>
               <span style={{ color: '#52525b' }}>Est. now {estNow}</span>
               <span style={{ color: '#f97316', fontWeight: 600 }}>Race proj. {raceProj}</span>
             </div>
