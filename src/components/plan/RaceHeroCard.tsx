@@ -77,9 +77,9 @@ export default function RaceHeroCard({ block }: { block: Block }) {
             background: 'rgba(255,255,255,0.04)', border: '1px solid #1a2130',
             borderRadius: '14px', padding: '14px 16px',
           }}>
-            <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#334155', marginBottom: '6px' }}>Est. now</p>
-            <p style={{ fontSize: '22px', fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.5px' }}>{estNow}</p>
-            <p style={{ fontSize: '11px', color: '#334155', marginTop: '3px' }}>if you raced today</p>
+            <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#64748b', marginBottom: '6px' }}>Est. now</p>
+            <p style={{ fontSize: '22px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.5px' }}>{estNow}</p>
+<p style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>if you raced today</p>
           </div>
           <div style={{
             background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)',
@@ -110,7 +110,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '6px' }}>
-              <span style={{ color: '#334155' }}>Est. now {estNow}</span>
+              <span style={{ color: '#64748b' }}>Est. now {estNow}</span>
               <span style={{ color: '#f97316', fontWeight: 600 }}>Race proj. {raceProj}</span>
             </div>
           </>
