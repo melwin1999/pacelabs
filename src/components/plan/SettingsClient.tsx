@@ -47,7 +47,7 @@ export default function SettingsClient({ blockName, aggressiveness, changes, wor
 
   return (
     <div className="min-h-screen pb-24" style={{ background: "var(--bg)", color: "var(--text)" }}>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10">
+      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '20px 24px' }}>
         <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ letterSpacing: "-0.04em" }}>
           Settings
         </h1>

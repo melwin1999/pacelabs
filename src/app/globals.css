@@ -85,3 +85,10 @@ a { color: inherit; text-decoration: none; }
 .pulse-glow {
   animation: pulse-glow 2.5s ease-in-out infinite;
 }
+
+@media (max-width: 768px) {
+  .plan-grid {
+    grid-template-columns: 1fr !important;
+    padding: 16px !important;
+  }
+}

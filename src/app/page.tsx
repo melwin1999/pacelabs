@@ -24,16 +24,6 @@ async function autoActivateQueued() {
   }
 }
 
-const wrap: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '680px',
-  margin: '0 auto',
-  padding: '20px 16px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '12px',
-}
-
 export default async function PlanPage({
   searchParams,
 }: {
@@ -54,8 +44,8 @@ export default async function PlanPage({
   if (!block) {
     return (
       <AppShell>
-        <div style={wrap}>
-          {queuedBlock ? (
+        <div style={{ maxWidth: '680px', margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {queuedBlock && (
             <div style={{ background: '#0d1117', border: '1px solid #161c28', borderRadius: '16px', padding: '20px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Upcoming plan</p>
               <p style={{ fontSize: '20px', fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.04em', marginBottom: '4px' }}>{queuedBlock.name}</p>
@@ -63,7 +53,7 @@ export default async function PlanPage({
                 Starts {queuedBlock.start_date ? new Date(queuedBlock.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'soon'} · {queuedBlock.total_weeks} weeks
               </p>
             </div>
-          ) : null}
+          )}
           <EmptyState />
         </div>
       </AppShell>
@@ -94,8 +84,9 @@ export default async function PlanPage({
 
   return (
     <AppShell>
-      <div style={wrap}>
-        {queuedBlock && (
+      {/* Queued banner — full width above grid */}
+      {queuedBlock && (
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px 24px 0' }}>
           <div style={{
             background: '#0d1117', border: '1px solid #161c28',
             borderRadius: '12px', padding: '12px 16px',
@@ -111,24 +102,43 @@ export default async function PlanPage({
                 : 'soon'}
             </p>
           </div>
-        )}
-        <RaceHeroCard block={block} />
-        <StatsStrip
-          plannedKm={plannedKm}
-          doneKm={doneKm}
-          sessionCount={sessionCount}
-          completedCount={completedCount}
-        />
-        {pendingDraft && <AdaptBanner draft={pendingDraft} />}
-        <WeekView
-          workouts={w}
-          weekNumber={displayWeek}
-          blockId={block.id}
-          totalWeeks={block.total_weeks}
-        />
-        <CoachNudge />
-        <QuickQuestions />
-        <PushToGarminButton />
+        </div>
+      )}
+
+      {/* Two-column grid */}
+      <div className="plan-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 320px',
+        gap: '20px',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '20px 24px',
+        alignItems: 'start',
+      }}>
+        {/* LEFT column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <RaceHeroCard block={block} />
+          <StatsStrip
+            plannedKm={plannedKm}
+            doneKm={doneKm}
+            sessionCount={sessionCount}
+            completedCount={completedCount}
+          />
+          {pendingDraft && <AdaptBanner draft={pendingDraft} />}
+          <WeekView
+            workouts={w}
+            weekNumber={displayWeek}
+            blockId={block.id}
+            totalWeeks={block.total_weeks}
+          />
+        </div>
+
+        {/* RIGHT column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', position: 'sticky', top: '20px' }}>
+          <PushToGarminButton />
+          <CoachNudge />
+          <QuickQuestions />
+        </div>
       </div>
     </AppShell>
   );
