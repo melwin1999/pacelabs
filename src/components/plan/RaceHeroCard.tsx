@@ -113,7 +113,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         )}
 
         {/* Phase journey */}
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', position: 'relative', marginLeft: '-4px', marginRight: '-4px' }}>
           {phases.map((phase, i) => (
             <div key={phase.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', position: 'relative' }}>
               {/* Connector line */}
