@@ -4,43 +4,30 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/layout/AppShell';
 import { WizardInput } from '@/lib/types';
-
-const TIER_LABELS: Record<string, Record<string, string>> = {
-  higdon: { conservative: 'Novice Supreme', moderate: 'Novice 1', aggressive: 'Intermediate 1' },
-  daniels: { conservative: 'Novice (run/walk)', moderate: '2Q 18/55', aggressive: '2Q 18/70+' },
-  pfitzinger: { conservative: 'Pfitz 18/55', moderate: 'Pfitz 18/70', aggressive: 'Pfitz 18/85+' },
-  hansons: { conservative: 'Just Finish', moderate: 'Beginner', aggressive: 'Advanced' },
-  norwegian: { conservative: 'Norwegian (low)', moderate: 'Norwegian (mid)', aggressive: 'Norwegian (high)' },
-  claude: { conservative: "Claude's Own — gentle", moderate: "Claude's Own — balanced", aggressive: "Claude's Own — strong" },
-};
-
-function getTierLabelFor(template: string, agg: string): string {
-  return TIER_LABELS[template]?.[agg] ?? '';
-}
 import { ChevronRight, ChevronLeft, Sparkles, Loader2, Plus, Trash2 } from 'lucide-react';
 
 const STORAGE_KEY = 'pacelabs_wizard_v2';
 
-const STEPS = ['Goal', 'Race details', 'Your fitness', 'Schedule', 'Template', 'Aggressiveness', 'B-Races', 'Review & generate'];
+const STEPS = ['Goal', 'Race details', 'Your fitness', 'Schedule', 'Template', 'Training load', 'B-Races', 'Review & generate'];
 
 const GOAL_TYPES = [
-  { value: 'marathon', label: 'Marathon' },
-  { value: 'half', label: 'Half Marathon' },
-  { value: '10k', label: '10K' },
-  { value: '5k', label: '5K' },
-  { value: 'base', label: 'Base Building' },
-  { value: 'other', label: 'Other' },
+  { value: 'marathon', label: 'Marathon', emoji: '🏃' },
+  { value: 'half', label: 'Half Marathon', emoji: '🏅' },
+  { value: '10k', label: '10K', emoji: '⚡' },
+  { value: '5k', label: '5K', emoji: '🔥' },
+  { value: 'base', label: 'Base Building', emoji: '🏗️' },
+  { value: 'other', label: 'Other', emoji: '🎯' },
 ];
 
 const RACE_DISTANCES: Record<string, number> = {
-  marathon: 42.195, half: 21.0975, '10k': 10, '5k': 5, base: 0, other: 0,
+  marathon: 42.2, half: 21.1, '10k': 10, '5k': 5, base: 0, other: 0,
 };
 
 const BENCHMARK_DISTANCES = [
   { label: '5K', value: 5 },
   { label: '10K', value: 10 },
-  { label: 'Half Marathon', value: 21.0975 },
-  { label: 'Marathon', value: 42.195 },
+  { label: 'Half Marathon', value: 21.1 },
+  { label: 'Marathon', value: 42.2 },
   { label: 'Other', value: 0 },
 ];
 
@@ -53,34 +40,74 @@ const TEMPLATES = [
   { value: 'norwegian', label: 'Norwegian', badge: 'Advanced', badgeColor: '#F87171', description: 'High-volume, threshold-heavy. Double threshold days. Not recommended for beginners — assumes a strong aerobic base.' },
 ];
 
+const TIER_LABELS: Record<string, Record<string, string>> = {
+  higdon:     { conservative: 'Novice Supreme', moderate: 'Novice 1', aggressive: 'Intermediate 1' },
+  daniels:    { conservative: 'Novice (run/walk)', moderate: '2Q 18/55', aggressive: '2Q 18/70+' },
+  pfitzinger: { conservative: 'Pfitz 18/55', moderate: 'Pfitz 18/70', aggressive: 'Pfitz 18/85+' },
+  hansons:    { conservative: 'Just Finish', moderate: 'Beginner', aggressive: 'Advanced' },
+  norwegian:  { conservative: 'Low volume', moderate: 'Mid volume', aggressive: 'High volume' },
+  claude:     { conservative: 'Gentle', moderate: 'Balanced', aggressive: 'Strong' },
+};
+
+const TIER_PEAKS: Record<string, Record<string, string>> = {
+  higdon:     { conservative: '~45km/wk peak', moderate: '~50km/wk peak', aggressive: '~65km/wk peak' },
+  daniels:    { conservative: '~55km/wk peak', moderate: '~70km/wk peak', aggressive: '~90km/wk peak' },
+  pfitzinger: { conservative: '~88km/wk peak', moderate: '~112km/wk peak', aggressive: '~136km/wk peak' },
+  hansons:    { conservative: '~65km/wk peak', moderate: '~80km/wk peak', aggressive: '~95km/wk peak' },
+  norwegian:  { conservative: '~75km/wk peak', moderate: '~95km/wk peak', aggressive: '~120km/wk peak' },
+  claude:     { conservative: '~55km/wk peak', moderate: '~75km/wk peak', aggressive: '~95km/wk peak' },
+};
+
+const AGGRESSIVENESS = [
+  { value: 'conservative', label: 'Conservative' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'aggressive', label: 'Aggressive' },
+];
+
 const MIN_DAYS: Record<string, number> = {
   pfitzinger: 5, norwegian: 5, daniels: 4, hansons: 5, higdon: 3, claude: 3,
 };
 
-const AGGRESSIVENESS = [
-  { value: 'conservative', label: 'Conservative', description: 'Prioritises consistency and injury prevention. Lower peak volume, more recovery.' },
-  { value: 'moderate', label: 'Moderate', description: 'Balanced progression. Standard training load with room to adapt. Good for most runners.' },
-  { value: 'aggressive', label: 'Aggressive', description: 'Higher volume and intensity progression. Pushes closer to your limits. Best with a strong base.' },
-];
-
 const QUICK_WEEKS = [12, 16, 20, 24];
 const DAYS_OPTIONS = [3, 4, 5, 6, 7];
 
-function parseTimeToSeconds(val: string): number {
-  const parts = val.split(':');
-  if (parts.length === 3) { const [h, m, s] = parts.map(Number); if (!isNaN(h) && !isNaN(m) && !isNaN(s)) return h * 3600 + m * 60 + s; }
-  if (parts.length === 2) { const [m, s] = parts.map(Number); if (!isNaN(m) && !isNaN(s)) return m * 60 + s; }
-  return 0;
+// Smart time input: accepts raw digits, formats as H:MM:SS or MM:SS
+function parseRawTimeInput(raw: string): { display: string; seconds: number } {
+  const digits = raw.replace(/\D/g, '').slice(0, 6);
+  if (!digits) return { display: '', seconds: 0 };
+
+  // Pad to 6 digits for parsing
+  const padded = digits.padStart(6, '0');
+  const h = parseInt(padded.slice(0, 2), 10);
+  const m = parseInt(padded.slice(2, 4), 10);
+  const s = parseInt(padded.slice(4, 6), 10);
+
+  // Validate
+  if (m > 59 || s > 59) return { display: digits, seconds: 0 };
+
+  const totalSeconds = h * 3600 + m * 60 + s;
+
+  // Display format
+  let display: string;
+  if (h > 0) {
+    display = `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  } else {
+    display = `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  return { display, seconds: totalSeconds };
 }
 
-function formatSeconds(s: number): string {
+function formatSecondsDisplay(s: number): string {
   if (s <= 0) return '';
-  const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); const sec = s % 60;
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
   if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
 
-function addWeeks(dateStr: string, weeks: number): string {
+function addWeeksToDate(dateStr: string, weeks: number): string {
   if (!dateStr) return '';
   const d = new Date(dateStr);
   d.setDate(d.getDate() + weeks * 7);
@@ -99,27 +126,28 @@ function formatDateDisplay(dateStr: string): string {
 }
 
 const defaultWizard: WizardInput = {
-  goal_type: 'marathon', general_notes: '', race_date: '', race_distance_km: 42.195,
+  goal_type: 'marathon', general_notes: '', race_date: '', race_distance_km: 42.2,
   course_type: 'flat', elevation_gain_m: undefined, race_notes: '',
   benchmark_distance_km: 10, benchmark_time_seconds: 0, current_weekly_km: 40,
   current_runs_per_week: 4, peak_history_note: '', fitness_notes: '',
   total_weeks: 16, start_date: '', days_per_week: 4, long_run_day: 'sunday',
   schedule_notes: '', template: 'claude', template_notes: '', aggressiveness: 'moderate',
-  advanced_load: false, volume_aggressiveness: undefined, quality_aggressiveness: undefined, b_races: [],
+  advanced_load: false, volume_aggressiveness: undefined, quality_aggressiveness: undefined,
+  b_races: [],
 };
 
 export default function NewPlanPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<WizardInput>(defaultWizard);
-  const [benchmarkInput, setBenchmarkInput] = useState('');
+  const [benchmarkRaw, setBenchmarkRaw] = useState('');
+  const [benchmarkDisplay, setBenchmarkDisplay] = useState('');
   const [customBenchmarkKm, setCustomBenchmarkKm] = useState('');
   const [customWeeks, setCustomWeeks] = useState('');
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
   const [methodologyError, setMethodologyError] = useState('');
   const [progress, setProgress] = useState<{ message: string; percent: number; weeksComplete?: number; totalWeeks?: number } | null>(null);
-  // Track which input was last touched: 'weeks' or 'dates'
   const [scheduleMode, setScheduleMode] = useState<'weeks' | 'dates'>('weeks');
 
   useEffect(() => {
@@ -133,7 +161,6 @@ export default function NewPlanPage() {
     setData(prev => ({ ...prev, [key]: value }));
   }
 
-  // Weeks quick-select → move START DATE backward from race date
   function setWeeks(weeks: number) {
     const clamped = Math.max(6, Math.min(24, weeks));
     setScheduleMode('weeks');
@@ -145,24 +172,16 @@ export default function NewPlanPage() {
     }
   }
 
-  // Start date changed manually → recompute weeks, race date stays fixed
   function setStartDate(val: string) {
     setScheduleMode('dates');
     update('start_date', val);
-    if (data.race_date && val) {
-      const w = weeksBetween(val, data.race_date);
-      update('total_weeks', w);
-    }
+    if (data.race_date && val) update('total_weeks', weeksBetween(val, data.race_date));
   }
 
-  // Race date only changes here (step 1 sets it, this is the schedule step override)
   function setRaceDate(val: string) {
     setScheduleMode('dates');
     update('race_date', val);
-    if (data.start_date && val) {
-      const w = weeksBetween(data.start_date, val);
-      update('total_weeks', w);
-    }
+    if (data.start_date && val) update('total_weeks', weeksBetween(data.start_date, val));
   }
 
   function canAdvance(): boolean {
@@ -172,8 +191,12 @@ export default function NewPlanPage() {
     if (step === 3) return data.total_weeks >= 6 && data.total_weeks <= 24 && data.days_per_week > 0;
     if (step === 4) {
       const min = MIN_DAYS[data.template];
-      if (data.days_per_week < min) { setMethodologyError(`${data.template.charAt(0).toUpperCase() + data.template.slice(1)} requires at least ${min} days/week. Choose a different methodology or increase days per week.`); return false; }
-      setMethodologyError(''); return !!data.template;
+      if (data.days_per_week < min) {
+        setMethodologyError(`${data.template.charAt(0).toUpperCase() + data.template.slice(1)} requires at least ${min} days/week.`);
+        return false;
+      }
+      setMethodologyError('');
+      return !!data.template;
     }
     if (step === 5) return !!data.aggressiveness;
     return true;
@@ -185,7 +208,11 @@ export default function NewPlanPage() {
   async function generate() {
     setGenerating(true); setError(''); setProgress(null);
     try {
-      const res = await fetch('/api/blocks/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const res = await fetch('/api/blocks/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
       if (!res.ok || !res.body) throw new Error('Request failed');
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -212,18 +239,25 @@ export default function NewPlanPage() {
           }
         }
       }
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Something went wrong'); setGenerating(false); setProgress(null); }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Something went wrong');
+      setGenerating(false);
+      setProgress(null);
+    }
   }
 
   const inp = "w-full rounded-xl px-4 py-3 text-sm outline-none";
   const inpStyle = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)' };
   const card = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' };
 
+  const tierLabel = TIER_LABELS[data.template]?.[data.aggressiveness] ?? '';
+  const tierPeak = TIER_PEAKS[data.template]?.[data.aggressiveness] ?? '';
+
   return (
     <AppShell>
       <div className="max-w-lg mx-auto px-4 py-6">
 
-        {/* Progress */}
+        {/* Progress bar */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Step {step + 1} of {STEPS.length}</span>
@@ -240,9 +274,11 @@ export default function NewPlanPage() {
             <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>What are you training for?</h1>
             <div className="grid grid-cols-2 gap-3">
               {GOAL_TYPES.map(g => (
-                <button key={g.value} onClick={() => { update('goal_type', g.value as WizardInput['goal_type']); update('race_distance_km', RACE_DISTANCES[g.value] ?? 0); }}
+                <button key={g.value}
+                  onClick={() => { update('goal_type', g.value as WizardInput['goal_type']); update('race_distance_km', RACE_DISTANCES[g.value] ?? 0); }}
                   className="rounded-xl p-4 text-left transition-all"
                   style={{ backgroundColor: data.goal_type === g.value ? 'var(--accent)' : 'var(--bg-card)', border: `1.5px solid ${data.goal_type === g.value ? 'var(--accent)' : 'var(--border)'}`, color: data.goal_type === g.value ? '#fff' : 'var(--text)' }}>
+                  <div className="text-2xl mb-1">{g.emoji}</div>
                   <div className="font-semibold text-sm">{g.label}</div>
                 </button>
               ))}
@@ -263,7 +299,7 @@ export default function NewPlanPage() {
             </div>
             <div>
               <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>RACE DISTANCE (KM)</label>
-              <input type="number" step="0.001" value={data.race_distance_km || ''} onChange={e => update('race_distance_km', parseFloat(e.target.value) || 0)} className={inp} style={inpStyle} />
+              <input type="number" step="0.1" value={data.race_distance_km || ''} onChange={e => update('race_distance_km', parseFloat(e.target.value) || 0)} className={inp} style={inpStyle} />
             </div>
             <div>
               <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>COURSE TYPE</label>
@@ -306,12 +342,30 @@ export default function NewPlanPage() {
               <input type="text" placeholder="Custom distance (km)" value={customBenchmarkKm}
                 onChange={e => { setCustomBenchmarkKm(e.target.value); const v = parseFloat(e.target.value); if (!isNaN(v) && v > 0) update('benchmark_distance_km', v); }}
                 className={inp + ' mb-3'} style={inpStyle} />
-              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>FINISH TIME (MM:SS or H:MM:SS)</label>
-              <input type="text" placeholder="e.g. 48:30 or 1:52:00" value={benchmarkInput}
-                onChange={e => { setBenchmarkInput(e.target.value); update('benchmark_time_seconds', parseTimeToSeconds(e.target.value)); }}
+
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>FINISH TIME — just type digits (e.g. 24500 = 2:45:00)</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="e.g. 4530 for 45:30, 14500 for 1:45:00"
+                value={benchmarkDisplay}
+                onChange={e => {
+                  const raw = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setBenchmarkRaw(raw);
+                  const { display, seconds } = parseRawTimeInput(raw);
+                  setBenchmarkDisplay(display || raw);
+                  if (seconds > 0) update('benchmark_time_seconds', seconds);
+                }}
+                onBlur={() => {
+                  if (data.benchmark_time_seconds > 0) {
+                    setBenchmarkDisplay(formatSecondsDisplay(data.benchmark_time_seconds));
+                  }
+                }}
                 className={inp} style={inpStyle} />
               {data.benchmark_time_seconds > 0 && (
-                <p className="text-xs mt-1.5 font-semibold" style={{ color: 'var(--accent)' }}>Parsed: {formatSeconds(data.benchmark_time_seconds)}</p>
+                <p className="text-xs mt-1.5 font-semibold" style={{ color: 'var(--accent)' }}>
+                  ✓ {formatSecondsDisplay(data.benchmark_time_seconds)} for {data.benchmark_distance_km}km
+                </p>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -339,12 +393,8 @@ export default function NewPlanPage() {
         {step === 3 && (
           <div className="space-y-5">
             <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>Your schedule</h1>
-
-            {/* Plan length card */}
             <div className="rounded-2xl p-4 space-y-4" style={card}>
               <p className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Plan length</p>
-
-              {/* Quick-select chips */}
               <div>
                 <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Quick select</p>
                 <div className="flex gap-2 flex-wrap">
@@ -355,32 +405,18 @@ export default function NewPlanPage() {
                       {w}w
                     </button>
                   ))}
-                  {/* Custom weeks input */}
-                  <div className="relative">
-                    <input
-                      type="number" min={6} max={24}
-                      placeholder="Custom"
-                      value={customWeeks}
-                      onChange={e => {
-                        setCustomWeeks(e.target.value);
-                        const v = parseInt(e.target.value);
-                        if (!isNaN(v) && v >= 6 && v <= 24) setWeeks(v);
-                      }}
-                      className="rounded-xl px-3 py-2 text-sm font-bold w-24 outline-none"
-                      style={{ backgroundColor: 'var(--bg)', border: `1.5px solid ${!QUICK_WEEKS.includes(data.total_weeks) && data.total_weeks > 0 ? 'var(--accent)' : 'var(--border)'}`, color: 'var(--text)' }}
-                    />
-                  </div>
+                  <input type="number" min={6} max={24} placeholder="Custom"
+                    value={customWeeks}
+                    onChange={e => { setCustomWeeks(e.target.value); const v = parseInt(e.target.value); if (!isNaN(v) && v >= 6 && v <= 24) setWeeks(v); }}
+                    className="rounded-xl px-3 py-2 text-sm font-bold w-24 outline-none"
+                    style={{ backgroundColor: 'var(--bg)', border: `1.5px solid ${!QUICK_WEEKS.includes(data.total_weeks) && data.total_weeks > 0 ? 'var(--accent)' : 'var(--border)'}`, color: 'var(--text)' }} />
                 </div>
               </div>
-
-              {/* Divider */}
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
                 <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>or set by dates</span>
                 <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
               </div>
-
-              {/* Date pickers */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>START DATE</label>
@@ -391,25 +427,15 @@ export default function NewPlanPage() {
                   <input type="date" value={data.race_date} onChange={e => setRaceDate(e.target.value)} className={inp} style={inpStyle} />
                 </div>
               </div>
-
-              {/* Live summary */}
               {data.start_date && data.race_date && data.total_weeks >= 6 && (
                 <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ backgroundColor: '#F9731611', border: '1px solid #F9731633' }}>
-                  <div>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{formatDateDisplay(data.start_date)} → {formatDateDisplay(data.race_date)}</p>
-                  </div>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{formatDateDisplay(data.start_date)} → {formatDateDisplay(data.race_date)}</p>
                   <p className="text-lg font-extrabold" style={{ color: 'var(--accent)', letterSpacing: '-0.04em' }}>{data.total_weeks}w</p>
                 </div>
               )}
-              {data.total_weeks > 0 && data.total_weeks < 6 && (
-                <p className="text-xs" style={{ color: '#F87171' }}>Minimum plan length is 6 weeks.</p>
-              )}
-              {data.total_weeks > 24 && (
-                <p className="text-xs" style={{ color: '#F87171' }}>Maximum plan length is 24 weeks.</p>
-              )}
+              {data.total_weeks > 0 && data.total_weeks < 6 && <p className="text-xs" style={{ color: '#F87171' }}>Minimum 6 weeks.</p>}
             </div>
 
-            {/* Days per week */}
             <div className="rounded-2xl p-4 space-y-3" style={card}>
               <p className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Days per week</p>
               <div className="flex gap-2">
@@ -423,7 +449,6 @@ export default function NewPlanPage() {
               </div>
             </div>
 
-            {/* Long run day */}
             <div className="rounded-2xl p-4 space-y-3" style={card}>
               <p className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Long run day</p>
               <div className="grid grid-cols-2 gap-2">
@@ -458,11 +483,6 @@ export default function NewPlanPage() {
                     <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: t.badgeColor + '22', color: t.badgeColor }}>{t.badge}</span>
                   </div>
                   <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{t.description}</p>
-                  {data.template === t.value && (
-                    <p className="text-xs mt-2 font-semibold" style={{ color: 'var(--accent)' }}>
-                      At {data.aggressiveness} → modelled on {getTierLabelFor(t.value, data.aggressiveness)}
-                    </p>
-                  )}
                 </button>
               ))}
             </div>
@@ -474,23 +494,49 @@ export default function NewPlanPage() {
           </div>
         )}
 
-        {/* Step 5 — Aggressiveness */}
+        {/* Step 5 — Training load */}
         {step === 5 && (
           <div className="space-y-4">
             <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>Training load</h1>
-            <div className="space-y-3">
-              {AGGRESSIVENESS.map(a => (
-                <button key={a.value} onClick={() => update('aggressiveness', a.value as WizardInput['aggressiveness'])}
-                  className="w-full rounded-xl p-4 text-left transition-all"
-                  style={{ backgroundColor: data.aggressiveness === a.value ? '#F9731611' : 'var(--bg-card)', border: `1.5px solid ${data.aggressiveness === a.value ? 'var(--accent)' : 'var(--border)'}` }}>
-                  <div className="font-semibold text-sm mb-1" style={{ color: 'var(--text)' }}>{a.label}</div>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{a.description}</p>
-                </button>
-              ))}
-            </div>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              Want a different volume or intensity once your plan is generated? Just ask Claude in the chat — much easier than tuning sliders.
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              For <span className="font-semibold" style={{ color: 'var(--text)' }}>{TEMPLATES.find(t => t.value === data.template)?.label}</span>, each level corresponds to a real-world plan tier:
             </p>
+
+            {/* Tier overview card */}
+            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+              {AGGRESSIVENESS.map((a, idx) => {
+                const label = TIER_LABELS[data.template]?.[a.value] ?? '';
+                const peak = TIER_PEAKS[data.template]?.[a.value] ?? '';
+                const isSelected = data.aggressiveness === a.value;
+                return (
+                  <button key={a.value} onClick={() => update('aggressiveness', a.value as WizardInput['aggressiveness'])}
+                    className="w-full flex items-center gap-4 px-4 py-4 text-left transition-all"
+                    style={{
+                      backgroundColor: isSelected ? '#F9731611' : 'var(--bg-card)',
+                      borderBottom: idx < 2 ? '1px solid var(--border)' : 'none',
+                      borderLeft: isSelected ? '3px solid var(--accent)' : '3px solid transparent',
+                    }}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-sm font-bold" style={{ color: isSelected ? 'var(--accent)' : 'var(--text)' }}>{a.label}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: isSelected ? 'var(--accent)' : 'var(--border)', color: isSelected ? '#fff' : 'var(--text-muted)' }}>{label}</span>
+                      </div>
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{peak}</p>
+                    </div>
+                    {isSelected && <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: 'var(--accent)' }} />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {tierLabel && (
+              <div className="rounded-xl px-4 py-3" style={{ backgroundColor: '#F9731611', border: '1px solid #F9731633' }}>
+                <p className="text-xs" style={{ color: 'var(--accent)' }}>
+                  Your plan will be modelled on <span className="font-bold">{tierLabel}</span> — {tierPeak}.
+                  Want something different after? Just ask Claude in the coach chat.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -534,7 +580,7 @@ export default function NewPlanPage() {
               </div>
             ))}
             <button onClick={() => update('b_races', [...data.b_races, { race_date: '', race_distance_km: 10, effort_level: 'tune_up', notes: '' }])}
-              className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold w-full justify-center transition-all"
+              className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold w-full justify-center"
               style={{ backgroundColor: 'var(--bg-card)', border: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
               <Plus size={16} /> Add B-race
             </button>
@@ -553,12 +599,12 @@ export default function NewPlanPage() {
                 { label: 'Start date', value: data.start_date ? formatDateDisplay(data.start_date) : '—' },
                 { label: 'Plan length', value: `${data.total_weeks} weeks` },
                 { label: 'Course', value: data.course_type },
-                { label: 'Benchmark', value: data.benchmark_time_seconds > 0 ? `${formatSeconds(data.benchmark_time_seconds)} for ${data.benchmark_distance_km}km` : '—' },
+                { label: 'Benchmark', value: data.benchmark_time_seconds > 0 ? `${formatSecondsDisplay(data.benchmark_time_seconds)} for ${data.benchmark_distance_km}km` : '—' },
                 { label: 'Weekly km', value: `${data.current_weekly_km}km avg` },
                 { label: 'Days/week', value: String(data.days_per_week) },
                 { label: 'Long run', value: data.long_run_day },
                 { label: 'Methodology', value: data.template },
-                { label: 'Aggressiveness', value: data.aggressiveness },
+                { label: 'Level', value: tierLabel },
                 { label: 'B-races', value: data.b_races.length > 0 ? `${data.b_races.length} race(s)` : 'None' },
               ].map(row => (
                 <div key={row.label} className="flex justify-between text-sm" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
@@ -567,7 +613,9 @@ export default function NewPlanPage() {
                 </div>
               ))}
             </div>
+
             {error && <p className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: '#7f1d1d', color: '#fca5a5' }}>{error}</p>}
+
             {!generating ? (
               <button onClick={generate}
                 className="w-full rounded-xl py-4 font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
@@ -579,36 +627,18 @@ export default function NewPlanPage() {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>Building your plan</p>
                   {progress?.totalWeeks ? (
-                    <div style={{ position: 'relative' }}>
+                    <div>
                       <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '52px' }}>
                         {Array.from({ length: progress.totalWeeks }, (_, i) => {
                           const weekNum = i + 1;
                           const done = (progress.weeksComplete ?? 0) >= weekNum;
-                          const pending = !done;
                           const phaseColors = ['#60A5FA','#60A5FA','#60A5FA','#60A5FA','#FB923C','#FB923C','#FB923C','#FB923C','#FB923C','#FB923C','#F87171','#F87171','#F87171','#F87171','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3','#A3A3A3'];
                           const color = done ? (phaseColors[i] ?? '#F97316') : '#27272a';
                           const heightPct = 40 + Math.sin(i * 0.8) * 20 + (i / (progress.totalWeeks ?? 1)) * 30;
                           return (
-                            <div
-                              key={weekNum}
-                              style={{
-                                flex: 1,
-                                height: `${Math.round(heightPct)}%`,
-                                backgroundColor: color,
-                                borderRadius: '3px 3px 0 0',
-                                transition: 'background-color 0.4s ease',
-                                position: 'relative',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {pending && (
-                                <div style={{
-                                  position: 'absolute',
-                                  inset: 0,
-                                  background: 'linear-gradient(90deg, transparent 0%, rgba(249,115,22,0.25) 50%, transparent 100%)',
-                                  animation: `shimmer ${1.5 + i * 0.05}s ease-in-out infinite`,
-                                  animationDelay: `${i * 0.06}s`,
-                                }} />
+                            <div key={weekNum} style={{ flex: 1, height: `${Math.round(heightPct)}%`, backgroundColor: color, borderRadius: '3px 3px 0 0', transition: 'background-color 0.4s ease', position: 'relative', overflow: 'hidden' }}>
+                              {!done && (
+                                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent 0%, rgba(249,115,22,0.25) 50%, transparent 100%)', animation: `shimmer ${1.5 + i * 0.05}s ease-in-out infinite`, animationDelay: `${i * 0.06}s` }} />
                               )}
                             </div>
                           );
@@ -627,13 +657,9 @@ export default function NewPlanPage() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      {progress?.weeksComplete != null && progress.totalWeeks
-                        ? `${progress.weeksComplete} of ${progress.totalWeeks} weeks written`
-                        : 'Starting…'}
+                      {progress?.weeksComplete != null && progress.totalWeeks ? `${progress.weeksComplete} of ${progress.totalWeeks} weeks written` : 'Starting…'}
                     </span>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent)' }}>
-                      {progress?.percent ?? 0}%
-                    </span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent)' }}>{progress?.percent ?? 0}%</span>
                   </div>
                   <div style={{ height: '4px', borderRadius: '2px', backgroundColor: 'var(--border)', overflow: 'hidden' }}>
                     <div style={{ height: '100%', borderRadius: '2px', backgroundColor: 'var(--accent)', width: `${progress?.percent ?? 0}%`, transition: 'width 0.6s ease' }} />
@@ -646,14 +672,8 @@ export default function NewPlanPage() {
                 </div>
 
                 <style>{`
-                  @keyframes shimmer {
-                    0% { transform: translateX(-100%); }
-                    100% { transform: translateX(300%); }
-                  }
-                  @keyframes pulse {
-                    0%, 100% { opacity: 0.4; }
-                    50% { opacity: 0.8; }
-                  }
+                  @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+                  @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
                 `}</style>
               </div>
             )}

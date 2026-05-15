@@ -84,11 +84,25 @@ export async function POST(req: NextRequest) {
           send({ type: 'progress', stage: 'weeks', message: `Writing weeks ${firstWeek}–${lastWeek} of ${totalWeeks}…`, percent, weeksComplete: firstWeek - 1, totalWeeks })
 
           const prompt = buildWeekPrompt(input, skeleton, batch)
-          const response = await client.messages.create({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 8000,
-            messages: [{ role: 'user', content: prompt }],
-          })
+          let response
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              response = await client.messages.create({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 8000,
+                messages: [{ role: 'user', content: prompt }],
+              })
+              break
+            } catch (err: unknown) {
+              const status = (err as { status?: number }).status
+              if (status === 529 && attempt < 2) {
+                await new Promise(r => setTimeout(r, 5000 * (attempt + 1)))
+                continue
+              }
+              throw err
+            }
+          }
+          if (!response) throw new Error('Failed after 3 attempts')
 
           const raw = response.content[0].type === 'text' ? response.content[0].text : ''
           const clean = raw.replace(/```json|```/g, '').trim()
