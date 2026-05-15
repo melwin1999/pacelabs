@@ -175,7 +175,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         {block.est_now_seconds && block.race_proj_seconds && (
           <>
             <div style={{
-              marginLeft: '5px', marginRight: '5px',
+              marginLeft: '0px', marginRight: '0px',
               height: '3px', background: '#1f1f1f', borderRadius: '10px',
               position: 'relative', marginBottom: '4px',
             }}>
