@@ -215,7 +215,7 @@ export default function WeekView({
           const isLong = workout.type === 'long'
 
           return (
-            <div key={workout.id} style={{ position: 'relative', animation: 'fadeUp 0.3s ease both', animationDelay: `${index * 40}ms` }}>
+            <div key={workout.id} style={{ position: 'relative', animation: 'fadeUp 0.3s ease both', animationDelay: `${index * 40}ms`, zIndex: menuOpen ? 10 : 1 }}>
               <div
                 draggable={workout.type !== 'rest' && !isSkipped}
                 onDragStart={e => handleDragStart(e, workout)}

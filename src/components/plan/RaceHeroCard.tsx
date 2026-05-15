@@ -90,7 +90,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
   <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
     <p style={{
-      fontSize: '100px', fontWeight: 900, lineHeight: 0.85,
+      fontSize: '100px', fontWeight: 900, lineHeight: 1,
       letterSpacing: '-6px',
       background: 'linear-gradient(160deg, #ffffff 20%, #71717a 100%)',
       WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
