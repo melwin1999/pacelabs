@@ -114,56 +114,40 @@ export default function RaceHeroCard({ block }: { block: Block }) {
           <p style={{ fontSize: '15px', color: '#52525b', marginBottom: '20px' }}>No race date set</p>
         )}
 
-        {/* Phase journey — dots pinned to left/right edges, line connecting them */}
-        <div style={{ position: 'relative', marginBottom: '20px', height: '36px' }}>
-          {/* Background line — full width */}
-          <div style={{
-            position: 'absolute', top: '5px', left: '5px', right: '5px', height: '2px',
-            background: '#1f1f1f',
-          }} />
-          {/* Dots + labels */}
-          {phases.map((phase, i) => {
-            const leftPct = i === 0 ? 0 : i === phases.length - 1 ? 100 : (i / (phases.length - 1)) * 100
-            return (
-              <div key={phase.label} style={{
-                position: 'absolute',
-                left: `${leftPct}%`,
-                transform: i === 0 ? 'none' : i === phases.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-              }}>
-                {/* Coloured line segment — from this dot to the next */}
-                {i < phases.length - 1 && (phase.done || phase.active) && (
-                  <div style={{
-                    position: 'absolute', top: '5px',
-                    left: phase.active ? '50%' : '5px',
-                    width: phase.active
-                      ? `${(1 / (phases.length - 1)) * 100 * (progress / 100) * (phases.length - 1)}px`
-                      : `calc(${100 / (phases.length - 1)}% )`,
-                    height: '2px',
-                    background: '#10b981',
-                    zIndex: 0,
-                  }} />
-                )}
-                <div style={{
-                  width: phase.active ? '13px' : '10px',
-                  height: phase.active ? '13px' : '10px',
-                  borderRadius: '50%',
-                  background: phase.active ? '#f97316' : phase.done ? '#10b981' : '#1f1f1f',
-                  border: `2px solid ${phase.active ? '#f97316' : phase.done ? '#10b981' : '#2e2e2e'}`,
-                  boxShadow: phase.active ? '0 0 10px rgba(249,115,22,0.6)' : 'none',
-                  position: 'relative', zIndex: 1, flexShrink: 0,
-                }} />
-                <p style={{
-                  fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
-                  textTransform: 'uppercase', whiteSpace: 'nowrap',
-                  color: phase.active ? '#f97316' : phase.done ? '#10b981' : '#3f3f46',
-                }}>
-                  {phase.label}
-                </p>
-              </div>
-            )
-          })}
-        </div>
+        {/* Phase journey */}
+<div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+  {phases.map((phase, i) => (
+    <div key={phase.label} style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', gap: '6px', position: 'relative',
+    }}>
+      {i < phases.length - 1 && (
+        <div style={{
+          position: 'absolute', top: '5px', left: '50%',
+          width: '100%', height: '2px',
+          background: phase.done ? '#10b981' : '#1f1f1f',
+          zIndex: 0,
+        }} />
+      )}
+      <div style={{
+        width: phase.active ? '13px' : '10px',
+        height: phase.active ? '13px' : '10px',
+        borderRadius: '50%',
+        background: phase.active ? '#f97316' : phase.done ? '#10b981' : '#1f1f1f',
+        border: `2px solid ${phase.active ? '#f97316' : phase.done ? '#10b981' : '#2e2e2e'}`,
+        boxShadow: phase.active ? '0 0 10px rgba(249,115,22,0.6)' : 'none',
+        position: 'relative', zIndex: 1, flexShrink: 0,
+      }} />
+      <p style={{
+        fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
+        textTransform: 'uppercase',
+        color: phase.active ? '#f97316' : phase.done ? '#10b981' : '#3f3f46',
+      }}>
+        {phase.label}
+      </p>
+    </div>
+  ))}
+</div>
 
         {/* Time cards */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
