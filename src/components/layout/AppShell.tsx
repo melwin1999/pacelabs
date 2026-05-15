@@ -18,113 +18,106 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     href === '/' ? pathname === '/' : pathname.startsWith(href)
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--bg)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#080c14' }}>
 
       {/* Desktop sidebar */}
-      <aside
-        className="hidden md:flex flex-col w-56 shrink-0 fixed top-0 left-0 h-full z-30"
-        style={{
-          background: 'var(--bg-subtle)',
-          borderRight: '1px solid var(--border)',
-        }}
-      >
+      <aside style={{
+        width: '200px', flexShrink: 0, position: 'fixed',
+        top: 0, left: 0, height: '100%', zIndex: 30,
+        background: '#0a0d14',
+        borderRight: '1px solid #161c28',
+        display: 'flex', flexDirection: 'column',
+      }} className="hidden md:flex">
+
         {/* Logo */}
-        <div className="px-6 py-7">
-          <span className="text-xl font-black tracking-tight" style={{ color: 'var(--text)' }}>
-            Pace<span style={{
-              color: 'var(--accent)',
-              textShadow: '0 0 20px rgba(249,115,22,0.5)',
-            }}>Labs</span>
+        <div style={{ padding: '28px 24px 20px' }}>
+          <span style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.5px', color: '#f1f5f9' }}>
+            Pace<span style={{ color: '#f97316', textShadow: '0 0 20px rgba(249,115,22,0.5)' }}>Labs</span>
           </span>
         </div>
 
         {/* Nav */}
-        <nav className="flex flex-col gap-0.5 px-3 flex-1">
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 12px', flex: 1 }}>
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActive(href)
             return (
-              <Link
-                key={href}
-                href={href}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
-                style={{
-                  background: active ? 'var(--accent-dim)' : 'transparent',
-                  color: active ? 'var(--accent)' : 'var(--text-muted)',
-                  borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
-                }}
+              <Link key={href} href={href} style={{
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '10px 12px', borderRadius: '10px',
+                fontSize: '13px', fontWeight: active ? 600 : 500,
+                color: active ? '#f97316' : '#334155',
+                background: active ? 'rgba(249,115,22,0.08)' : 'transparent',
+                borderLeft: active ? '2px solid #f97316' : '2px solid transparent',
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+              }}
+                onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}}
+                onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#334155'; e.currentTarget.style.background = 'transparent' }}}
               >
-                <Icon size={17} strokeWidth={active ? 2.5 : 1.8} />
+                <Icon size={16} strokeWidth={active ? 2.5 : 1.8} />
                 {label}
               </Link>
             )
           })}
         </nav>
 
-        {/* New plan */}
-        <div className="px-3 py-5">
-          <Link
-            href="/plan/new"
-            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold w-full transition-all duration-200 pulse-glow"
-            style={{
-              background: 'var(--accent)',
-              color: '#fff',
-            }}
+        {/* New plan button */}
+        <div style={{ padding: '16px 12px 24px' }}>
+          <Link href="/plan/new" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '8px', padding: '10px', borderRadius: '10px',
+            fontSize: '13px', fontWeight: 700, color: '#fff',
+            background: '#f97316', textDecoration: 'none',
+            boxShadow: '0 0 20px rgba(249,115,22,0.25)',
+            transition: 'box-shadow 0.2s ease',
+          }}
+            onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 32px rgba(249,115,22,0.45)')}
+            onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 20px rgba(249,115,22,0.25)')}
           >
-            <Plus size={16} strokeWidth={2.5} />
+            <Plus size={15} strokeWidth={2.5} />
             New plan
           </Link>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 md:ml-56 pb-20 md:pb-0 min-h-screen overflow-x-hidden">
+      {/* Main content */}
+      <main style={{ flex: 1, marginLeft: 0, paddingBottom: '80px', minHeight: '100vh' }}
+        className="md:ml-[200px] md:pb-0">
         {children}
       </main>
 
       {/* Mobile bottom nav */}
-      <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-30"
-        style={{
-          background: 'rgba(10, 14, 23, 0.95)',
-          backdropFilter: 'blur(12px)',
-          borderTop: '1px solid var(--border)',
-        }}
-      >
-        <div className="flex items-center justify-around h-16 px-1">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-            const active = isActive(href)
-            return (
-              <Link
-                key={href}
-                href={href}
-                className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full"
-                style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }}
-              >
-                {active && (
-                  <span style={{
-                    position: 'absolute',
-                    marginTop: '-28px',
-                    width: '32px',
-                    height: '2px',
-                    background: 'var(--accent)',
-                    borderRadius: '0 0 4px 4px',
-                    boxShadow: '0 0 8px var(--accent-glow)',
-                  }} />
-                )}
-                <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />
-                <span className="text-[10px] font-medium">{label}</span>
-              </Link>
-            )
-          })}
-          <Link
-            href="/plan/new"
-            className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full"
-            style={{ color: pathname.startsWith('/plan/new') ? 'var(--accent)' : 'var(--text-muted)' }}
-          >
-            <Plus size={20} strokeWidth={2} />
-            <span className="text-[10px] font-medium">New</span>
-          </Link>
-        </div>
+      <nav className="md:hidden" style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
+        background: 'rgba(8,12,20,0.96)',
+        backdropFilter: 'blur(16px)',
+        borderTop: '1px solid #161c28',
+        height: '62px', display: 'flex', alignItems: 'center',
+      }}>
+        {[...NAV_ITEMS, { href: '/plan/new', label: 'New', icon: Plus }].map(({ href, label, icon: Icon }) => {
+          const active = isActive(href)
+          return (
+            <Link key={href} href={href} style={{
+              flex: 1, display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: '3px', height: '100%', textDecoration: 'none',
+              color: active ? '#f97316' : '#2d3a50',
+              position: 'relative', transition: 'color 0.15s',
+            }}>
+              {active && (
+                <span style={{
+                  position: 'absolute', top: 0, left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '20px', height: '2px',
+                  background: '#f97316', borderRadius: '0 0 3px 3px',
+                  boxShadow: '0 2px 8px rgba(249,115,22,0.6)',
+                }} />
+              )}
+              <Icon size={19} strokeWidth={active ? 2.5 : 1.8} />
+              <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{label}</span>
+            </Link>
+          )
+        })}
       </nav>
     </div>
   )
