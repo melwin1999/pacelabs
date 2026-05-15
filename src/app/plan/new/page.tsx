@@ -184,6 +184,28 @@ export default function NewPlanPage() {
     if (data.start_date && val) update('total_weeks', weeksBetween(data.start_date, val));
   }
 
+  function getHardBlock(template: string, aggressiveness: string, currentKm: number): string | null {
+    const blocks: Record<string, Record<string, { km: number; canOverride: boolean }>> = {
+      higdon:     { aggressive: { km: 15, canOverride: true } },
+      daniels:    { moderate: { km: 25, canOverride: true }, aggressive: { km: 45, canOverride: true } },
+      pfitzinger: { conservative: { km: 40, canOverride: false }, moderate: { km: 50, canOverride: false }, aggressive: { km: 65, canOverride: false } },
+      hansons:    { moderate: { km: 20, canOverride: true }, aggressive: { km: 40, canOverride: false } },
+      norwegian:  { conservative: { km: 35, canOverride: false }, moderate: { km: 45, canOverride: false }, aggressive: { km: 60, canOverride: false } },
+    };
+    const b = blocks[template]?.[aggressiveness];
+    if (!b || currentKm >= b.km) return null;
+    const names: Record<string, string> = { pfitzinger: 'Pfitzinger', norwegian: 'Norwegian', daniels: 'Daniels 2Q', hansons: 'Hansons', higdon: 'Higdon', claude: "Claude's Own" };
+    const tierLabels: Record<string, Record<string, string>> = {
+      higdon: { aggressive: 'Intermediate 1' },
+      daniels: { moderate: '2Q 18/55', aggressive: '2Q 18/70+' },
+      pfitzinger: { conservative: 'Pfitz 18/55', moderate: 'Pfitz 18/70', aggressive: 'Pfitz 18/85+' },
+      hansons: { moderate: 'Beginner', aggressive: 'Advanced' },
+      norwegian: { conservative: 'Low', moderate: 'Mid', aggressive: 'High' },
+    };
+    const tier = tierLabels[template]?.[aggressiveness] ?? aggressiveness;
+    return `${names[template]} ${tier} requires at least ${b.km}km/week base. You're at ${currentKm}km/week. ${b.canOverride ? 'Try a more conservative level instead.' : 'Build your base first or choose a different methodology.'}`;
+  }
+
   function canAdvance(): boolean {
     if (step === 0) return !!data.goal_type;
     if (step === 1) return !!data.race_date && data.race_distance_km > 0;
@@ -198,7 +220,16 @@ export default function NewPlanPage() {
       setMethodologyError('');
       return !!data.template;
     }
-    if (step === 5) return !!data.aggressiveness;
+    if (step === 5) {
+      // Check hard base block for this methodology + aggressiveness
+      const block = getHardBlock(data.template, data.aggressiveness, data.current_weekly_km);
+      if (block) {
+        setMethodologyError(block);
+        return false;
+      }
+      setMethodologyError('');
+      return !!data.aggressiveness;
+    }
     return true;
   }
 
@@ -528,6 +559,10 @@ export default function NewPlanPage() {
                 );
               })}
             </div>
+
+            {methodologyError && (
+              <p className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: '#7f1d1d', color: '#fca5a5' }}>{methodologyError}</p>
+            )}
 
             {tierLabel && (
               <div className="rounded-xl px-4 py-3" style={{ backgroundColor: '#F9731611', border: '1px solid #F9731633' }}>
