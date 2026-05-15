@@ -4,6 +4,19 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/layout/AppShell';
 import { WizardInput } from '@/lib/types';
+
+const TIER_LABELS: Record<string, Record<string, string>> = {
+  higdon: { conservative: 'Novice Supreme', moderate: 'Novice 1', aggressive: 'Intermediate 1' },
+  daniels: { conservative: 'Novice (run/walk)', moderate: '2Q 18/55', aggressive: '2Q 18/70+' },
+  pfitzinger: { conservative: 'Pfitz 18/55', moderate: 'Pfitz 18/70', aggressive: 'Pfitz 18/85+' },
+  hansons: { conservative: 'Just Finish', moderate: 'Beginner', aggressive: 'Advanced' },
+  norwegian: { conservative: 'Norwegian (low)', moderate: 'Norwegian (mid)', aggressive: 'Norwegian (high)' },
+  claude: { conservative: "Claude's Own — gentle", moderate: "Claude's Own — balanced", aggressive: "Claude's Own — strong" },
+};
+
+function getTierLabelFor(template: string, agg: string): string {
+  return TIER_LABELS[template]?.[agg] ?? '';
+}
 import { ChevronRight, ChevronLeft, Sparkles, Loader2, Plus, Trash2 } from 'lucide-react';
 
 const STORAGE_KEY = 'pacelabs_wizard_v2';
@@ -445,6 +458,11 @@ export default function NewPlanPage() {
                     <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: t.badgeColor + '22', color: t.badgeColor }}>{t.badge}</span>
                   </div>
                   <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{t.description}</p>
+                  {data.template === t.value && (
+                    <p className="text-xs mt-2 font-semibold" style={{ color: 'var(--accent)' }}>
+                      At {data.aggressiveness} → modelled on {getTierLabelFor(t.value, data.aggressiveness)}
+                    </p>
+                  )}
                 </button>
               ))}
             </div>
@@ -470,30 +488,9 @@ export default function NewPlanPage() {
                 </button>
               ))}
             </div>
-            <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--text)' }}>
-              <input type="checkbox" checked={data.advanced_load} onChange={e => update('advanced_load', e.target.checked)} />
-              Customise volume and intensity separately
-            </label>
-            {data.advanced_load && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>VOLUME</label>
-                  <select value={data.volume_aggressiveness ?? data.aggressiveness} onChange={e => update('volume_aggressiveness', e.target.value as WizardInput['aggressiveness'])} className={inp} style={inpStyle}>
-                    <option value="conservative">Conservative</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="aggressive">Aggressive</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>INTENSITY</label>
-                  <select value={data.quality_aggressiveness ?? data.aggressiveness} onChange={e => update('quality_aggressiveness', e.target.value as WizardInput['aggressiveness'])} className={inp} style={inpStyle}>
-                    <option value="conservative">Conservative</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="aggressive">Aggressive</option>
-                  </select>
-                </div>
-              </div>
-            )}
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              Want a different volume or intensity once your plan is generated? Just ask Claude in the chat — much easier than tuning sliders.
+            </p>
           </div>
         )}
 
