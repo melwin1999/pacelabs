@@ -16,15 +16,14 @@ const TYPE_COLOURS: Record<string, string> = {
   progression: '#A3E635', custom: '#A3A3A3',
 }
 
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const HARD_TYPES = new Set(['tempo', 'threshold', 'intervals', 'race'])
 const TYPE_LABELS: Record<string, string> = {
   easy: 'Easy', long: 'Long Run', tempo: 'Tempo', threshold: 'Threshold',
   intervals: 'Intervals', recovery: 'Recovery', race: 'Race',
   rest: 'Rest', strides: 'Strides', fartlek: 'Fartlek',
   progression: 'Progression', custom: 'Custom',
 }
-
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const HARD_TYPES = new Set(['tempo', 'threshold', 'intervals', 'race'])
 
 interface ValidationWarning { message: string }
 
@@ -176,15 +175,13 @@ export default function WeekView({
   }
 
   const sorted = [...localWorkouts].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
-
-  // Today's date string for highlighting
   const todayStr = new Date().toISOString().split('T')[0]
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <p style={{ fontSize: '15px', fontWeight: 700, color: '#f1f5f9' }}>This week</p>
-        <p style={{ fontSize: '11px', color: '#2d3a50', fontWeight: 500 }}>Drag to reschedule</p>
+        <p style={{ fontSize: '11px', color: '#475569', fontWeight: 500 }}>Drag to reschedule</p>
       </div>
 
       {warnings.length > 0 && (
@@ -195,10 +192,8 @@ export default function WeekView({
         }}>
           <AlertTriangle size={14} style={{ color: '#f97316', marginTop: '2px', flexShrink: 0 }} />
           <div>
-            {warnings.map((w, i) => (
-              <p key={i} style={{ fontSize: '12px', color: '#f97316' }}>{w.message}</p>
-            ))}
-            <p style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>You can still drop here — just a heads up.</p>
+            {warnings.map((w, i) => <p key={i} style={{ fontSize: '12px', color: '#f97316' }}>{w.message}</p>)}
+            <p style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>You can still drop here — just a heads up.</p>
           </div>
         </div>
       )}
@@ -219,7 +214,7 @@ export default function WeekView({
           const isLong = workout.type === 'long'
 
           return (
-            <div key={workout.id} style={{ position: 'relative', animation: `fadeUp 0.3s ease both`, animationDelay: `${index * 40}ms` }}>
+            <div key={workout.id} style={{ position: 'relative', animation: 'fadeUp 0.3s ease both', animationDelay: `${index * 40}ms` }}>
               <div
                 draggable={workout.type !== 'rest' && !isSkipped}
                 onDragStart={e => handleDragStart(e, workout)}
@@ -230,61 +225,50 @@ export default function WeekView({
                 onMouseEnter={() => setHoveredId(workout.id)}
                 onMouseLeave={() => setHoveredId(null)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
+                  display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '13px 14px',
                   background: isToday ? 'rgba(249,115,22,0.04)' : '#0d1117',
-                  border: isDragOver
-                    ? '1px solid #f97316'
-                    : isToday
-                    ? '1px solid rgba(249,115,22,0.3)'
-                    : isHovered
-                    ? '1px solid #334155'
+                  border: isDragOver ? '1px solid #f97316'
+                    : isToday ? '1px solid rgba(249,115,22,0.3)'
+                    : isHovered ? '1px solid #334155'
                     : '1px solid #161c28',
                   borderRadius: '13px',
-                  opacity: isDragging ? 0.35 : (isComplete || isSkipped) ? 0.45 : 1,
+                  opacity: isDragging ? 0.35 : (isComplete || isSkipped) ? 0.5 : 1,
                   transform: isDragOver ? 'scale(1.01)' : isHovered && !isDragging ? 'scale(1.005)' : 'scale(1)',
                   transition: 'all 0.18s ease',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
+                  position: 'relative', overflow: 'hidden', cursor: 'pointer',
                 }}
               >
-                {/* Today left border glow */}
                 {isToday && (
                   <div style={{
                     position: 'absolute', left: 0, top: 0, bottom: 0, width: '2.5px',
-                    background: '#f97316',
-                    boxShadow: '0 0 8px rgba(249,115,22,0.6)',
+                    background: '#f97316', boxShadow: '0 0 8px rgba(249,115,22,0.6)',
                   }} />
                 )}
 
-                {/* Colour dot */}
+                {/* Dot */}
                 <div style={{
                   width: '8px', height: '8px', borderRadius: '50%',
-                  background: isSkipped ? '#f97316' : colour,
-                  flexShrink: 0,
+                  background: isSkipped ? '#f97316' : colour, flexShrink: 0,
                   boxShadow: isToday ? `0 0 6px ${colour}88` : 'none',
                 }} />
 
                 {/* Day + date */}
                 <div style={{ width: '36px', flexShrink: 0, textAlign: 'center' }}>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.8px', color: '#2d3a50', textTransform: 'uppercase' }}>{dayLabel}</p>
+                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.8px', color: '#475569', textTransform: 'uppercase' }}>{dayLabel}</p>
                   <p style={{ fontSize: '19px', fontWeight: 800, lineHeight: 1, color: isToday ? '#f97316' : '#f1f5f9', letterSpacing: '-0.5px' }}>{dateNum}</p>
                 </div>
 
                 {/* Info */}
                 <Link href={`/workout/${workout.id}`} style={{ flex: 1, minWidth: 0, textDecoration: 'none' }}>
                   <p style={{
-                    fontSize: '14px', fontWeight: 600,
-                    color: isSkipped ? '#475569' : isLong ? '#FCD34D' : '#e2e8f0',
-                    marginBottom: '2px',
+                    fontSize: '14px', fontWeight: 600, marginBottom: '3px',
+                    color: isSkipped ? '#64748b' : isLong ? '#FCD34D' : '#e2e8f0',
                     textDecoration: isSkipped ? 'line-through' : 'none',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>{workout.name}</p>
                   {workout.type !== 'rest' && (
-                    <p style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>
+                    <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
                       {workout.distance_km ? `${workout.distance_km} km` : ''}
                       {paceDisplay ? ` · ${paceDisplay}` : ''}
                       {workout.hr_zone ? ` · ${workout.hr_zone}` : ''}
@@ -302,11 +286,10 @@ export default function WeekView({
                       onClick={e => { e.stopPropagation(); setOpenMenuId(menuOpen ? null : workout.id) }}
                       style={{
                         background: 'transparent', border: 'none', cursor: 'pointer',
-                        color: '#2d3a50', padding: '4px', borderRadius: '6px',
-                        transition: 'color 0.15s',
+                        color: '#334155', padding: '4px', borderRadius: '6px', transition: 'color 0.15s',
                       }}
                       onMouseEnter={e => (e.currentTarget.style.color = '#64748b')}
-                      onMouseLeave={e => (e.currentTarget.style.color = '#2d3a50')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#334155')}
                     >
                       <MoreHorizontal size={16} />
                     </button>
@@ -318,16 +301,16 @@ export default function WeekView({
                       disabled={loadingId === workout.id}
                       style={{
                         width: '28px', height: '28px', borderRadius: '50%',
-                        border: isComplete ? '1.5px solid #10b981' : '1.5px solid #1e2433',
+                        border: isComplete ? '1.5px solid #10b981' : '1.5px solid #334155',
                         background: isComplete ? 'rgba(16,185,129,0.12)' : 'transparent',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer', fontSize: '13px',
-                        color: isComplete ? '#10b981' : '#2d3a50',
+                        color: isComplete ? '#10b981' : '#475569',
                         transition: 'all 0.18s ease',
                         transform: loadingId === workout.id ? 'scale(0.9)' : 'scale(1)',
                       }}
-                      onMouseEnter={e => { if (!isComplete) { e.currentTarget.style.borderColor = '#334155'; e.currentTarget.style.color = '#64748b' }}}
-                      onMouseLeave={e => { if (!isComplete) { e.currentTarget.style.borderColor = '#1e2433'; e.currentTarget.style.color = '#2d3a50' }}}
+                      onMouseEnter={e => { if (!isComplete) { e.currentTarget.style.borderColor = '#475569'; e.currentTarget.style.color = '#94a3b8' }}}
+                      onMouseLeave={e => { if (!isComplete) { e.currentTarget.style.borderColor = '#334155'; e.currentTarget.style.color = '#475569' }}}
                     >
                       {isComplete ? '✓' : '○'}
                     </button>
@@ -344,18 +327,15 @@ export default function WeekView({
                 </div>
               </div>
 
-              {/* Context menu */}
               {menuOpen && (
                 <div style={{
-                  position: 'absolute', right: 0, top: 'calc(100% + 4px)',
-                  zIndex: 50, borderRadius: '12px', padding: '4px',
-                  minWidth: '160px',
+                  position: 'absolute', right: 0, top: 'calc(100% + 4px)', zIndex: 50,
+                  borderRadius: '12px', padding: '4px', minWidth: '160px',
                   background: '#111827', border: '1px solid #1e293b',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
                 }}>
                   {!isSkipped ? (
-                    <button
-                      onClick={() => { setOpenMenuId(null); setSkipTarget(workout) }}
+                    <button onClick={() => { setOpenMenuId(null); setSkipTarget(workout) }}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '10px 12px', fontSize: '13px', color: '#f97316',
@@ -364,12 +344,9 @@ export default function WeekView({
                       }}
                       onMouseEnter={e => (e.currentTarget.style.background = 'rgba(249,115,22,0.08)')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    >
-                      <SkipForward size={14} /> Skip session
-                    </button>
+                    ><SkipForward size={14} /> Skip session</button>
                   ) : (
-                    <button
-                      onClick={() => { setOpenMenuId(null); undoSkip(workout) }}
+                    <button onClick={() => { setOpenMenuId(null); undoSkip(workout) }}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '10px 12px', fontSize: '13px', color: '#94a3b8',
@@ -378,12 +355,9 @@ export default function WeekView({
                       }}
                       onMouseEnter={e => (e.currentTarget.style.background = '#1e293b')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    >
-                      <SkipForward size={14} /> Un-skip
-                    </button>
+                    ><SkipForward size={14} /> Un-skip</button>
                   )}
-                  <button
-                    onClick={() => { setOpenMenuId(null); setMoveDate(workout.scheduled_date); setShowMoveSheet({ workout }) }}
+                  <button onClick={() => { setOpenMenuId(null); setMoveDate(workout.scheduled_date); setShowMoveSheet({ workout }) }}
                     style={{
                       width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
                       padding: '10px 12px', fontSize: '13px', color: '#f1f5f9',
@@ -392,9 +366,7 @@ export default function WeekView({
                     }}
                     onMouseEnter={e => (e.currentTarget.style.background = '#1e293b')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <Calendar size={14} /> Move to…
-                  </button>
+                  ><Calendar size={14} /> Move to…</button>
                 </div>
               )}
             </div>
@@ -402,64 +374,45 @@ export default function WeekView({
         })}
 
         {sorted.length === 0 && (
-          <p style={{ fontSize: '14px', textAlign: 'center', padding: '32px 0', color: '#334155' }}>No workouts this week.</p>
+          <p style={{ fontSize: '14px', textAlign: 'center', padding: '32px 0', color: '#475569' }}>No workouts this week.</p>
         )}
       </div>
 
       {skipTarget && (
-        <SkipModal
-          workoutName={skipTarget.name}
-          onConfirm={confirmSkip}
-          onCancel={() => setSkipTarget(null)}
-        />
+        <SkipModal workoutName={skipTarget.name} onConfirm={confirmSkip} onCancel={() => setSkipTarget(null)} />
       )}
 
       {showMoveSheet && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 50,
-            display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px',
-            background: 'rgba(0,0,0,0.7)',
-          }}
-          onClick={() => setShowMoveSheet(null)}
-        >
-          <div
-            style={{
-              width: '100%', maxWidth: '400px', borderRadius: '20px', padding: '20px',
-              background: '#111827', border: '1px solid #1e293b',
-              display: 'flex', flexDirection: 'column', gap: '16px',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 50,
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px',
+          background: 'rgba(0,0,0,0.7)',
+        }} onClick={() => setShowMoveSheet(null)}>
+          <div style={{
+            width: '100%', maxWidth: '400px', borderRadius: '20px', padding: '20px',
+            background: '#111827', border: '1px solid #1e293b',
+            display: 'flex', flexDirection: 'column', gap: '16px',
+          }} onClick={e => e.stopPropagation()}>
             <p style={{ fontSize: '15px', fontWeight: 700, color: '#f1f5f9' }}>Move to a different day</p>
-            <p style={{ fontSize: '13px', color: '#475569' }}>{showMoveSheet.workout.name}</p>
-            <input
-              type="date" value={moveDate}
-              onChange={e => setMoveDate(e.target.value)}
+            <p style={{ fontSize: '13px', color: '#64748b' }}>{showMoveSheet.workout.name}</p>
+            <input type="date" value={moveDate} onChange={e => setMoveDate(e.target.value)}
               style={{
                 width: '100%', borderRadius: '12px', padding: '10px 14px',
                 background: '#0d1117', border: '1px solid #1e293b',
                 color: '#f1f5f9', fontSize: '14px', outline: 'none',
-              }}
-            />
+              }} />
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => setShowMoveSheet(null)}
-                style={{
-                  flex: 1, padding: '11px', borderRadius: '12px', fontSize: '14px',
-                  fontWeight: 600, background: '#0d1117', border: '1px solid #1e293b',
-                  color: '#475569', cursor: 'pointer',
-                }}
-              >Cancel</button>
-              <button
-                onClick={confirmMove} disabled={!moveDate}
-                style={{
-                  flex: 1, padding: '11px', borderRadius: '12px', fontSize: '14px',
-                  fontWeight: 700, background: '#f97316', border: 'none',
-                  color: '#fff', cursor: 'pointer', opacity: moveDate ? 1 : 0.4,
-                  boxShadow: '0 0 20px rgba(249,115,22,0.3)',
-                }}
-              >Move</button>
+              <button onClick={() => setShowMoveSheet(null)} style={{
+                flex: 1, padding: '11px', borderRadius: '12px', fontSize: '14px',
+                fontWeight: 600, background: '#0d1117', border: '1px solid #1e293b',
+                color: '#64748b', cursor: 'pointer',
+              }}>Cancel</button>
+              <button onClick={confirmMove} disabled={!moveDate} style={{
+                flex: 1, padding: '11px', borderRadius: '12px', fontSize: '14px',
+                fontWeight: 700, background: '#f97316', border: 'none',
+                color: '#fff', cursor: 'pointer', opacity: moveDate ? 1 : 0.4,
+                boxShadow: '0 0 20px rgba(249,115,22,0.3)',
+              }}>Move</button>
             </div>
           </div>
         </div>

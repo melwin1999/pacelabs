@@ -45,14 +45,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '10px 12px', borderRadius: '10px',
                 fontSize: '13px', fontWeight: active ? 600 : 500,
-                color: active ? '#f97316' : '#334155',
+                color: active ? '#f97316' : '#64748b',
                 background: active ? 'rgba(249,115,22,0.08)' : 'transparent',
                 borderLeft: active ? '2px solid #f97316' : '2px solid transparent',
                 textDecoration: 'none',
                 transition: 'all 0.15s ease',
               }}
                 onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}}
-                onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#334155'; e.currentTarget.style.background = 'transparent' }}}
+                onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'transparent' }}}
               >
                 <Icon size={16} strokeWidth={active ? 2.5 : 1.8} />
                 {label}
