@@ -85,24 +85,27 @@ export async function POST(req: NextRequest) {
 
           const prompt = buildWeekPrompt(input, skeleton, batch)
           let response
-          for (let attempt = 0; attempt < 3; attempt++) {
+          let lastErr: unknown = null
+          for (let attempt = 0; attempt < 5; attempt++) {
             try {
+              const useHaiku = attempt >= 3
               response = await client.messages.create({
-                model: 'claude-sonnet-4-6',
+                model: useHaiku ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-4-6',
                 max_tokens: 8000,
                 messages: [{ role: 'user', content: prompt }],
               })
               break
             } catch (err: unknown) {
+              lastErr = err
               const status = (err as { status?: number }).status
-              if (status === 529 && attempt < 2) {
-                await new Promise(r => setTimeout(r, 5000 * (attempt + 1)))
+              if ((status === 529 || status === 429 || status === 503) && attempt < 4) {
+                await new Promise(r => setTimeout(r, 4000 * (attempt + 1)))
                 continue
               }
               throw err
             }
           }
-          if (!response) throw new Error('Failed after 3 attempts')
+          if (!response) throw lastErr ?? new Error('Failed after 5 attempts')
 
           const raw = response.content[0].type === 'text' ? response.content[0].text : ''
           const clean = raw.replace(/```json|```/g, '').trim()
