@@ -5,11 +5,7 @@ import Link from 'next/link'
 import { Workout } from '@/lib/types'
 import { formatWorkoutPace } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
-import {
-  CheckCircle2, Circle, GripVertical,
-  ChevronRight, MoreHorizontal, SkipForward,
-  AlertTriangle, Calendar
-} from 'lucide-react'
+import { MoreHorizontal, SkipForward, Calendar, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import SkipModal from './SkipModal'
 
@@ -38,8 +34,7 @@ function getValidationWarnings(workouts: Workout[], movedId: string, targetDate:
     .map(w => w.id === movedId ? { ...w, scheduled_date: targetDate } : w)
     .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
   for (let i = 1; i < sorted.length; i++) {
-    const prev = sorted[i - 1]
-    const curr = sorted[i]
+    const prev = sorted[i - 1]; const curr = sorted[i]
     const dayDiff = Math.round((parseISO(curr.scheduled_date).getTime() - parseISO(prev.scheduled_date).getTime()) / 86400000)
     if (dayDiff === 1) {
       if (HARD_TYPES.has(prev.type) && HARD_TYPES.has(curr.type))
@@ -74,6 +69,7 @@ export default function WeekView({
   const [warnings, setWarnings] = useState<ValidationWarning[]>([])
   const [showMoveSheet, setShowMoveSheet] = useState<{ workout: Workout } | null>(null)
   const [moveDate, setMoveDate] = useState('')
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
   const router = useRouter()
 
   async function toggleComplete(workout: Workout) {
@@ -162,60 +158,68 @@ export default function WeekView({
 
   function handleDragEnd() { setDraggingId(null); setDragOverId(null); setWarnings([]) }
 
-async function confirmMove() {
+  async function confirmMove() {
     if (!showMoveSheet || !moveDate) return
     const workout = showMoveSheet.workout
     const chosen = parseISO(moveDate)
     const dayOfWeek = (chosen.getDay() + 6) % 7
     setShowMoveSheet(null)
-    // Optimistic update — move instantly in UI
     setLocalWorkouts(prev => prev.map(w => w.id === workout.id
-      ? { ...w, scheduled_date: moveDate, day_of_week: dayOfWeek }
-      : w
-    ))
+      ? { ...w, scheduled_date: moveDate, day_of_week: dayOfWeek } : w))
     try {
       await fetch('/api/workouts/move', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workoutId: workout.id, newDate: moveDate, newDayOfWeek: dayOfWeek, newWeekNumber: workout.week_number }),
       })
-    } catch {
-      setLocalWorkouts(workouts) // revert on failure
-    } finally { router.refresh() }
+    } catch { setLocalWorkouts(workouts) }
+    finally { router.refresh() }
   }
 
   const sorted = [...localWorkouts].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
 
+  // Today's date string for highlighting
+  const todayStr = new Date().toISOString().split('T')[0]
+
   return (
     <div>
-      <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-muted)' }}>
-        THIS WEEK — WEEK {weekNumber}
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <p style={{ fontSize: '15px', fontWeight: 700, color: '#f1f5f9' }}>This week</p>
+        <p style={{ fontSize: '11px', color: '#2d3a50', fontWeight: 500 }}>Drag to reschedule</p>
+      </div>
 
       {warnings.length > 0 && (
-        <div className="mb-3 rounded-xl px-3 py-2 flex items-start gap-2"
-          style={{ backgroundColor: '#F9731622', border: '1px solid #F9731644' }}>
-          <AlertTriangle size={14} className="mt-0.5 shrink-0" style={{ color: '#F97316' }} />
+        <div style={{
+          marginBottom: '12px', borderRadius: '12px', padding: '10px 12px',
+          display: 'flex', alignItems: 'flex-start', gap: '8px',
+          background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.25)',
+        }}>
+          <AlertTriangle size={14} style={{ color: '#f97316', marginTop: '2px', flexShrink: 0 }} />
           <div>
-            {warnings.map((w, i) => <p key={i} className="text-xs" style={{ color: '#F97316' }}>{w.message}</p>)}
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>You can still drop here — just a heads up.</p>
+            {warnings.map((w, i) => (
+              <p key={i} style={{ fontSize: '12px', color: '#f97316' }}>{w.message}</p>
+            ))}
+            <p style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>You can still drop here — just a heads up.</p>
           </div>
         </div>
       )}
 
-      <div className="space-y-2">
-        {sorted.map(workout => {
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+        {sorted.map((workout, index) => {
           const isComplete = completedIds.has(workout.id)
           const isSkipped = skippedIds.has(workout.id)
           const isDragging = draggingId === workout.id
           const isDragOver = dragOverId === workout.id
+          const isHovered = hoveredId === workout.id
+          const isToday = workout.scheduled_date === todayStr
           const colour = TYPE_COLOURS[workout.type] ?? '#A3A3A3'
           const dayLabel = DAY_LABELS[workout.day_of_week] ?? '?'
-          const dateLabel = workout.scheduled_date ? format(parseISO(workout.scheduled_date), 'd MMM') : ''
+          const dateNum = workout.scheduled_date ? format(parseISO(workout.scheduled_date), 'd') : ''
           const paceDisplay = formatWorkoutPace(workout.pace_min_seconds ?? null, workout.pace_max_seconds ?? null, null)
           const menuOpen = openMenuId === workout.id
+          const isLong = workout.type === 'long'
 
           return (
-            <div key={workout.id} className="relative">
+            <div key={workout.id} style={{ position: 'relative', animation: `fadeUp 0.3s ease both`, animationDelay: `${index * 40}ms` }}>
               <div
                 draggable={workout.type !== 'rest' && !isSkipped}
                 onDragStart={e => handleDragStart(e, workout)}
@@ -223,116 +227,173 @@ async function confirmMove() {
                 onDragLeave={handleDragLeave}
                 onDrop={e => handleDrop(e, workout)}
                 onDragEnd={handleDragEnd}
-                className="flex items-stretch rounded-xl transition-all"
+                onMouseEnter={() => setHoveredId(workout.id)}
+                onMouseLeave={() => setHoveredId(null)}
                 style={{
-                  backgroundColor: 'var(--bg-card)',
-                  border: isDragOver ? '1px solid #F97316' : '1px solid var(--border)',
-                  opacity: isDragging ? 0.4 : (isComplete || isSkipped) ? 0.6 : 1,
-                  transform: isDragOver ? 'scale(1.01)' : 'scale(1)',
-                  boxShadow: isDragOver ? '0 0 0 2px #F97316' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '13px 14px',
+                  background: isToday ? 'rgba(249,115,22,0.04)' : '#0d1117',
+                  border: isDragOver
+                    ? '1px solid #f97316'
+                    : isToday
+                    ? '1px solid rgba(249,115,22,0.3)'
+                    : isHovered
+                    ? '1px solid #334155'
+                    : '1px solid #161c28',
+                  borderRadius: '13px',
+                  opacity: isDragging ? 0.35 : (isComplete || isSkipped) ? 0.45 : 1,
+                  transform: isDragOver ? 'scale(1.01)' : isHovered && !isDragging ? 'scale(1.005)' : 'scale(1)',
+                  transition: 'all 0.18s ease',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
                 }}
               >
-                <div className="w-1 shrink-0 rounded-l-xl" style={{ backgroundColor: isSkipped ? '#F97316' : colour }} />
+                {/* Today left border glow */}
+                {isToday && (
+                  <div style={{
+                    position: 'absolute', left: 0, top: 0, bottom: 0, width: '2.5px',
+                    background: '#f97316',
+                    boxShadow: '0 0 8px rgba(249,115,22,0.6)',
+                  }} />
+                )}
 
-                <div className="flex items-center gap-3 flex-1 px-3 py-3 min-w-0">
-                  <GripVertical size={16} className="shrink-0 cursor-grab active:cursor-grabbing" style={{ color: 'var(--border)' }} />
+                {/* Colour dot */}
+                <div style={{
+                  width: '8px', height: '8px', borderRadius: '50%',
+                  background: isSkipped ? '#f97316' : colour,
+                  flexShrink: 0,
+                  boxShadow: isToday ? `0 0 6px ${colour}88` : 'none',
+                }} />
 
-                  <div className="shrink-0 w-10 text-center">
-                    <p className="text-xs font-bold" style={{ color: 'var(--text-muted)' }}>{dayLabel}</p>
-                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{dateLabel}</p>
-                  </div>
+                {/* Day + date */}
+                <div style={{ width: '36px', flexShrink: 0, textAlign: 'center' }}>
+                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.8px', color: '#2d3a50', textTransform: 'uppercase' }}>{dayLabel}</p>
+                  <p style={{ fontSize: '19px', fontWeight: 800, lineHeight: 1, color: isToday ? '#f97316' : '#f1f5f9', letterSpacing: '-0.5px' }}>{dateNum}</p>
+                </div>
 
-                  <Link href={`/workout/${workout.id}`} className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: isSkipped ? '#F97316' : colour }}>
-                        {TYPE_LABELS[workout.type] ?? workout.type}
-                      </p>
-                      {isSkipped && (
-                        <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
-                          style={{ backgroundColor: '#F9731633', color: '#F97316' }}>SKIPPED</span>
-                      )}
-                    </div>
-                    <p className="text-sm font-semibold truncate" style={{
-                      color: 'var(--text)',
-                      textDecoration: (isComplete || isSkipped) ? 'line-through' : 'none',
-                    }}>{workout.name}</p>
-                    {workout.type !== 'rest' && paceDisplay && (
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                        {workout.distance_km} km · {paceDisplay} · {workout.hr_zone}
-                      </p>
-                    )}
-                    {isSkipped && workout.skipped_reason && (
-                      <p className="text-[10px] mt-0.5 italic" style={{ color: 'var(--text-muted)' }}>"{workout.skipped_reason}"</p>
-                    )}
-                  </Link>
+                {/* Info */}
+                <Link href={`/workout/${workout.id}`} style={{ flex: 1, minWidth: 0, textDecoration: 'none' }}>
+                  <p style={{
+                    fontSize: '14px', fontWeight: 600,
+                    color: isSkipped ? '#475569' : isLong ? '#FCD34D' : '#e2e8f0',
+                    marginBottom: '2px',
+                    textDecoration: isSkipped ? 'line-through' : 'none',
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>{workout.name}</p>
+                  {workout.type !== 'rest' && (
+                    <p style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>
+                      {workout.distance_km ? `${workout.distance_km} km` : ''}
+                      {paceDisplay ? ` · ${paceDisplay}` : ''}
+                      {workout.hr_zone ? ` · ${workout.hr_zone}` : ''}
+                    </p>
+                  )}
+                  {isSkipped && workout.skipped_reason && (
+                    <p style={{ fontSize: '10px', color: '#475569', fontStyle: 'italic', marginTop: '2px' }}>"{workout.skipped_reason}"</p>
+                  )}
+                </Link>
 
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Link href={`/workout/${workout.id}`}>
-                      <ChevronRight size={16} style={{ color: 'var(--border)' }} />
-                    </Link>
+                {/* Actions */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                  {workout.type !== 'rest' && (
+                    <button
+                      onClick={e => { e.stopPropagation(); setOpenMenuId(menuOpen ? null : workout.id) }}
+                      style={{
+                        background: 'transparent', border: 'none', cursor: 'pointer',
+                        color: '#2d3a50', padding: '4px', borderRadius: '6px',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#64748b')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#2d3a50')}
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
+                  )}
 
-                    {workout.type !== 'rest' && (
-                      <button
-                        onClick={e => { e.stopPropagation(); setOpenMenuId(menuOpen ? null : workout.id) }}
-                        className="p-1 rounded-lg"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        <MoreHorizontal size={16} />
-                      </button>
-                    )}
+                  {workout.type !== 'rest' && !isSkipped && (
+                    <button
+                      onClick={e => { e.stopPropagation(); toggleComplete(workout) }}
+                      disabled={loadingId === workout.id}
+                      style={{
+                        width: '28px', height: '28px', borderRadius: '50%',
+                        border: isComplete ? '1.5px solid #10b981' : '1.5px solid #1e2433',
+                        background: isComplete ? 'rgba(16,185,129,0.12)' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', fontSize: '13px',
+                        color: isComplete ? '#10b981' : '#2d3a50',
+                        transition: 'all 0.18s ease',
+                        transform: loadingId === workout.id ? 'scale(0.9)' : 'scale(1)',
+                      }}
+                      onMouseEnter={e => { if (!isComplete) { e.currentTarget.style.borderColor = '#334155'; e.currentTarget.style.color = '#64748b' }}}
+                      onMouseLeave={e => { if (!isComplete) { e.currentTarget.style.borderColor = '#1e2433'; e.currentTarget.style.color = '#2d3a50' }}}
+                    >
+                      {isComplete ? '✓' : '○'}
+                    </button>
+                  )}
 
-                    {workout.type !== 'rest' && !isSkipped && (
-                      <button
-                        onClick={() => toggleComplete(workout)}
-                        disabled={loadingId === workout.id}
-                        className="transition-transform active:scale-90"
-                      >
-                        {isComplete
-                          ? <CheckCircle2 size={24} style={{ color: 'var(--success)' }} strokeWidth={2} />
-                          : <Circle size={24} style={{ color: 'var(--border)' }} strokeWidth={1.5} />}
-                      </button>
-                    )}
-                  </div>
+                  {isSkipped && (
+                    <span style={{
+                      fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
+                      padding: '3px 8px', borderRadius: '100px',
+                      background: 'rgba(249,115,22,0.1)', color: '#f97316',
+                      border: '1px solid rgba(249,115,22,0.2)',
+                    }}>SKIPPED</span>
+                  )}
                 </div>
               </div>
 
+              {/* Context menu */}
               {menuOpen && (
-                <div
-                  className="absolute right-0 z-50 rounded-xl py-1 min-w-[160px]"
-                  style={{
-                    top: '100%',
-                    marginTop: '4px',
-                    backgroundColor: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-                  }}
-                >
+                <div style={{
+                  position: 'absolute', right: 0, top: 'calc(100% + 4px)',
+                  zIndex: 50, borderRadius: '12px', padding: '4px',
+                  minWidth: '160px',
+                  background: '#111827', border: '1px solid #1e293b',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                }}>
                   {!isSkipped ? (
                     <button
                       onClick={() => { setOpenMenuId(null); setSkipTarget(workout) }}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:opacity-80"
-                      style={{ color: '#F97316' }}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '10px 12px', fontSize: '13px', color: '#f97316',
+                        background: 'transparent', border: 'none', cursor: 'pointer',
+                        borderRadius: '8px', textAlign: 'left', transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(249,115,22,0.08)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
-                      <SkipForward size={14} />
-                      Skip session
+                      <SkipForward size={14} /> Skip session
                     </button>
                   ) : (
                     <button
                       onClick={() => { setOpenMenuId(null); undoSkip(workout) }}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:opacity-80"
-                      style={{ color: 'var(--text-muted)' }}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '10px 12px', fontSize: '13px', color: '#94a3b8',
+                        background: 'transparent', border: 'none', cursor: 'pointer',
+                        borderRadius: '8px', textAlign: 'left', transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#1e293b')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
-                      <SkipForward size={14} />
-                      Un-skip
+                      <SkipForward size={14} /> Un-skip
                     </button>
                   )}
                   <button
                     onClick={() => { setOpenMenuId(null); setMoveDate(workout.scheduled_date); setShowMoveSheet({ workout }) }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:opacity-80"
-                    style={{ color: 'var(--text)' }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                      padding: '10px 12px', fontSize: '13px', color: '#f1f5f9',
+                      background: 'transparent', border: 'none', cursor: 'pointer',
+                      borderRadius: '8px', textAlign: 'left', transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#1e293b')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <Calendar size={14} />
-                    Move to…
+                    <Calendar size={14} /> Move to…
                   </button>
                 </div>
               )}
@@ -341,7 +402,7 @@ async function confirmMove() {
         })}
 
         {sorted.length === 0 && (
-          <p className="text-sm text-center py-8" style={{ color: 'var(--text-muted)' }}>No workouts this week.</p>
+          <p style={{ fontSize: '14px', textAlign: 'center', padding: '32px 0', color: '#334155' }}>No workouts this week.</p>
         )}
       </div>
 
@@ -354,36 +415,57 @@ async function confirmMove() {
       )}
 
       {showMoveSheet && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-          onClick={() => setShowMoveSheet(null)}>
-          <div className="w-full max-w-sm rounded-2xl p-5 space-y-4"
-            style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
-            onClick={e => e.stopPropagation()}>
-            <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>Move to a different day</p>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{showMoveSheet.workout.name}</p>
-            <input type="date" value={moveDate} onChange={e => setMoveDate(e.target.value)}
-              className="w-full rounded-xl px-3 py-2 text-sm outline-none"
-              style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-            <div className="flex gap-2">
-              <button onClick={() => setShowMoveSheet(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
-                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-                Cancel
-              </button>
-              <button onClick={confirmMove} disabled={!moveDate}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40"
-                style={{ backgroundColor: '#F97316', color: '#fff' }}>
-                Move
-              </button>
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 50,
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px',
+            background: 'rgba(0,0,0,0.7)',
+          }}
+          onClick={() => setShowMoveSheet(null)}
+        >
+          <div
+            style={{
+              width: '100%', maxWidth: '400px', borderRadius: '20px', padding: '20px',
+              background: '#111827', border: '1px solid #1e293b',
+              display: 'flex', flexDirection: 'column', gap: '16px',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <p style={{ fontSize: '15px', fontWeight: 700, color: '#f1f5f9' }}>Move to a different day</p>
+            <p style={{ fontSize: '13px', color: '#475569' }}>{showMoveSheet.workout.name}</p>
+            <input
+              type="date" value={moveDate}
+              onChange={e => setMoveDate(e.target.value)}
+              style={{
+                width: '100%', borderRadius: '12px', padding: '10px 14px',
+                background: '#0d1117', border: '1px solid #1e293b',
+                color: '#f1f5f9', fontSize: '14px', outline: 'none',
+              }}
+            />
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setShowMoveSheet(null)}
+                style={{
+                  flex: 1, padding: '11px', borderRadius: '12px', fontSize: '14px',
+                  fontWeight: 600, background: '#0d1117', border: '1px solid #1e293b',
+                  color: '#475569', cursor: 'pointer',
+                }}
+              >Cancel</button>
+              <button
+                onClick={confirmMove} disabled={!moveDate}
+                style={{
+                  flex: 1, padding: '11px', borderRadius: '12px', fontSize: '14px',
+                  fontWeight: 700, background: '#f97316', border: 'none',
+                  color: '#fff', cursor: 'pointer', opacity: moveDate ? 1 : 0.4,
+                  boxShadow: '0 0 20px rgba(249,115,22,0.3)',
+                }}
+              >Move</button>
             </div>
           </div>
         </div>
       )}
 
-      {openMenuId && (
-        <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
-      )}
+      {openMenuId && <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpenMenuId(null)} />}
     </div>
   )
 }
