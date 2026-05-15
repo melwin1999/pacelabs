@@ -305,11 +305,30 @@ function elevationPenaltySeconds(input: WizardInput): number {
 // ─── 9. VDOT gain ─────────────────────────────────────────────────────────────
 
 function computeVdotGain(input: WizardInput): number {
-  const { aggressiveness, template, current_weekly_km } = input
+  const { aggressiveness, template, current_weekly_km, total_weeks } = input
   const baseGain = { conservative: 2.5, moderate: 4.5, aggressive: 7.0 }[aggressiveness]
   const methodMult = { pfitzinger: 1.1, norwegian: 1.1, daniels: 1.0, hansons: 0.95, higdon: 0.9, claude: 1.0 }[template]
   const tier = METHODOLOGY_TIERS[template][aggressiveness]
-  const volumeFactor = Math.min(1.0, current_weekly_km / Math.max(1, tier.peakKm * 0.5))
+
+  // Volume adaptation factor:
+  // - If already near peak volume: small factor (little room to grow)
+  // - If well below peak volume: large factor (huge adaptation potential from building up)
+  // This is the inverse of the old logic which wrongly penalised low-base runners.
+  const relativeVolume = current_weekly_km / Math.max(1, tier.peakKm)
+  let volumeFactor: number
+  if (relativeVolume >= 0.8) {
+    // Already near peak — adaptation limited to fitness/sharpening gains
+    volumeFactor = 0.7
+  } else if (relativeVolume >= 0.5) {
+    // Mid-range — moderate adaptation potential
+    volumeFactor = 0.85
+  } else {
+    // Well below peak — high adaptation potential from volume build
+    // Scale up slightly for longer plans (more time to adapt)
+    const planBoost = Math.min(0.2, (total_weeks - 12) * 0.01)
+    volumeFactor = Math.min(1.2, 1.0 + planBoost)
+  }
+
   return Math.round((baseGain * methodMult * volumeFactor) * 10) / 10
 }
 
