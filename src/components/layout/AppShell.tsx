@@ -101,7 +101,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* FAB menu items — mobile only */}
       {fabOpen && (
         <div id="pl-fab-menu" style={{
-          position: 'fixed', bottom: '86px', right: '16px', zIndex: 40,
+          position: 'fixed', bottom: '80px', right: '16px', zIndex: 40,
           display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px',
         }}>
           {/* Settings */}
@@ -160,7 +160,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         id="pl-fab"
         onClick={() => setFabOpen(!fabOpen)}
         style={{
-          position: 'fixed', bottom: '74px', right: '16px', zIndex: 41,
+          position: 'fixed', bottom: '68px', right: '16px', zIndex: 41,
           width: '48px', height: '48px', borderRadius: '50%',
           background: '#F97316', border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',

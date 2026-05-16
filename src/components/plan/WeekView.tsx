@@ -356,7 +356,7 @@ export default function WeekView({
                   boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
                 }}>
                   {!isSkipped ? (
-                    <button onClick={e => { e.stopPropagation(); setOpenMenuId(null); setSkipTarget(workout) }}
+                    <button onClick={e => { e.stopPropagation(); const w = localWorkouts.find(x => x.id === workout.id) ?? workout; setOpenMenuId(null); setSkipTarget(w) }}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '10px 12px', fontSize: '13px', color: '#f97316',
@@ -378,7 +378,7 @@ export default function WeekView({
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     ><SkipForward size={14} /> Un-skip</button>
                   )}
-                  <button onClick={e => { e.stopPropagation(); setOpenMenuId(null); setMoveDate(workout.scheduled_date); setShowMoveSheet({ workout }) }}
+                  <button onClick={e => { e.stopPropagation(); const w = localWorkouts.find(x => x.id === workout.id) ?? workout; setOpenMenuId(null); setMoveDate(w.scheduled_date); setShowMoveSheet({ workout: w }) }}
                     style={{
                       width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
                       padding: '10px 12px', fontSize: '13px', color: '#f5f5f5',
