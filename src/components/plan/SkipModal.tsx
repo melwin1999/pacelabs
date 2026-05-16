@@ -13,38 +13,36 @@ export default function SkipModal({ workoutName, onConfirm, onCancel }: SkipModa
   const [reason, setReason] = useState('')
 
   return (
-    // Backdrop
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
       onClick={onCancel}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px', background: 'rgba(0,0,0,0.7)',
+      }}
     >
-      {/* Modal panel */}
       <div
-        className="w-full max-w-md rounded-2xl p-5 space-y-4"
-        style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
         onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: '440px', borderRadius: '20px',
+          padding: '28px', background: '#111', border: '1px solid #2e2e2e',
+          display: 'flex', flexDirection: 'column', gap: '20px',
+        }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>
-            Skip workout?
-          </p>
-          <button onClick={onCancel} className="p-1 rounded-lg" style={{ color: 'var(--text-muted)' }}>
-            <X size={18} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p style={{ fontSize: '17px', fontWeight: 700, color: '#f5f5f5' }}>Skip workout?</p>
+          <button onClick={onCancel} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#71717a', padding: '4px' }}>
+            <X size={20} />
           </button>
         </div>
 
-        {/* Workout name */}
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          <span style={{ color: 'var(--text)' }}>{workoutName}</span> will be marked as skipped.
+        <p style={{ fontSize: '14px', color: '#a1a1aa', lineHeight: 1.5 }}>
+          <span style={{ color: '#f5f5f5', fontWeight: 600 }}>{workoutName}</span> will be marked as skipped.
           The slot stays visible so your coach can see what was missed.
         </p>
 
-        {/* Optional reason */}
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wide mb-1 block"
-            style={{ color: 'var(--text-muted)' }}>
+          <label style={{ fontSize: '11px', fontWeight: 600, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
             Reason (optional)
           </label>
           <textarea
@@ -52,35 +50,26 @@ export default function SkipModal({ workoutName, onConfirm, onCancel }: SkipModa
             onChange={e => setReason(e.target.value)}
             placeholder="e.g. Felt ill, work ran late, legs too sore…"
             rows={3}
-            className="w-full rounded-xl px-3 py-2 text-sm resize-none outline-none"
             style={{
-              backgroundColor: 'var(--bg)',
-              border: '1px solid var(--border)',
-              color: 'var(--text)',
+              width: '100%', borderRadius: '12px', padding: '12px 14px',
+              fontSize: '14px', resize: 'none', outline: 'none',
+              background: '#0d0d0d', border: '1px solid #1f1f1f',
+              color: '#f5f5f5', fontFamily: 'inherit', lineHeight: 1.5,
             }}
           />
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-2 pt-1">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
-            style={{
-              backgroundColor: 'var(--bg)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-muted)',
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onConfirm(reason)}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
-            style={{ backgroundColor: '#F97316', color: '#fff' }}
-          >
-            Skip session
-          </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={onCancel} style={{
+            flex: 1, padding: '13px', borderRadius: '12px',
+            fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+            background: '#0d0d0d', border: '1px solid #2e2e2e', color: '#71717a',
+          }}>Cancel</button>
+          <button onClick={() => onConfirm(reason)} style={{
+            flex: 1, padding: '13px', borderRadius: '12px',
+            fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+            background: '#F97316', border: 'none', color: '#fff',
+          }}>Skip session</button>
         </div>
       </div>
     </div>

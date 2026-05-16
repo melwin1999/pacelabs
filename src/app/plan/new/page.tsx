@@ -286,10 +286,10 @@ export default function NewPlanPage() {
 
   return (
     <AppShell>
-      <div className="max-w-lg mx-auto px-6 py-10">
+      <div style={{ maxWidth: '560px', margin: '0 auto', padding: '48px 32px' }}>
 
         {/* Progress bar */}
-        <div className="mb-10">
+        <div style={{ marginBottom: '40px' }}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Step {step + 1} of {STEPS.length}</span>
             <span className="text-sm font-semibold" style={{ color: 'var(--accent)' }}>{STEPS[step]}</span>
@@ -717,7 +717,7 @@ export default function NewPlanPage() {
         )}
 
         {/* Nav */}
-        <div className="flex gap-3 mt-12 pb-12">
+        <div style={{ display: 'flex', gap: '12px', marginTop: '48px', paddingBottom: '48px' }}>
           {step > 0 && (
             <button onClick={back} className="flex items-center gap-1 px-4 py-3 rounded-xl text-sm font-semibold"
               style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)' }}>
