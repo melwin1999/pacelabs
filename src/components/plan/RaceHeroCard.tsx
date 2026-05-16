@@ -90,7 +90,6 @@ export default function RaceHeroCard({
       `}</style>
 
       <div style={{ position: 'relative', overflow: 'hidden', padding: '28px 28px 22px' }}>
-  <div style={{ maxWidth: '860px' }}>
         {/* Orbs */}
         <div style={{
           position: 'absolute', width: '500px', height: '500px', borderRadius: '50%',
@@ -103,111 +102,111 @@ export default function RaceHeroCard({
           bottom: '-90px', left: '-40px', pointerEvents: 'none',
         }} />
 
-        <div style={{ maxWidth: '860px' }}></div>
-        <div id="pl-hero-content"></div>
-        {/* Eyebrow */}
-        <p style={{
-          fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
-          color: 'rgba(249,115,22,0.85)', textTransform: 'uppercase', marginBottom: '10px',
-        }}>
-          Next race · {block.race_distance_km ?? '42.2'} km
-          {block.race_date
-            ? ` · ${new Date(block.race_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
-            : ''}
-        </p>
+        {/* Content constrained to 820px */}
+        <div id="pl-hero-content">
 
-        {/* Race name */}
-        <h1 style={{
-          fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, color: '#f5f5f5',
-          lineHeight: 1.0, letterSpacing: '-1.5px', marginBottom: '16px',
-        }}>
-          {block.name}
-        </h1>
+          {/* Eyebrow */}
+          <p style={{
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
+            color: 'rgba(249,115,22,0.85)', textTransform: 'uppercase', marginBottom: '10px',
+          }}>
+            Next race · {block.race_distance_km ?? '42.2'} km
+            {block.race_date
+              ? ` · ${new Date(block.race_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+              : ''}
+          </p>
 
-        {/* Countdown */}
-        {daysToGo !== null && (
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px', marginBottom: '18px' }}>
-            <span style={{ fontSize: 'clamp(64px, 8vw, 96px)', fontWeight: 900, color: '#f5f5f5', lineHeight: 1, letterSpacing: '-6px' }}>
-              {daysToGo}
-            </span>
-            <span style={{ fontSize: '16px', color: '#71717a', paddingBottom: '10px' }}>days to go</span>
-          </div>
-        )}
+          {/* Race name */}
+          <h1 style={{
+            fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, color: '#f5f5f5',
+            lineHeight: 1.0, letterSpacing: '-1.5px', marginBottom: '16px',
+          }}>
+            {block.name}
+          </h1>
 
-        {/* Race track bar */}
-        <div style={{ marginBottom: '6px' }}>
-          <div style={{ height: '6px', borderRadius: '3px', background: '#1a1a1a', position: 'relative', overflow: 'visible' }}>
-            <div style={{
-              height: '100%', borderRadius: '3px', position: 'relative',
-              width: `${currentPct}%`,
-              background: 'linear-gradient(90deg, #60A5FA 0%, #FB923C 45%, #F87171 72%, #F97316 100%)',
-            }}>
-              <div className="pl-track-dot" style={{
-                position: 'absolute', right: '-7px', top: '-5px',
-                width: '16px', height: '16px', borderRadius: '50%',
-                background: '#F97316', border: '2px solid #0a0a0a',
-              }} />
+          {/* Countdown */}
+          {daysToGo !== null && (
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px', marginBottom: '18px' }}>
+              <span style={{ fontSize: 'clamp(64px, 8vw, 96px)', fontWeight: 900, color: '#f5f5f5', lineHeight: 1, letterSpacing: '-6px' }}>
+                {daysToGo}
+              </span>
+              <span style={{ fontSize: '16px', color: '#71717a', paddingBottom: '10px' }}>days to go</span>
+            </div>
+          )}
+
+          {/* Race track bar */}
+          <div style={{ marginBottom: '6px' }}>
+            <div style={{ height: '6px', borderRadius: '3px', background: '#1a1a1a', position: 'relative', overflow: 'visible' }}>
+              <div style={{
+                height: '100%', borderRadius: '3px', position: 'relative',
+                width: `${currentPct}%`,
+                background: 'linear-gradient(90deg, #60A5FA 0%, #FB923C 45%, #F87171 72%, #F97316 100%)',
+              }}>
+                <div className="pl-track-dot" style={{
+                  position: 'absolute', right: '-7px', top: '-5px',
+                  width: '16px', height: '16px', borderRadius: '50%',
+                  background: '#F97316', border: '2px solid #0a0a0a',
+                }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+              {phases.map((p) => (
+                <span key={p.label} style={{
+                  fontSize: '9px',
+                  color: p.label === currentPhase ? p.color : '#52525b',
+                  fontWeight: p.label === currentPhase ? 700 : 400,
+                }}>
+                  {p.label}{p.label === currentPhase ? ' ← you' : ''}
+                </span>
+              ))}
             </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            {phases.map((p) => (
-              <span key={p.label} style={{
-                fontSize: '9px',
-                color: p.label === currentPhase ? p.color : '#52525b',
-                fontWeight: p.label === currentPhase ? 700 : 400,
-              }}>
-                {p.label}{p.label === currentPhase ? ' ← you' : ''}
-              </span>
+
+          {/* Meta row */}
+          <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', paddingTop: '18px' }}>
+            {[
+              { label: 'Est. Now', value: estNow, color: '#f5f5f5' },
+              { label: 'Race Proj.', value: raceProj, color: '#F97316' },
+              { label: 'Week', value: `${block.current_week} / ${block.total_weeks}`, color: '#F97316' },
+              { label: 'Pace improvement', value: paceImprovement, color: '#10b981' },
+            ].map((item, i, arr) => (
+              <div key={item.label} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                  <span style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    {item.label}
+                  </span>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: item.color }}>
+                    {item.value}
+                  </span>
+                </div>
+                {i < arr.length - 1 && (
+                  <div style={{ width: '1px', height: '28px', background: '#1f1f1f', flexShrink: 0 }} />
+                )}
+              </div>
             ))}
           </div>
-        </div>
 
-        {/* Meta row — centred equidistant */}
-        <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', paddingTop: '18px' }}>
-          {[
-            { label: 'Est. Now', value: estNow, color: '#f5f5f5' },
-            { label: 'Race Proj.', value: raceProj, color: '#F97316' },
-            { label: 'Week', value: `${block.current_week} / ${block.total_weeks}`, color: '#F97316' },
-            { label: 'Pace improvement', value: paceImprovement, color: '#10b981' },
-          ].map((item, i, arr) => (
-            <div key={item.label} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-                <span style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  {item.label}
-                </span>
-                <span style={{ fontSize: '15px', fontWeight: 800, color: item.color }}>
-                  {item.value}
-                </span>
+          {/* Queued block banner */}
+          {queuedBlock && (
+            <div style={{
+              marginTop: '20px', padding: '9px 14px',
+              background: 'rgba(249,115,22,0.05)',
+              border: '1px solid rgba(249,115,22,0.12)',
+              borderRadius: '8px',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}>
+              <div>
+                <p style={{ fontSize: '9px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Next up</p>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#f5f5f5' }}>{queuedBlock.name}</p>
               </div>
-              {i < arr.length - 1 && (
-                <div style={{ width: '1px', height: '28px', background: '#1f1f1f', flexShrink: 0 }} />
-              )}
+              <p style={{ fontSize: '12px', color: '#F97316', fontWeight: 600 }}>
+                Starts {queuedBlock.start_date
+                  ? new Date(queuedBlock.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                  : 'soon'}
+              </p>
             </div>
-          ))}
-        </div>
+          )}
 
-        {/* Queued block banner */}
-        {queuedBlock && (
-          <div style={{
-            marginTop: '20px',
-            padding: '9px 14px',
-            background: 'rgba(249,115,22,0.05)',
-            border: '1px solid rgba(249,115,22,0.12)',
-            borderRadius: '8px',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          }}>
-            <div>
-              <p style={{ fontSize: '9px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Next up</p>
-              <p style={{ fontSize: '12px', fontWeight: 600, color: '#f5f5f5' }}>{queuedBlock.name}</p>
-            </div>
-            <p style={{ fontSize: '12px', color: '#F97316', fontWeight: 600 }}>
-              Starts {queuedBlock.start_date
-                ? new Date(queuedBlock.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-                : 'soon'}
-            </p>
-          </div>
-        )}
-        </div>
         </div>
       </div>
     </>
