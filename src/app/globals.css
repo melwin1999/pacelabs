@@ -56,3 +56,9 @@ a { color: inherit; text-decoration: none; }
     opacity: 0.9;
   }
 }
+
+@media (min-width: 768px) {
+  #pl-main {
+    margin-left: 220px !important;
+  }
+}

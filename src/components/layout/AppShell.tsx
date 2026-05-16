@@ -85,8 +85,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content */}
-      <main style={{ flex: 1, marginLeft: 0, paddingBottom: '80px', minHeight: '100vh' }}
-        className="md:ml-[220px] md:pb-0">
+      <main style={{ flex: 1, paddingBottom: '80px', minHeight: '100vh', minWidth: 0, marginLeft: 0 }}
+        className="md:ml-[220px] md:pb-0"
+        id="pl-main">
         {children}
       </main>
 
