@@ -100,6 +100,7 @@ export default async function PlanPage({
         display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
         gap: "1px", background: "#1a1a1a",
         borderTop: "1px solid #1a1a1a", borderBottom: "1px solid #1a1a1a",
+        maxWidth: "860px",
       }}>
         {[
           { label: "Planned", value: `${plannedKm.toFixed(1)}`, unit: "km" },

@@ -89,7 +89,7 @@ export default function RaceHeroCard({
         .pl-track-dot { animation: plPulse 2s ease-in-out infinite; }
       `}</style>
 
-      <div style={{ position: 'relative', overflow: 'hidden', padding: '28px 28px 22px' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', padding: '28px 28px 22px', maxWidth: '860px' }}>
         {/* Orbs */}
         <div style={{
           position: 'absolute', width: '500px', height: '500px', borderRadius: '50%',

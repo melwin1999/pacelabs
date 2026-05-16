@@ -92,12 +92,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <nav className="md:hidden" style={{
-  position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
-  background: 'rgba(8,12,20,0.97)',
-  backdropFilter: 'blur(16px)',
-  borderTop: '1px solid #1f1f1f',
-  height: '62px', alignItems: 'center',
-}}>
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
+        background: 'rgba(10,10,10,0.97)',
+        backdropFilter: 'blur(16px)',
+        borderTop: '1px solid #1f1f1f',
+        height: '62px', display: 'flex', alignItems: 'center',
+      }}>
         {[...NAV_ITEMS, { href: '/plan/new', label: 'New', icon: Plus }].map(({ href, label, icon: Icon }) => {
           const active = isActive(href)
           return (
