@@ -43,9 +43,7 @@ export default async function PlanPage({
   if (!block) {
     return (
       <AppShell>
-        <div style={{ padding: "20px 24px" }}>
-          <EmptyState />
-        </div>
+        <div style={{ padding: "20px 24px" }}><EmptyState /></div>
       </AppShell>
     );
   }
@@ -70,7 +68,6 @@ export default async function PlanPage({
   const doneKm = nonRest.filter((x) => x.is_complete).reduce((sum, x) => sum + (x.distance_km ?? 0), 0);
   const sessionCount = nonRest.length;
   const completedCount = nonRest.filter((x) => x.is_complete).length;
-
   const completedWithPace = nonRest.filter(x => x.is_complete && x.pace_min_seconds && x.distance_km);
   const avgPaceSeconds = completedWithPace.length > 0 && doneKm > 0
     ? Math.round(completedWithPace.reduce((sum, x) => sum + ((x.pace_min_seconds ?? 0) * (x.distance_km ?? 0)), 0) / doneKm)
@@ -81,14 +78,9 @@ export default async function PlanPage({
 
   return (
     <AppShell>
-      {/* ONE wrapper, everything inside, consistent padding and max-width */}
-      {/* Hero full width — orbs bleed edge to edge */}
-      <RaceHeroCard block={block} queuedBlock={queuedBlock} />
+      <div style={{ maxWidth: "900px", padding: "0 32px 40px" }}>
+        <RaceHeroCard block={block} queuedBlock={queuedBlock} />
 
-      {/* Everything else — left-aligned with padding */}
-      <div style={{ padding: "0 32px 40px" }}>
-
-        {/* Stats strip */}
         <div style={{
           display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
           gap: "1px", background: "#1a1a1a",
@@ -111,13 +103,7 @@ export default async function PlanPage({
         </div>
 
         {pendingDraft && <AdaptBanner draft={pendingDraft} />}
-
-        <WeekView
-          workouts={w}
-          weekNumber={displayWeek}
-          blockId={block.id}
-          totalWeeks={block.total_weeks}
-        />
+        <WeekView workouts={w} weekNumber={displayWeek} blockId={block.id} totalWeeks={block.total_weeks} />
         <CoachNudge />
         <QuickQuestions />
         <PushToGarminButton />
