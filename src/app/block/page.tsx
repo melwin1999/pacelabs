@@ -3,6 +3,7 @@ import { Block, Workout, Phase } from "@/lib/types";
 import AppShell from "@/components/layout/AppShell";
 import WeekRow from "@/components/block/WeekRow";
 import EmptyState from "@/components/plan/EmptyState";
+import BlockAnimations from "@/components/block/BlockAnimations";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,6 @@ export default async function BlockPage() {
   const weeksLeft = block.total_weeks - block.current_week;
   const currentPct = Math.min(100, Math.max(2, Math.round((block.current_week / block.total_weeks) * 100)));
 
-  // Build phase segments for track bar
   const uniquePhases: { label: string; color: string; startPct: number; endPct: number }[] = [];
   if (phases.length > 0) {
     const names = Array.from(new Set(phases.map(p => p.name)));
@@ -58,8 +58,7 @@ export default async function BlockPage() {
       const s = Math.min(...pw.map(p => p.start_week));
       const e = Math.max(...pw.map(p => p.end_week));
       uniquePhases.push({
-        label: name,
-        color: PHASE_COLORS[name] ?? '#71717a',
+        label: name, color: PHASE_COLORS[name] ?? '#71717a',
         startPct: Math.round(((s - 1) / block.total_weeks) * 100),
         endPct: Math.round((e / block.total_weeks) * 100),
       });
@@ -79,19 +78,8 @@ export default async function BlockPage() {
 
   return (
     <AppShell>
-      <style>{`
-        @keyframes plPulse {
-          0%, 100% { box-shadow: 0 0 4px 2px rgba(249,115,22,0.5); }
-          50% { box-shadow: 0 0 16px 7px rgba(249,115,22,0.95), 0 0 30px 12px rgba(249,115,22,0.3); }
-        }
-        .pl-track-dot { animation: plPulse 2s ease-in-out infinite; }
-        .vol-bar { transition: opacity 0.15s, filter 0.15s; }
-        .vol-bar:hover { opacity: 1 !important; filter: brightness(1.4); }
-      `}</style>
-
-      {/* HERO — full bleed */}
+      <BlockAnimations />
       <div style={{ position: 'relative', overflow: 'hidden', padding: '28px 28px 22px' }}>
-        {/* Orbs */}
         <div style={{
           position: 'absolute', width: '460px', height: '460px', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(249,115,22,0.2) 0%, rgba(249,115,22,0.06) 38%, transparent 65%)',
@@ -115,7 +103,6 @@ export default async function BlockPage() {
             : '—'}
         </p>
 
-        {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '20px' }}>
           {[
             { label: 'Total km', value: totalKm.toFixed(0), color: '#f5f5f5' },
@@ -125,18 +112,14 @@ export default async function BlockPage() {
           ].map(({ label, value, color }) => (
             <div key={label} style={{
               background: '#111', border: '1px solid #1a1a1a', borderRadius: '8px',
-              padding: '10px 12px', transition: 'border-color 0.15s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = '#2e2e2e')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = '#1a1a1a')}
-            >
+              padding: '10px 12px',
+            }}>
               <p style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>{label}</p>
               <p style={{ fontSize: '18px', fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
             </div>
           ))}
         </div>
 
-        {/* Race track bar */}
         <div style={{ marginBottom: '20px' }}>
           <div style={{ height: '6px', borderRadius: '3px', background: '#1a1a1a', position: 'relative', overflow: 'visible' }}>
             <div style={{
@@ -164,7 +147,6 @@ export default async function BlockPage() {
           </div>
         </div>
 
-        {/* Volume bars */}
         <p style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>Weekly volume</p>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '52px' }}>
           {weekSummaries.map((w, i) => {
@@ -192,10 +174,8 @@ export default async function BlockPage() {
         </div>
       </div>
 
-      {/* Divider */}
       <div style={{ height: '1px', background: '#1a1a1a' }} />
 
-      {/* Week rows — ascending order */}
       <div style={{ padding: '14px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
           <span style={{ fontSize: '11px', fontWeight: 700, color: '#f5f5f5' }}>All weeks</span>
