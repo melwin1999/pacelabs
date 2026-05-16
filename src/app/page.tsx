@@ -57,6 +57,11 @@ export default async function PlanPage({
     .from("workouts").select("*").eq("block_id", block.id)
     .eq("week_number", displayWeek).order("day_of_week", { ascending: true });
 
+  // Load: fetch previous week workouts for comparison
+  const { data: prevWorkouts } = await supabaseAdmin
+    .from("workouts").select("*").eq("block_id", block.id)
+    .eq("week_number", displayWeek - 1);
+
   const { data: drafts } = await supabaseAdmin
     .from("adapt_drafts").select("*").eq("block_id", block.id)
     .eq("status", "pending").order("created_at", { ascending: false }).limit(1);
@@ -68,13 +73,21 @@ export default async function PlanPage({
   const doneKm = nonRest.filter((x) => x.is_complete).reduce((sum, x) => sum + (x.distance_km ?? 0), 0);
   const sessionCount = nonRest.length;
   const completedCount = nonRest.filter((x) => x.is_complete).length;
-  const completedWithPace = nonRest.filter(x => x.is_complete && x.pace_min_seconds && x.distance_km);
-  const avgPaceSeconds = completedWithPace.length > 0 && doneKm > 0
-    ? Math.round(completedWithPace.reduce((sum, x) => sum + ((x.pace_min_seconds ?? 0) * (x.distance_km ?? 0)), 0) / doneKm)
-    : null;
-  const avgPaceStr = avgPaceSeconds
-    ? `${Math.floor(avgPaceSeconds / 60)}:${String(avgPaceSeconds % 60).padStart(2, "0")}`
-    : "—";
+
+  // Load vs last week
+  const prevNonRest = (prevWorkouts ?? []).filter((x: Workout) => x.type !== "rest" && !x.skipped);
+  const prevPlannedKm = prevNonRest.reduce((sum: number, x: Workout) => sum + (x.distance_km ?? 0), 0);
+  let loadStr = "—";
+  let loadColor = "#a1a1aa";
+  if (prevPlannedKm > 0 && plannedKm > 0) {
+    const pct = Math.round(((plannedKm - prevPlannedKm) / prevPlannedKm) * 100);
+    if (pct > 0) { loadStr = `↑${pct}%`; loadColor = "#F97316"; }
+    else if (pct < 0) { loadStr = `↓${Math.abs(pct)}%`; loadColor = "#10b981"; }
+    else { loadStr = "→ 0%"; loadColor = "#71717a"; }
+  } else if (displayWeek === 1) {
+    loadStr = "Week 1";
+    loadColor = "#71717a";
+  }
 
   return (
     <AppShell>
@@ -87,15 +100,16 @@ export default async function PlanPage({
           borderRadius: "10px", overflow: "hidden",
         }}>
           {[
-            { label: "Planned", value: `${plannedKm.toFixed(1)}`, unit: "km" },
-            { label: "Done", value: `${doneKm.toFixed(1)}`, unit: "km", green: true },
-            { label: "Sessions", value: `${completedCount}`, unit: `/${sessionCount}` },
-            { label: "Avg pace", value: avgPaceStr, unit: "/km" },
-          ].map(({ label, value, unit, green }) => (
+            { label: "Planned", value: `${plannedKm.toFixed(1)}`, unit: "km", color: "#f5f5f5" },
+            { label: "Done", value: `${doneKm.toFixed(1)}`, unit: "km", color: "#10b981" },
+            { label: "Sessions", value: `${completedCount}`, unit: `/${sessionCount}`, color: "#f5f5f5" },
+            { label: "Load vs last wk", value: loadStr, unit: "", color: loadColor },
+          ].map(({ label, value, unit, color }) => (
             <div key={label} style={{ background: "#0f0f0f", padding: "12px 16px" }}>
               <p style={{ fontSize: "9px", color: "#52525b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "3px" }}>{label}</p>
-              <p style={{ fontSize: "18px", fontWeight: 800, color: green ? "#10b981" : "#f5f5f5", lineHeight: 1 }}>
-                {value}<span style={{ fontSize: "9px", color: green ? "#10b981" : "#3f3f46", fontWeight: 400 }}> {unit}</span>
+              <p style={{ fontSize: "18px", fontWeight: 800, color, lineHeight: 1 }}>
+                {value}
+                {unit && <span style={{ fontSize: "9px", color: "#3f3f46", fontWeight: 400 }}> {unit}</span>}
               </p>
             </div>
           ))}

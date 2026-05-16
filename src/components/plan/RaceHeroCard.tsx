@@ -173,7 +173,7 @@ export default function RaceHeroCard({
               { label: 'Est. Now', value: estNow, color: '#f5f5f5' },
               { label: 'Race Proj.', value: raceProj, color: '#F97316' },
               { label: 'Week', value: `${block.current_week} / ${block.total_weeks}`, color: '#F97316' },
-              { label: 'Pace improvement', value: paceImprovement, color: '#10b981' },
+              { label: 'Improvement', value: paceImprovement, color: '#10b981' },
             ].map((item, i, arr) => (
               <div key={item.label} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
