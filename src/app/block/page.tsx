@@ -79,7 +79,8 @@ export default async function BlockPage() {
   return (
     <AppShell>
       <BlockAnimations />
-      <div id="pl-block-content" style={{ position: 'relative', overflow: 'hidden', padding: '28px 28px 22px' }}>
+      <div style={{ maxWidth: '780px', padding: '0 24px 40px', margin: '0 auto' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', padding: '28px 0 22px' }}>
         <div style={{
           position: 'absolute', width: '460px', height: '460px', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(249,115,22,0.2) 0%, rgba(249,115,22,0.06) 38%, transparent 65%)',
@@ -197,6 +198,7 @@ export default async function BlockPage() {
             />
           );
         })}
+      </div>
       </div>
     </AppShell>
   );

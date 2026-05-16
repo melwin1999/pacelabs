@@ -43,16 +43,7 @@ export default async function PlanPage({
   if (!block) {
     return (
       <AppShell>
-        <div style={{ maxWidth: "780px", margin: "0 auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "12px" }}>
-          {queuedBlock && (
-            <div style={{ background: "#111111", border: "1px solid #1f1f1f", borderRadius: "16px", padding: "20px" }}>
-              <p style={{ fontSize: "11px", fontWeight: 700, color: "#71717a", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Upcoming plan</p>
-              <p style={{ fontSize: "20px", fontWeight: 800, color: "#f5f5f5", letterSpacing: "-0.04em", marginBottom: "4px" }}>{queuedBlock.name}</p>
-              <p style={{ fontSize: "13px", color: "#a1a1aa" }}>
-                Starts {queuedBlock.start_date ? new Date(queuedBlock.start_date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "soon"} · {queuedBlock.total_weeks} weeks
-              </p>
-            </div>
-          )}
+        <div style={{ padding: "20px 24px" }}>
           <EmptyState />
         </div>
       </AppShell>
@@ -61,9 +52,8 @@ export default async function PlanPage({
 
   const params = await searchParams;
   const weekOverride = params.week ? parseInt(params.week, 10) : null;
-  const displayWeek =
-    weekOverride && weekOverride >= 1 && weekOverride <= block.total_weeks
-      ? weekOverride : block.current_week;
+  const displayWeek = weekOverride && weekOverride >= 1 && weekOverride <= block.total_weeks
+    ? weekOverride : block.current_week;
 
   const { data: workouts } = await supabaseAdmin
     .from("workouts").select("*").eq("block_id", block.id)
@@ -81,45 +71,48 @@ export default async function PlanPage({
   const sessionCount = nonRest.length;
   const completedCount = nonRest.filter((x) => x.is_complete).length;
 
-  // Avg pace this week from completed workouts (rough: total seconds / total km)
-  const completedWithPace = nonRest.filter(x => x.is_complete && x.pace_min_seconds && x.distance_km)
-  const avgPaceSeconds = completedWithPace.length > 0
+  const completedWithPace = nonRest.filter(x => x.is_complete && x.pace_min_seconds && x.distance_km);
+  const avgPaceSeconds = completedWithPace.length > 0 && doneKm > 0
     ? Math.round(completedWithPace.reduce((sum, x) => sum + ((x.pace_min_seconds ?? 0) * (x.distance_km ?? 0)), 0) / doneKm)
-    : null
+    : null;
   const avgPaceStr = avgPaceSeconds
     ? `${Math.floor(avgPaceSeconds / 60)}:${String(avgPaceSeconds % 60).padStart(2, "0")}`
-    : "—"
+    : "—";
 
   return (
     <AppShell>
-      {/* HERO — full bleed, no side padding constraint */}
-      <RaceHeroCard block={block} queuedBlock={queuedBlock} />
+      {/* ONE wrapper, everything inside, consistent padding and max-width */}
+      <div style={{ maxWidth: "780px", padding: "0 24px 40px", margin: "0 auto" }}>
 
-      {/* Stats strip — flush, full width */}
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
-        gap: "1px", background: "#1a1a1a",
-        borderTop: "1px solid #1a1a1a", borderBottom: "1px solid #1a1a1a",
-        maxWidth: "860px",
-      }}>
-        {[
-          { label: "Planned", value: `${plannedKm.toFixed(1)}`, unit: "km" },
-          { label: "Done", value: `${doneKm.toFixed(1)}`, unit: "km", green: true },
-          { label: "Sessions", value: `${completedCount}`, unit: `/${sessionCount}` },
-          { label: "Avg pace", value: avgPaceStr, unit: "/km" },
-        ].map(({ label, value, unit, green }) => (
-          <div key={label} style={{ background: "#0a0a0a", padding: "12px 16px" }}>
-            <p style={{ fontSize: "9px", color: "#52525b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "3px" }}>{label}</p>
-            <p style={{ fontSize: "18px", fontWeight: 800, color: green ? "#10b981" : "#f5f5f5", lineHeight: 1 }}>
-              {value}<span style={{ fontSize: "9px", color: green ? "#10b981" : "#3f3f46", fontWeight: 400 }}> {unit}</span>
-            </p>
-          </div>
-        ))}
-      </div>
+        {/* Hero — no card, bleeds into background */}
+        <div style={{ padding: "28px 0 22px" }}>
+          <RaceHeroCard block={block} queuedBlock={queuedBlock} />
+        </div>
 
-      {/* Rest of content — contained */}
-      <div style={{ maxWidth: "780px", margin: "0 auto", padding: "16px 24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+        {/* Stats strip */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "1px", background: "#1a1a1a",
+          border: "1px solid #1a1a1a", borderRadius: "10px",
+          overflow: "hidden", marginBottom: "16px",
+        }}>
+          {[
+            { label: "Planned", value: `${plannedKm.toFixed(1)}`, unit: "km" },
+            { label: "Done", value: `${doneKm.toFixed(1)}`, unit: "km", green: true },
+            { label: "Sessions", value: `${completedCount}`, unit: `/${sessionCount}` },
+            { label: "Avg pace", value: avgPaceStr, unit: "/km" },
+          ].map(({ label, value, unit, green }) => (
+            <div key={label} style={{ background: "#0f0f0f", padding: "12px 16px" }}>
+              <p style={{ fontSize: "9px", color: "#52525b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "3px" }}>{label}</p>
+              <p style={{ fontSize: "18px", fontWeight: 800, color: green ? "#10b981" : "#f5f5f5", lineHeight: 1 }}>
+                {value}<span style={{ fontSize: "9px", color: green ? "#10b981" : "#3f3f46", fontWeight: 400 }}> {unit}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+
         {pendingDraft && <AdaptBanner draft={pendingDraft} />}
+
         <WeekView
           workouts={w}
           weekNumber={displayWeek}
