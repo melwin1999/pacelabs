@@ -145,7 +145,7 @@ export default async function BlockPage() {
                   color: p.label === currentPhaseLabel ? p.color : '#52525b',
                   fontWeight: p.label === currentPhaseLabel ? 700 : 400,
                 }}>
-                  {p.label}{p.label === currentPhaseLabel ? ' ← you' : ''}
+                  {p.label}
                 </span>
               ))}
             </div>
@@ -204,7 +204,19 @@ export default async function BlockPage() {
                 allWorkouts={allWorkouts}
               />
             );
-          })}
+          })}{[
+            { label: 'Total', value: totalKm.toFixed(0), unit: 'km', color: '#f5f5f5' },
+            { label: 'Done', value: doneKm.toFixed(0), unit: 'km', color: '#10b981' },
+            { label: 'Peak week', value: peakKm.toFixed(0), unit: 'km', color: '#f5f5f5' },
+            { label: 'Weeks left', value: String(weeksLeft), unit: '', color: '#F97316' },
+          ].map(({ label, value, unit, color }) => (
+            <div key={label} style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '10px 12px', textAlign: 'center' }}>
+              <p style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>{label}</p>
+              <p style={{ fontSize: '18px', fontWeight: 800, color, lineHeight: 1 }}>
+                {value}{unit && <span style={{ fontSize: '9px', color: '#52525b', fontWeight: 400 }}> {unit}</span>}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </AppShell>
