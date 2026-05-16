@@ -145,7 +145,7 @@ export default function RaceHeroCard({
               <div className="pl-track-fill" style={{
               height: '100%', borderRadius: '3px', position: 'relative',
               background: 'linear-gradient(90deg, #60A5FA 0%, #FB923C 45%, #F87171 72%, #F97316 100%)',
-              '--target-width': `${currentPct}%`,
+              ['--target-width' as string]: `${currentPct}%`,
             }}>
                 <div className="pl-track-dot" style={{
                   position: 'absolute', right: '-7px', top: '-5px',
