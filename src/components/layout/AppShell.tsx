@@ -96,7 +96,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         height: '62px',
         display: 'flex',
         alignItems: 'center',
-      }} id="pl-mobile-nav">
+      }}>
         {[...NAV_ITEMS, { href: '/plan/new', label: 'New', icon: Plus }].map(({ href, label, icon: Icon }) => {
           const active = isActive(href)
           return (
