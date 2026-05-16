@@ -33,7 +33,7 @@ function StructureSegments({ steps }: { steps: WorkoutStructureStep[] }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '12px', fontWeight: 600, color: '#f5f5f5' }}>
-                {step.type}{step.reps ? ` × ${step.reps}` : ''}
+                {step.type.charAt(0).toUpperCase() + step.type.slice(1)}{step.reps ? ` × ${step.reps}` : ''}
               </span>
               <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '8px' }}>
                 {step.km && <div style={{ fontSize: '12px', color: '#a1a1aa' }}>{step.reps ? `${step.km} km each` : `${step.km} km`}</div>}
