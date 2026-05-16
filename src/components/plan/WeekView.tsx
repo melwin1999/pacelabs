@@ -408,7 +408,7 @@ export default function WeekView({
       {showMoveSheet && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 50,
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
           background: 'rgba(0,0,0,0.7)',
         }} onClick={() => setShowMoveSheet(null)}>
           <div style={{
