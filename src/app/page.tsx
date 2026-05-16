@@ -83,7 +83,7 @@ export default async function PlanPage({
     const pct = Math.round(((plannedKm - prevPlannedKm) / prevPlannedKm) * 100);
     if (pct > 0) { loadStr = `↑${pct}%`; loadColor = "#F97316"; }
     else if (pct < 0) { loadStr = `↓${Math.abs(pct)}%`; loadColor = "#10b981"; }
-    else { loadStr = "→ 0%"; loadColor = "#71717a"; }
+    else { loadStr = "→ 0%"; loadColor = "#10b981"; }
   } else if (displayWeek === 1) {
     loadStr = "Week 1";
     loadColor = "#71717a";

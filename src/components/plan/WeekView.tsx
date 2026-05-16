@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { Workout } from '@/lib/types'
 import { formatWorkoutPace } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
 import { MoreHorizontal, SkipForward, Calendar, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import SkipModal from './SkipModal'
+import WorkoutModal, { ModalMode } from '@/components/block/WorkoutModal'
 
 const TYPE_COLOURS: Record<string, string> = {
   easy: '#86EFAC', long: '#FCD34D', tempo: '#FB923C', threshold: '#F87171',
@@ -69,20 +69,24 @@ export default function WeekView({
   const [showMoveSheet, setShowMoveSheet] = useState<{ workout: Workout } | null>(null)
   const [moveDate, setMoveDate] = useState('')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [modal, setModal] = useState<ModalMode | null>(null)
   const router = useRouter()
 
-  async function toggleComplete(workout: Workout) {
-    if (workout.type === 'rest' || skippedIds.has(workout.id)) return
-    const nowComplete = !completedIds.has(workout.id)
-    setCompletedIds(prev => { const n = new Set(prev); nowComplete ? n.add(workout.id) : n.delete(workout.id); return n })
-    setLoadingId(workout.id)
+  async function toggleComplete(workoutId: string) {
+    const workout = localWorkouts.find(w => w.id === workoutId)
+    if (!workout || workout.type === 'rest' || skippedIds.has(workoutId)) return
+    const nowComplete = !completedIds.has(workoutId)
+    setCompletedIds(prev => { const n = new Set(prev); nowComplete ? n.add(workoutId) : n.delete(workoutId); return n })
+    setLoadingId(workoutId)
+    // Also close modal if open
+    setModal(null)
     try {
       await fetch('/api/workouts/complete', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workoutId: workout.id, isComplete: nowComplete }),
+        body: JSON.stringify({ workoutId, isComplete: nowComplete }),
       })
     } catch {
-      setCompletedIds(prev => { const n = new Set(prev); nowComplete ? n.delete(workout.id) : n.add(workout.id); return n })
+      setCompletedIds(prev => { const n = new Set(prev); nowComplete ? n.delete(workoutId) : n.add(workoutId); return n })
     } finally { setLoadingId(null); router.refresh() }
   }
 
@@ -179,6 +183,13 @@ export default function WeekView({
 
   return (
     <div>
+      {modal && (
+        <WorkoutModal
+          mode={modal}
+          onClose={() => setModal(null)}
+        />
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <p style={{ fontSize: '15px', fontWeight: 700, color: '#f5f5f5' }}>This week</p>
         <p style={{ fontSize: '11px', color: '#52525b', fontWeight: 500 }}>Drag to reschedule</p>
@@ -241,11 +252,11 @@ export default function WeekView({
               >
                 {/* Bold left colour bar */}
                 <div style={{
-  width: '4px', flexShrink: 0, alignSelf: 'stretch',
-  background: barColour,
-  boxShadow: isToday ? `2px 0 8px ${barColour}66` : 'none',
-  minHeight: '56px',
-}} />
+                  width: '4px', flexShrink: 0, alignSelf: 'stretch',
+                  background: barColour,
+                  boxShadow: isToday ? `2px 0 8px ${barColour}66` : 'none',
+                  minHeight: '56px',
+                }} />
 
                 {/* Content */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, padding: '13px 14px' }}>
@@ -256,8 +267,20 @@ export default function WeekView({
                     <p style={{ fontSize: '20px', fontWeight: 800, lineHeight: 1, color: isToday ? '#f97316' : '#f5f5f5', letterSpacing: '-0.5px' }}>{dateNum}</p>
                   </div>
 
-                  {/* Info */}
-                  <Link href={`/workout/${workout.id}`} style={{ flex: 1, minWidth: 0, textDecoration: 'none' }}>
+                  {/* Info — now opens modal instead of navigating */}
+                  <div
+                    style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+                    onClick={e => {
+                      e.stopPropagation()
+                      if (workout.type !== 'rest') {
+                        setModal({
+                          type: 'single',
+                          workout,
+                          onMarkComplete: (id) => toggleComplete(id),
+                        })
+                      }
+                    }}
+                  >
                     <p style={{
                       fontSize: '14px', fontWeight: 600, marginBottom: '3px',
                       color: isSkipped ? '#71717a' : isLong ? '#FCD34D' : '#e4e4e7',
@@ -274,7 +297,7 @@ export default function WeekView({
                     {isSkipped && workout.skipped_reason && (
                       <p style={{ fontSize: '10px', color: '#52525b', fontStyle: 'italic', marginTop: '2px' }}>"{workout.skipped_reason}"</p>
                     )}
-                  </Link>
+                  </div>
 
                   {/* Actions */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
@@ -294,7 +317,7 @@ export default function WeekView({
 
                     {workout.type !== 'rest' && !isSkipped && (
                       <button
-                        onClick={e => { e.stopPropagation(); toggleComplete(workout) }}
+                        onClick={e => { e.stopPropagation(); toggleComplete(workout.id) }}
                         disabled={loadingId === workout.id}
                         style={{
                           width: '30px', height: '30px', borderRadius: '50%',

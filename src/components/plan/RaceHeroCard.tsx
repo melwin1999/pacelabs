@@ -161,7 +161,7 @@ export default function RaceHeroCard({
                   color: p.label === currentPhase ? p.color : '#52525b',
                   fontWeight: p.label === currentPhase ? 700 : 400,
                 }}>
-                  {p.label}{p.label === currentPhase ? ' (you)' : ''}
+                  {p.label}
                 </span>
               ))}
             </div>
