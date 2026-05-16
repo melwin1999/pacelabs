@@ -190,7 +190,7 @@ export default function WeekView({
         />
       )}
 
-       {openMenuId && <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpenMenuId(null)} />}
+       {openMenuId && <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setOpenMenuId(null)} />}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <p style={{ fontSize: '15px', fontWeight: 700, color: '#f5f5f5' }}>This week</p>
@@ -228,7 +228,7 @@ export default function WeekView({
           const isLong = workout.type === 'long'
 
           return (
-            <div key={workout.id} style={{ position: 'relative', animation: 'fadeUp 0.3s ease both', animationDelay: `${index * 40}ms`, zIndex: menuOpen ? 10 : 1 }}>
+            <div key={workout.id} style={{ position: 'relative', animation: 'fadeUp 0.3s ease both', animationDelay: `${index * 40}ms`, zIndex: menuOpen ? 100 : 1 }}>
               <div
                 draggable={workout.type !== 'rest' && !isSkipped}
                 onDragStart={e => handleDragStart(e, workout)}
@@ -352,7 +352,7 @@ export default function WeekView({
 
               {menuOpen && (
                 <div style={{
-                  position: 'absolute', right: 0, top: 'calc(100% + 4px)', zIndex: 50,
+                  position: 'absolute', right: 0, top: 'calc(100% + 4px)', zIndex: 101,
                   borderRadius: '12px', padding: '4px', minWidth: '160px',
                   background: '#1a1a1a', border: '1px solid #2e2e2e',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
