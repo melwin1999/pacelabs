@@ -190,6 +190,8 @@ export default function WeekView({
         />
       )}
 
+       {openMenuId && <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpenMenuId(null)} />}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <p style={{ fontSize: '15px', fontWeight: 700, color: '#f5f5f5' }}>This week</p>
         <p style={{ fontSize: '11px', color: '#52525b', fontWeight: 500 }}>Drag to reschedule</p>
@@ -356,7 +358,7 @@ export default function WeekView({
                   boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
                 }}>
                   {!isSkipped ? (
-                    <button onClick={e => { e.stopPropagation(); const w = localWorkouts.find(x => x.id === workout.id) ?? workout; setOpenMenuId(null); setSkipTarget(w) }}
+                    <button onMouseDown={e => { e.stopPropagation(); const w = localWorkouts.find(x => x.id === workout.id) ?? workout; setOpenMenuId(null); setSkipTarget(w) }}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '10px 12px', fontSize: '13px', color: '#f97316',
@@ -367,7 +369,7 @@ export default function WeekView({
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     ><SkipForward size={14} /> Skip session</button>
                   ) : (
-                    <button onClick={e => { e.stopPropagation(); setOpenMenuId(null); undoSkip(workout) }}
+                    <button onMouseDown={e => { e.stopPropagation(); setOpenMenuId(null); undoSkip(workout) }}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '10px 12px', fontSize: '13px', color: '#a1a1aa',
@@ -378,7 +380,7 @@ export default function WeekView({
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     ><SkipForward size={14} /> Un-skip</button>
                   )}
-                  <button onClick={e => { e.stopPropagation(); const w = localWorkouts.find(x => x.id === workout.id) ?? workout; setOpenMenuId(null); setMoveDate(w.scheduled_date); setShowMoveSheet({ workout: w }) }}
+                  <button onMouseDown={e => { e.stopPropagation(); const w = localWorkouts.find(x => x.id === workout.id) ?? workout; setOpenMenuId(null); setMoveDate(w.scheduled_date); setShowMoveSheet({ workout: w }) }}
                     style={{
                       width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
                       padding: '10px 12px', fontSize: '13px', color: '#f5f5f5',
@@ -439,7 +441,6 @@ export default function WeekView({
         </div>
       )}
 
-      {openMenuId && <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpenMenuId(null)} />}
-    </div>
+      </div>
   )
 }
