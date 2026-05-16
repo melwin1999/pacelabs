@@ -35,7 +35,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             Pace<span style={{
   color: '#f97316',
   textShadow: '0 0 20px rgba(249,115,22,0.5)',
-  animation: 'labsGlow 3s ease-in-out infinite',
+  animation: 'labsGlow 2s ease-in-out infinite',
 }}>Labs</span>
           </span>
         </div>

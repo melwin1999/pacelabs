@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Workout } from '@/lib/types';
 
 type Props = {
@@ -17,273 +16,144 @@ type Props = {
 };
 
 const PHASE_COLORS: Record<string, string> = {
-  Base: '#60A5FA',
-  Build: '#FB923C',
-  Peak: '#F87171',
-  Taper: '#A3A3A3',
-  Maintain: '#A3E635',
+  Base: '#60A5FA', Build: '#FB923C', Peak: '#F87171', Taper: '#F97316', Maintain: '#A3E635',
 };
-
-const WORKOUT_TYPE_COLORS: Record<string, string> = {
-  easy: '#86EFAC',
-  long: '#FCD34D',
-  tempo: '#FB923C',
-  threshold: '#F87171',
-  intervals: '#C084FC',
-  recovery: '#93C5FD',
-  race: '#F97316',
-  rest: '#3F3F46',
-  strides: '#86EFAC',
-  fartlek: '#67E8F9',
-  progression: '#A3E635',
-  custom: '#A3A3A3',
+const PHASE_BG: Record<string, string> = {
+  Base: 'rgba(96,165,250,0.1)', Build: 'rgba(251,146,60,0.1)',
+  Peak: 'rgba(248,113,113,0.1)', Taper: 'rgba(249,115,22,0.08)', Maintain: 'rgba(163,230,53,0.08)',
 };
-
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const WORKOUT_COLORS: Record<string, string> = {
+  easy: '#86EFAC', long: '#FCD34D', tempo: '#FB923C', threshold: '#F87171',
+  intervals: '#C084FC', recovery: '#93C5FD', race: '#F97316', rest: '#3F3F46',
+  strides: '#86EFAC', fartlek: '#67E8F9', progression: '#A3E635', custom: '#A3A3A3',
+};
 
 export default function WeekRow({
-  weekNumber,
-  plannedKm,
-  completedKm,
-  sessionsTotal,
-  sessionsDone,
-  workouts,
-  phaseName,
-  isCurrent,
+  weekNumber, plannedKm, completedKm, sessionsTotal, sessionsDone,
+  workouts, phaseName, isCurrent,
 }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(isCurrent);
+  const [hovered, setHovered] = useState(false);
 
-  const phaseColor = phaseName ? PHASE_COLORS[phaseName] ?? '#71717A' : '#71717A';
+  const phaseColor = phaseName ? (PHASE_COLORS[phaseName] ?? '#71717a') : '#71717a';
+  const phaseBg = phaseName ? (PHASE_BG[phaseName] ?? 'transparent') : 'transparent';
+  const upcoming = completedKm === 0 && sessionsDone === 0 && weekNumber > 1;
 
-  const sortedWorkouts = [...workouts].sort(
-    (a, b) => a.day_of_week - b.day_of_week
-  );
+  const nonRest = workouts
+    .filter(w => w.type !== 'rest' && !w.skipped)
+    .sort((a, b) => a.day_of_week - b.day_of_week);
 
-  const workoutsByDay = new Map<number, Workout>();
-  for (const w of sortedWorkouts) {
-    if (!workoutsByDay.has(w.day_of_week)) {
-      workoutsByDay.set(w.day_of_week, w);
-    }
-  }
-
-  const sessionDots = sortedWorkouts.filter(
-    (w) => w.type !== 'rest' && !w.skipped
-  );
+  const statusText = isCurrent ? 'in progress' : completedKm > 0 ? 'done' : 'upcoming';
+  const statusColor = isCurrent ? '#F97316' : completedKm > 0 ? '#10b981' : '#3f3f46';
 
   return (
     <div
-      className="rounded-xl overflow-hidden transition-all"
       style={{
-        background: 'var(--bg-card)',
-        border: isCurrent
-          ? '1.5px solid var(--accent)'
-          : '1px solid var(--border)',
+        borderRadius: '7px',
+        background: isCurrent ? 'rgba(249,115,22,0.04)' : hovered && !open ? '#111' : '#111',
+        border: isCurrent ? '1px solid rgba(249,115,22,0.18)' : '1px solid #1a1a1a',
+        marginBottom: '3px',
+        overflow: 'hidden',
+        transition: 'border-color 0.15s',
       }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
+      {/* Header row */}
       <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-stretch text-left hover:bg-white/[0.02] transition-colors"
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '9px 12px', background: 'transparent', border: 'none',
+          cursor: 'pointer', textAlign: 'left',
+        }}
       >
-        <div
-          className="w-1 flex-shrink-0"
-          style={{ background: phaseColor }}
-        />
+        <div style={{ width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '24px', flexShrink: 0, background: phaseColor, opacity: upcoming ? 0.3 : 1 }} />
 
-        <div className="flex-1 flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 min-w-0">
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            <div className="text-[var(--text-muted)] flex-shrink-0">
-              {expanded ? (
-                <ChevronDown size={16} />
-              ) : (
-                <ChevronRight size={16} />
-              )}
-            </div>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: isCurrent ? '#F97316' : upcoming ? '#52525b' : '#f5f5f5', minWidth: '60px' }}>
+          Week {weekNumber}{isCurrent ? ' ←' : ''}
+        </span>
 
-            <div className="flex-shrink-0 min-w-0">
-              <div
-                className="font-semibold text-sm sm:text-base"
-                style={{
-                  color: isCurrent ? 'var(--accent)' : 'var(--text)',
-                }}
-              >
-                Week {weekNumber}
-              </div>
-              {phaseName && (
-                <div className="text-[11px] text-[var(--text-muted)] hidden sm:block">
-                  {phaseName}
-                </div>
-              )}
-            </div>
+        {phaseName && (
+          <span style={{
+            fontSize: '9px', padding: '2px 7px', borderRadius: '10px', fontWeight: 600,
+            color: phaseColor, background: phaseBg, flexShrink: 0,
+          }}>
+            {phaseName}
+          </span>
+        )}
 
-            <div className="flex items-center gap-1 ml-auto sm:ml-4">
-              {sessionDots.map((w) => (
-                <div
-                  key={w.id}
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{
-                    background: WORKOUT_TYPE_COLORS[w.type] ?? '#A3A3A3',
-                    opacity: w.is_complete ? 1 : 0.55,
-                  }}
-                  title={`${w.name} (${w.type})`}
-                />
-              ))}
-            </div>
-          </div>
+        <span style={{ fontSize: '11px', color: upcoming ? '#52525b' : '#a1a1aa', flex: 1, textAlign: 'right' }}>
+          {plannedKm.toFixed(0)} km
+        </span>
 
-          <div className="flex items-center gap-3 sm:gap-5 ml-3 flex-shrink-0">
-            <div className="text-right">
-              <div
-                className="text-sm sm:text-base font-bold tabular-nums"
-                style={{ letterSpacing: '-0.02em' }}
-              >
-                {plannedKm.toFixed(1)}
-                <span className="text-[var(--text-muted)] font-normal text-xs">
-                  {' '}
-                  km
-                </span>
-              </div>
-              <div className="text-[10px] sm:text-[11px] text-[var(--text-muted)]">
-                {sessionsDone}/{sessionsTotal} done
-              </div>
-            </div>
-          </div>
-        </div>
+        <span style={{ fontSize: '10px', color: statusColor, minWidth: '64px', textAlign: 'right', flexShrink: 0 }}>
+          {statusText}
+        </span>
+
+        <span style={{
+          fontSize: '12px', color: '#3f3f46', flexShrink: 0,
+          transition: 'transform 0.2s',
+          display: 'inline-block',
+          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+        }}>▾</span>
       </button>
 
-      {expanded && (
-        <div
-          className="border-t px-4 py-4 sm:px-6 sm:py-5"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <div className="grid grid-cols-7 gap-1.5 sm:gap-2 mb-5">
-            {DAY_LABELS.map((dayLabel, dayIdx) => {
-              const wo = workoutsByDay.get(dayIdx);
-              const typeColor = wo
-                ? WORKOUT_TYPE_COLORS[wo.type] ?? '#A3A3A3'
-                : '#3F3F46';
-              return (
-                <div
-                  key={dayIdx}
-                  className="rounded-lg p-2 sm:p-2.5 min-h-[64px] sm:min-h-[72px] flex flex-col"
-                  style={{
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  <div className="flex items-center gap-1 mb-1">
-                    <div
-                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style={{
-                        background: typeColor,
-                        opacity: wo?.is_complete ? 1 : 0.6,
-                      }}
-                    />
-                    <div className="text-[10px] sm:text-[11px] text-[var(--text-muted)] font-medium">
-                      {dayLabel}
-                    </div>
-                  </div>
-                  {wo ? (
-                    <>
-                      <div
-                        className="text-[11px] sm:text-xs font-medium leading-tight truncate"
-                        style={{
-                          color:
-                            wo.skipped || wo.type === 'rest'
-                              ? 'var(--text-muted)'
-                              : 'var(--text)',
-                          textDecoration: wo.skipped ? 'line-through' : 'none',
-                        }}
-                        title={wo.name}
-                      >
-                        {wo.name}
-                      </div>
-                      {wo.type !== 'rest' && (
-                        <div className="text-[10px] sm:text-[11px] text-[var(--text-muted)] mt-auto tabular-nums">
-                          {Number(wo.distance_km).toFixed(1)}km
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-[11px] text-[var(--text-muted)] opacity-50">
-                      —
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+      {/* Expanded content */}
+      {open && (
+        <div style={{ borderTop: '1px solid #1a1a1a', padding: '10px 12px 12px' }}>
+          {/* Summary strip */}
+          <div style={{ display: 'flex', gap: '16px', paddingBottom: '8px', borderBottom: '1px solid #1a1a1a', marginBottom: '8px' }}>
+            {[
+              { label: 'Total', value: `${plannedKm.toFixed(0)} km` },
+              { label: 'Done', value: `${completedKm.toFixed(0)} km`, color: completedKm > 0 ? '#10b981' : undefined },
+              { label: 'Sessions', value: `${sessionsDone}/${sessionsTotal}` },
+              { label: 'Phase', value: phaseName ?? '—', color: phaseColor },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                <span style={{ fontSize: '9px', color: '#52525b' }}>{label}</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: color ?? '#f5f5f5' }}>{value}</span>
+              </div>
+            ))}
           </div>
 
-          <div
-            className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 p-3 sm:p-4 rounded-lg"
-            style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid var(--border)',
+          {/* Mini workout list */}
+          {nonRest.map(w => (
+            <div key={w.id} style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '5px 8px', borderRadius: '5px', background: '#0d0d0d',
+              marginBottom: '2px',
+              opacity: upcoming ? 0.6 : 1,
+              transition: 'background 0.12s',
             }}
-          >
-            <div>
-              <div className="text-[10px] sm:text-[11px] text-[var(--text-muted)] uppercase tracking-wider mb-1">
-                Planned
-              </div>
-              <div
-                className="text-base sm:text-lg font-bold tabular-nums"
-                style={{ letterSpacing: '-0.02em' }}
-              >
-                {plannedKm.toFixed(1)}
-                <span className="text-xs text-[var(--text-muted)] font-normal">
-                  {' '}km
-                </span>
-              </div>
+              onMouseEnter={e => (e.currentTarget.style.background = '#161616')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#0d0d0d')}
+            >
+              <div style={{ width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '20px', flexShrink: 0, background: WORKOUT_COLORS[w.type] ?? '#71717a' }} />
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#f5f5f5', flex: 1 }}>{w.name}</span>
+              <span style={{ fontSize: '10px', color: '#71717a' }}>
+                {w.distance_km ? `${Number(w.distance_km).toFixed(0)} km` : ''}
+                {w.pace_min_seconds ? ` · ${Math.floor(w.pace_min_seconds / 60)}:${String(w.pace_min_seconds % 60).padStart(2, '0')}/km` : ''}
+              </span>
+              {w.is_complete && (
+                <span style={{ fontSize: '10px', color: '#10b981' }}>✓</span>
+              )}
             </div>
-            <div>
-              <div className="text-[10px] sm:text-[11px] text-[var(--text-muted)] uppercase tracking-wider mb-1">
-                Done
-              </div>
-              <div
-                className="text-base sm:text-lg font-bold tabular-nums"
-                style={{
-                  letterSpacing: '-0.02em',
-                  color: completedKm > 0 ? 'var(--success)' : 'var(--text)',
-                }}
-              >
-                {completedKm.toFixed(1)}
-                <span className="text-xs text-[var(--text-muted)] font-normal">
-                  {' '}km
-                </span>
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] sm:text-[11px] text-[var(--text-muted)] uppercase tracking-wider mb-1">
-                Avg easy pace
-              </div>
-              <div
-                className="text-base sm:text-lg font-bold tabular-nums text-[var(--text-muted)]"
-                style={{ letterSpacing: '-0.02em' }}
-              >
-                —
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] sm:text-[11px] text-[var(--text-muted)] uppercase tracking-wider mb-1">
-                Avg easy HR
-              </div>
-              <div
-                className="text-base sm:text-lg font-bold tabular-nums text-[var(--text-muted)]"
-                style={{ letterSpacing: '-0.02em' }}
-              >
-                —
-              </div>
-            </div>
-          </div>
+          ))}
 
           <Link
             href={`/?week=${weekNumber}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
             style={{
-              background: 'var(--accent)',
-              color: '#09090B',
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              marginTop: '10px', padding: '5px 12px', borderRadius: '6px',
+              fontSize: '11px', fontWeight: 600,
+              background: '#F97316', color: '#000', textDecoration: 'none',
+              transition: 'opacity 0.15s',
             }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
-            Open this week in Plan →
+            Open in Plan →
           </Link>
         </div>
       )}
