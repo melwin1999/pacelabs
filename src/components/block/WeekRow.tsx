@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { Workout } from '@/lib/types';
+import WorkoutModal, { ModalMode } from './WorkoutModal';
 
 type Props = {
   weekNumber: number;
@@ -13,6 +13,7 @@ type Props = {
   workouts: Workout[];
   phaseName: string | null;
   isCurrent: boolean;
+  allWorkouts: Workout[];
 };
 
 const PHASE_COLORS: Record<string, string> = {
@@ -28,12 +29,19 @@ const WORKOUT_COLORS: Record<string, string> = {
   strides: '#86EFAC', fartlek: '#67E8F9', progression: '#A3E635', custom: '#A3A3A3',
 };
 
+function fmtPace(s: number | null | undefined) {
+  if (!s) return null;
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}/km`;
+}
+
 export default function WeekRow({
   weekNumber, plannedKm, completedKm, sessionsTotal, sessionsDone,
-  workouts, phaseName, isCurrent,
+  workouts, phaseName, isCurrent, allWorkouts,
 }: Props) {
   const [open, setOpen] = useState(isCurrent);
-  const [hovered, setHovered] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [modal, setModal] = useState<ModalMode | null>(null);
 
   const phaseColor = phaseName ? (PHASE_COLORS[phaseName] ?? '#71717a') : '#71717a';
   const phaseBg = phaseName ? (PHASE_BG[phaseName] ?? 'transparent') : 'transparent';
@@ -43,120 +51,242 @@ export default function WeekRow({
     .filter(w => w.type !== 'rest' && !w.skipped)
     .sort((a, b) => a.day_of_week - b.day_of_week);
 
+  const progressPct = sessionsTotal > 0 ? Math.round((sessionsDone / sessionsTotal) * 100) : 0;
   const statusText = isCurrent ? 'in progress' : completedKm > 0 ? 'done' : 'upcoming';
   const statusColor = isCurrent ? '#F97316' : completedKm > 0 ? '#10b981' : '#3f3f46';
 
+  function toggleSelect(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); }
+      else if (next.size < 3) { next.add(id); }
+      return next;
+    });
+  }
+
+  function openCompare() {
+    // Find matching workout types from other weeks
+    const selectedWorkouts = nonRest.filter(w => selected.has(w.id));
+    if (selectedWorkouts.length === 0) return;
+
+    // For cross-week: find same type workouts in other weeks
+    const types = selectedWorkouts.map(w => w.type);
+    const crossWeek = allWorkouts.filter(w =>
+      w.week_number !== weekNumber &&
+      types.includes(w.type) &&
+      w.type !== 'rest' &&
+      !w.skipped
+    );
+
+    const toCompare = [...selectedWorkouts, ...crossWeek].slice(0, 3);
+    setModal({ type: 'compare', workouts: toCompare });
+    setCompareMode(false);
+    setSelected(new Set());
+  }
+
+  const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
   return (
-    <div
-      style={{
-        borderRadius: '7px',
-        background: isCurrent ? 'rgba(249,115,22,0.04)' : hovered && !open ? '#111' : '#111',
+    <>
+      {modal && <WorkoutModal mode={modal} onClose={() => setModal(null)} />}
+
+      <div style={{
+        borderRadius: '8px',
+        background: isCurrent ? 'rgba(249,115,22,0.04)' : '#111',
         border: isCurrent ? '1px solid rgba(249,115,22,0.18)' : '1px solid #1a1a1a',
-        marginBottom: '3px',
-        overflow: 'hidden',
+        marginBottom: '4px', overflow: 'hidden',
         transition: 'border-color 0.15s',
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Header row */}
-      <button
-        onClick={() => setOpen(!open)}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '9px 12px', background: 'transparent', border: 'none',
-          cursor: 'pointer', textAlign: 'left',
-        }}
-      >
-        <div style={{ width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '24px', flexShrink: 0, background: phaseColor, opacity: upcoming ? 0.3 : 1 }} />
-
-        <span style={{ fontSize: '11px', fontWeight: 700, color: isCurrent ? '#F97316' : upcoming ? '#52525b' : '#f5f5f5', minWidth: '60px' }}>
-          Week {weekNumber}{isCurrent ? ' ←' : ''}
-        </span>
-
-        {phaseName && (
-          <span style={{
-            fontSize: '9px', padding: '2px 7px', borderRadius: '10px', fontWeight: 600,
-            color: phaseColor, background: phaseBg, flexShrink: 0,
-          }}>
-            {phaseName}
-          </span>
-        )}
-
-        <span style={{ fontSize: '11px', color: upcoming ? '#52525b' : '#a1a1aa', flex: 1, textAlign: 'right' }}>
-          {plannedKm.toFixed(0)} km
-        </span>
-
-        <span style={{ fontSize: '10px', color: statusColor, minWidth: '64px', textAlign: 'right', flexShrink: 0 }}>
-          {statusText}
-        </span>
-
-        <span style={{
-          fontSize: '12px', color: '#3f3f46', flexShrink: 0,
-          transition: 'transform 0.2s',
-          display: 'inline-block',
-          transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-        }}>▾</span>
-      </button>
-
-      {/* Expanded content */}
-      {open && (
-        <div style={{ borderTop: '1px solid #1a1a1a', padding: '10px 12px 12px' }}>
-          {/* Summary strip */}
-          <div style={{ display: 'flex', gap: '16px', paddingBottom: '8px', borderBottom: '1px solid #1a1a1a', marginBottom: '8px' }}>
-            {[
-              { label: 'Total', value: `${plannedKm.toFixed(0)} km` },
-              { label: 'Done', value: `${completedKm.toFixed(0)} km`, color: completedKm > 0 ? '#10b981' : undefined },
-              { label: 'Sessions', value: `${sessionsDone}/${sessionsTotal}` },
-              { label: 'Phase', value: phaseName ?? '—', color: phaseColor },
-            ].map(({ label, value, color }) => (
-              <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                <span style={{ fontSize: '9px', color: '#52525b' }}>{label}</span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: color ?? '#f5f5f5' }}>{value}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Mini workout list */}
-          {nonRest.map(w => (
-            <div key={w.id} style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '5px 8px', borderRadius: '5px', background: '#0d0d0d',
-              marginBottom: '2px',
-              opacity: upcoming ? 0.6 : 1,
-              transition: 'background 0.12s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#161616')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#0d0d0d')}
-            >
-              <div style={{ width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '20px', flexShrink: 0, background: WORKOUT_COLORS[w.type] ?? '#71717a' }} />
-              <span style={{ fontSize: '11px', fontWeight: 600, color: '#f5f5f5', flex: 1 }}>{w.name}</span>
-              <span style={{ fontSize: '10px', color: '#71717a' }}>
-                {w.distance_km ? `${Number(w.distance_km).toFixed(0)} km` : ''}
-                {w.pace_min_seconds ? ` · ${Math.floor(w.pace_min_seconds / 60)}:${String(w.pace_min_seconds % 60).padStart(2, '0')}/km` : ''}
-              </span>
-              {w.is_complete && (
-                <span style={{ fontSize: '10px', color: '#10b981' }}>✓</span>
-              )}
-            </div>
-          ))}
-
-          <Link
-            href={`/?week=${weekNumber}`}
+      }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 14px' }}>
+          <button
+            onClick={() => setOpen(!open)}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              marginTop: '10px', padding: '5px 12px', borderRadius: '6px',
-              fontSize: '11px', fontWeight: 600,
-              background: '#F97316', color: '#000', textDecoration: 'none',
-              transition: 'opacity 0.15s',
+              display: 'flex', alignItems: 'center', gap: '10px',
+              flex: 1, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
             }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
-            Open in Plan →
-          </Link>
+            <div style={{
+              width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '28px',
+              flexShrink: 0, background: phaseColor, opacity: upcoming ? 0.3 : 1,
+              boxShadow: isCurrent ? `0 0 6px ${phaseColor}80` : 'none',
+            }} />
+
+            <span style={{ fontSize: '12px', fontWeight: 700, color: isCurrent ? '#F97316' : upcoming ? '#52525b' : '#f5f5f5', minWidth: '64px' }}>
+              Week {weekNumber}{isCurrent ? <span style={{ fontSize: '10px', color: '#52525b', fontWeight: 400 }}> · now</span> : ''}
+            </span>
+
+            {phaseName && (
+              <span style={{
+                fontSize: '9px', padding: '2px 7px', borderRadius: '10px', fontWeight: 600,
+                color: phaseColor, background: phaseBg, flexShrink: 0,
+              }}>
+                {phaseName}
+              </span>
+            )}
+
+            <span style={{ fontSize: '12px', color: upcoming ? '#52525b' : '#a1a1aa', flex: 1, textAlign: 'right' }}>
+              {plannedKm.toFixed(0)} km
+            </span>
+
+            <span style={{ fontSize: '11px', color: statusColor, minWidth: '70px', textAlign: 'right', flexShrink: 0 }}>
+              {statusText}
+            </span>
+
+            <span style={{
+              fontSize: '12px', color: '#3f3f46', flexShrink: 0,
+              transition: 'transform 0.25s', display: 'inline-block',
+              transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}>▾</span>
+          </button>
+
+          {/* Compare toggle button */}
+          {open && nonRest.length > 1 && (
+            <button
+              onClick={() => { setCompareMode(!compareMode); setSelected(new Set()); }}
+              style={{
+                padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 600,
+                background: compareMode ? 'rgba(249,115,22,0.15)' : 'transparent',
+                border: compareMode ? '1px solid rgba(249,115,22,0.4)' : '1px solid #2e2e2e',
+                color: compareMode ? '#F97316' : '#52525b', cursor: 'pointer',
+                flexShrink: 0, transition: 'all 0.15s',
+              }}
+            >
+              {compareMode ? 'Cancel' : 'Compare'}
+            </button>
+          )}
         </div>
-      )}
-    </div>
+
+        {/* Expanded content */}
+        {open && (
+          <div style={{ borderTop: '1px solid #1a1a1a', padding: '12px 14px 14px' }}>
+
+            {/* Summary strip */}
+            <div style={{ display: 'flex', gap: '20px', paddingBottom: '10px', borderBottom: '1px solid #1a1a1a', marginBottom: '10px' }}>
+              {[
+                { label: 'Total', value: `${plannedKm.toFixed(0)} km` },
+                { label: 'Done', value: `${completedKm.toFixed(0)} km`, color: completedKm > 0 ? '#10b981' : undefined },
+                { label: 'Sessions', value: `${sessionsDone}/${sessionsTotal}` },
+                { label: 'Phase', value: phaseName ?? '—', color: phaseColor },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{label}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: color ?? '#f5f5f5' }}>{value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Progress bar */}
+            <div style={{ height: '3px', background: '#1f1f1f', borderRadius: '2px', marginBottom: '12px', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', borderRadius: '2px',
+                width: `${progressPct}%`,
+                background: '#10b981',
+                transition: 'width 0.6s ease',
+              }} />
+            </div>
+
+            {/* Compare mode hint */}
+            {compareMode && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between',
+                background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.15)',
+                borderRadius: '8px', padding: '8px 12px', marginBottom: '10px',
+              }}>
+                <p style={{ fontSize: '12px', color: '#a1a1aa' }}>
+                  Select runs — comparing across all weeks by type
+                </p>
+                {selected.size >= 1 && (
+                  <button
+                    onClick={openCompare}
+                    style={{
+                      padding: '5px 14px', borderRadius: '7px', fontSize: '11px', fontWeight: 700,
+                      background: '#F97316', border: 'none', color: '#000', cursor: 'pointer', flexShrink: 0,
+                    }}
+                  >
+                    Compare ({selected.size})
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Workout cards */}
+            {nonRest.map((w, idx) => {
+              const wColor = WORKOUT_COLORS[w.type] ?? '#71717a';
+              const isSelected = selected.has(w.id);
+              const pace = fmtPace(w.pace_min_seconds);
+              const dayName = w.day_of_week !== null && w.day_of_week !== undefined
+                ? DAY_NAMES[w.day_of_week] : '';
+
+              return (
+                <div
+                  key={w.id}
+                  onClick={() => {
+                    if (compareMode) { toggleSelect(w.id); }
+                    else { setModal({ type: 'single', workout: w }); }
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '11px 12px', borderRadius: '8px',
+                    background: isSelected ? 'rgba(249,115,22,0.08)' : '#0d0d0d',
+                    border: isSelected ? '1px solid rgba(249,115,22,0.35)' : '1px solid #1f1f1f',
+                    marginBottom: idx < nonRest.length - 1 ? '6px' : '0',
+                    cursor: 'pointer', transition: 'all 0.15s',
+                    opacity: upcoming ? 0.65 : 1,
+                    animation: `fadeIn 0.2s ease ${idx * 40}ms both`,
+                  }}
+                  onMouseEnter={e => { if (!compareMode) e.currentTarget.style.background = '#161616'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(249,115,22,0.08)' : '#0d0d0d'; }}
+                >
+                  {/* Compare checkbox */}
+                  {compareMode && (
+                    <div style={{
+                      width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
+                      border: isSelected ? '2px solid #F97316' : '1.5px solid #2e2e2e',
+                      background: isSelected ? 'rgba(249,115,22,0.2)' : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {isSelected && <span style={{ fontSize: '11px', color: '#F97316' }}>✓</span>}
+                    </div>
+                  )}
+
+                  {/* Colour bar */}
+                  <div style={{ width: '4px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '36px', flexShrink: 0, background: wColor }} />
+
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>{w.name}</p>
+                    <p style={{ fontSize: '11px', color: '#71717a', marginTop: '2px' }}>
+                      {dayName}{w.description ? ` · ${w.description.slice(0, 60)}${w.description.length > 60 ? '…' : ''}` : ''}
+                    </p>
+                  </div>
+
+                  {/* Meta */}
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>
+                      {w.distance_km ? `${Number(w.distance_km).toFixed(0)} km` : ''}
+                    </p>
+                    {pace && <p style={{ fontSize: '11px', color: '#71717a', marginTop: '1px' }}>{pace}</p>}
+                  </div>
+
+                  {/* Status */}
+                  {w.is_complete
+                    ? <span style={{ fontSize: '16px', color: '#10b981', flexShrink: 0 }}>✓</span>
+                    : !compareMode && <span style={{ fontSize: '14px', color: '#2e2e2e', flexShrink: 0 }}>›</span>
+                  }
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </>
   );
 }

@@ -87,6 +87,11 @@ export default function RaceHeroCard({
           50% { text-shadow: 0 0 12px rgba(249,115,22,0.9), 0 0 24px rgba(249,115,22,0.5); opacity: 1; }
         }
         .pl-track-dot { animation: plPulse 2s ease-in-out infinite; }
+        @keyframes trackFillGrow {
+          from { width: 0%; }
+          to   { width: var(--target-width); }
+        }
+        .pl-track-fill { width: 0%; animation: trackFillGrow 1.1s ease-out 0.1s forwards; }
       `}</style>
 
       <div style={{ position: 'relative', padding: '28px 0 24px' }}>
@@ -137,11 +142,11 @@ export default function RaceHeroCard({
           {/* Race track bar */}
           <div style={{ marginBottom: '6px' }}>
             <div style={{ height: '6px', borderRadius: '3px', background: '#1a1a1a', position: 'relative', overflow: 'visible' }}>
-              <div style={{
-                height: '100%', borderRadius: '3px', position: 'relative',
-                width: `${currentPct}%`,
-                background: 'linear-gradient(90deg, #60A5FA 0%, #FB923C 45%, #F87171 72%, #F97316 100%)',
-              }}>
+              <div className="pl-track-fill" style={{
+              height: '100%', borderRadius: '3px', position: 'relative',
+              background: 'linear-gradient(90deg, #60A5FA 0%, #FB923C 45%, #F87171 72%, #F97316 100%)',
+              '--target-width': `${currentPct}%`,
+            }}>
                 <div className="pl-track-dot" style={{
                   position: 'absolute', right: '-7px', top: '-5px',
                   width: '16px', height: '16px', borderRadius: '50%',

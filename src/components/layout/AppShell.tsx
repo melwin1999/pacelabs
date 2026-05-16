@@ -88,7 +88,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Mobile bottom nav — only on mobile */}
-      <nav className="md:hidden" style={{
+      <nav id="pl-mobile-nav" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
         background: 'rgba(10,10,10,0.97)',
         backdropFilter: 'blur(16px)',

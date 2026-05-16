@@ -80,125 +80,132 @@ export default async function BlockPage() {
     <AppShell>
       <BlockAnimations />
       <div style={{ maxWidth: '1150px', padding: '0 32px 40px' }}>
-      <div style={{ position: 'relative', padding: '28px 0 22px' }}>
-        <div style={{
-          position: 'absolute', width: '460px', height: '460px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(249,115,22,0.2) 0%, rgba(249,115,22,0.06) 38%, transparent 65%)',
-          top: '-190px', right: '-100px', pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', width: '200px', height: '200px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 65%)',
-          bottom: '-80px', left: '-30px', pointerEvents: 'none',
-        }} />
+        <div style={{ position: 'relative', padding: '28px 0 22px' }}>
+          {/* Orbs */}
+          <div style={{
+            position: 'absolute', width: '460px', height: '460px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(249,115,22,0.2) 0%, rgba(249,115,22,0.06) 38%, transparent 65%)',
+            top: '-190px', right: '-100px', pointerEvents: 'none',
+          }} />
+          <div style={{
+            position: 'absolute', width: '200px', height: '200px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 65%)',
+            bottom: '-80px', left: '-30px', pointerEvents: 'none',
+          }} />
 
-        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(249,115,22,0.85)', textTransform: 'uppercase', marginBottom: '8px' }}>
-          Active block
-        </p>
-        <h1 style={{ fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 900, color: '#f5f5f5', letterSpacing: '-0.5px', marginBottom: '2px' }}>
-          {block.name}
-        </h1>
-        <p style={{ fontSize: '11px', color: '#52525b', marginBottom: '18px' }}>
-          {block.total_weeks} week block · started {block.start_date
-            ? new Date(block.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-            : '—'}
-        </p>
+          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(249,115,22,0.85)', textTransform: 'uppercase', marginBottom: '8px' }}>
+            Active block
+          </p>
+          <h1 style={{ fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 900, color: '#f5f5f5', letterSpacing: '-0.5px', marginBottom: '2px' }}>
+            {block.name}
+          </h1>
+          <p style={{ fontSize: '11px', color: '#52525b', marginBottom: '18px' }}>
+            {block.total_weeks} week block · started {block.start_date
+              ? new Date(block.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+              : '—'}
+          </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '20px' }}>
-          {[
-            { label: 'Total km', value: totalKm.toFixed(0), color: '#f5f5f5' },
-            { label: 'Done', value: `${doneKm.toFixed(0)} km`, color: '#10b981' },
-            { label: 'Peak week', value: `${peakKm.toFixed(0)} km`, color: '#f5f5f5' },
-            { label: 'Weeks left', value: String(weeksLeft), color: '#F97316' },
-          ].map(({ label, value, color }) => (
-            <div key={label} style={{
-              background: '#111', border: '1px solid #1a1a1a', borderRadius: '8px',
-              padding: '10px 12px',
-            }}>
-              <p style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>{label}</p>
-              <p style={{ fontSize: '18px', fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ height: '6px', borderRadius: '3px', background: '#1a1a1a', position: 'relative', overflow: 'visible' }}>
-            <div style={{
-              height: '100%', borderRadius: '3px', position: 'relative',
-              width: `${currentPct}%`,
-              background: 'linear-gradient(90deg, #60A5FA 0%, #FB923C 45%, #F87171 72%, #F97316 100%)',
-            }}>
-              <div className="pl-track-dot" style={{
-                position: 'absolute', right: '-7px', top: '-5px',
-                width: '16px', height: '16px', borderRadius: '50%',
-                background: '#F97316', border: '2px solid #0a0a0a',
-              }} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-            {uniquePhases.map(p => (
-              <span key={p.label} style={{
-                fontSize: '9px',
-                color: p.label === currentPhaseLabel ? p.color : '#52525b',
-                fontWeight: p.label === currentPhaseLabel ? 700 : 400,
-              }}>
-                {p.label}{p.label === currentPhaseLabel ? ' ← you' : ''}
-              </span>
+          {/* Stat cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '20px' }}>
+            {[
+              { label: 'Total km', value: totalKm.toFixed(0), color: '#f5f5f5' },
+              { label: 'Done', value: `${doneKm.toFixed(0)} km`, color: '#10b981' },
+              { label: 'Peak week', value: `${peakKm.toFixed(0)} km`, color: '#f5f5f5' },
+              { label: 'Weeks left', value: String(weeksLeft), color: '#F97316' },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '10px 12px' }}>
+                <p style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>{label}</p>
+                <p style={{ fontSize: '18px', fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
+              </div>
             ))}
           </div>
+
+          {/* Race track bar — animated */}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ height: '6px', borderRadius: '3px', background: '#1a1a1a', position: 'relative', overflow: 'visible' }}>
+              <div
+                className="track-fill-animate"
+                style={{
+                  height: '100%', borderRadius: '3px', position: 'relative',
+                  background: 'linear-gradient(90deg, #60A5FA 0%, #FB923C 45%, #F87171 72%, #F97316 100%)',
+                  '--target-width': `${currentPct}%`,
+                } as React.CSSProperties}
+              >
+                <div className="pl-track-dot" style={{
+                  position: 'absolute', right: '-7px', top: '-5px',
+                  width: '16px', height: '16px', borderRadius: '50%',
+                  background: '#F97316', border: '2px solid #0a0a0a',
+                }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+              {uniquePhases.map(p => (
+                <span key={p.label} style={{
+                  fontSize: '9px',
+                  color: p.label === currentPhaseLabel ? p.color : '#52525b',
+                  fontWeight: p.label === currentPhaseLabel ? 700 : 400,
+                }}>
+                  {p.label}{p.label === currentPhaseLabel ? ' ← you' : ''}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Volume bars — animated */}
+          <p style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>Weekly volume</p>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '52px' }}>
+            {weekSummaries.map((w, i) => {
+              const phase = getPhaseForWeek(phases, w.weekNumber);
+              const color = phase ? (PHASE_COLORS[phase] ?? '#71717a') : '#71717a';
+              const heightPct = Math.max(4, Math.round((w.plannedKm / maxKm) * 100));
+              const isCur = w.weekNumber === block.current_week;
+              const upcoming = w.weekNumber > block.current_week;
+              return (
+                <div
+                  key={i}
+                  className="vol-bar-animate"
+                  title={`W${w.weekNumber} · ${w.plannedKm.toFixed(0)} km${isCur ? ' (current)' : ''}`}
+                  style={{
+                    flex: 1,
+                    borderRadius: '2px 2px 0 0',
+                    background: upcoming ? '#1f1f1f' : color,
+                    border: upcoming ? '1px dashed #2e2e2e' : isCur ? `1px solid ${color}` : 'none',
+                    opacity: upcoming ? 1 : isCur ? 1 : 0.7,
+                    cursor: 'pointer',
+                    '--target-height': `${heightPct}%`,
+                    animationDelay: `${i * 30}ms`,
+                  } as React.CSSProperties}
+                />
+              );
+            })}
+          </div>
         </div>
 
-        <p style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>Weekly volume</p>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '52px' }}>
-          {weekSummaries.map((w, i) => {
-            const phase = getPhaseForWeek(phases, w.weekNumber);
-            const color = phase ? (PHASE_COLORS[phase] ?? '#71717a') : '#71717a';
-            const heightPct = Math.max(4, Math.round((w.plannedKm / maxKm) * 100));
-            const isCur = w.weekNumber === block.current_week;
-            const upcoming = w.weekNumber > block.current_week;
+        <div style={{ height: '1px', background: '#1a1a1a' }} />
+
+        <div style={{ padding: '14px 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#f5f5f5' }}>All weeks</span>
+            <span style={{ fontSize: '10px', color: '#3f3f46' }}>Tap to expand</span>
+          </div>
+          {weekSummaries.map((summary) => {
+            const weekWorkouts = allWorkouts.filter(w => w.week_number === summary.weekNumber);
             return (
-              <div
-                key={i}
-                className="vol-bar"
-                title={`W${w.weekNumber} · ${w.plannedKm.toFixed(0)} km${isCur ? ' (current)' : ''}`}
-                style={{
-                  flex: 1, height: `${heightPct}%`,
-                  borderRadius: '2px 2px 0 0',
-                  background: upcoming ? '#1f1f1f' : color,
-                  border: upcoming ? '1px dashed #2e2e2e' : isCur ? `1px solid ${color}` : 'none',
-                  opacity: upcoming ? 1 : isCur ? 1 : 0.7,
-                  cursor: 'pointer',
-                }}
+              <WeekRow
+                key={summary.weekNumber}
+                weekNumber={summary.weekNumber}
+                plannedKm={summary.plannedKm}
+                completedKm={summary.completedKm}
+                sessionsTotal={summary.sessionsTotal}
+                sessionsDone={summary.sessionsDone}
+                workouts={weekWorkouts}
+                phaseName={getPhaseForWeek(phases, summary.weekNumber)}
+                isCurrent={summary.weekNumber === block.current_week}
+                allWorkouts={allWorkouts}
               />
             );
           })}
         </div>
-      </div>
-
-      <div style={{ height: '1px', background: '#1a1a1a' }} />
-
-      <div style={{ padding: '14px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: '#f5f5f5' }}>All weeks</span>
-          <span style={{ fontSize: '10px', color: '#3f3f46' }}>Tap to expand</span>
-        </div>
-        {weekSummaries.map((summary) => {
-          const weekWorkouts = allWorkouts.filter(w => w.week_number === summary.weekNumber);
-          return (
-            <WeekRow
-              key={summary.weekNumber}
-              weekNumber={summary.weekNumber}
-              plannedKm={summary.plannedKm}
-              completedKm={summary.completedKm}
-              sessionsTotal={summary.sessionsTotal}
-              sessionsDone={summary.sessionsDone}
-              workouts={weekWorkouts}
-              phaseName={getPhaseForWeek(phases, summary.weekNumber)}
-              isCurrent={summary.weekNumber === block.current_week}
-            />
-          );
-        })}
-      </div>
       </div>
     </AppShell>
   );
