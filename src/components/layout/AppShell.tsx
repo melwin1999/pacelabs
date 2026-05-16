@@ -101,8 +101,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* FAB menu items — mobile only */}
       {fabOpen && (
         <div id="pl-fab-menu" style={{
-          position: 'fixed', bottom: '80px', right: '16px', zIndex: 40,
-          display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px',
+          position: 'fixed', bottom: '134px', right: '16px', zIndex: 40,
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px',
         }}>
           {/* Settings */}
           <Link
@@ -120,7 +120,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <span style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>Settings</span>
             </div>
             <div style={{
-              width: '44px', height: '44px', borderRadius: '50%',
+              width: '48px', height: '48px', borderRadius: '50%',
               background: '#1a1a1a', border: '1px solid #2e2e2e',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
@@ -144,7 +144,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <span style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>New plan</span>
             </div>
             <div style={{
-              width: '44px', height: '44px', borderRadius: '50%',
+              width: '48px', height: '48px', borderRadius: '50%',
               background: '#F97316', border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               boxShadow: '0 0 14px rgba(249,115,22,0.5)',
@@ -160,7 +160,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         id="pl-fab"
         onClick={() => setFabOpen(!fabOpen)}
         style={{
-          position: 'fixed', bottom: '68px', right: '16px', zIndex: 41,
+          position: 'fixed', bottom: '74px', right: '16px', zIndex: 41,
           width: '48px', height: '48px', borderRadius: '50%',
           background: '#F97316', border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
