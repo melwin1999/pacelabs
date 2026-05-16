@@ -146,9 +146,9 @@ export default function WeekRow({
               onClick={() => { setCompareMode(!compareMode); setSelected(new Set()); }}
               style={{
                 padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 600,
-                background: compareMode ? 'rgba(249,115,22,0.15)' : 'transparent',
-                border: compareMode ? '1px solid rgba(249,115,22,0.4)' : '1px solid #2e2e2e',
-                color: compareMode ? '#F97316' : '#52525b', cursor: 'pointer',
+                background: compareMode ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.06)',
+                border: compareMode ? '1px solid rgba(249,115,22,0.4)' : '1px solid rgba(249,115,22,0.2)',
+                color: compareMode ? '#F97316' : '#F97316', cursor: 'pointer',
                 flexShrink: 0, transition: 'all 0.15s',
               }}
             >
