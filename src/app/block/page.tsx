@@ -79,7 +79,7 @@ export default async function BlockPage() {
   return (
     <AppShell>
       <BlockAnimations />
-      <div style={{ maxWidth: '780px', padding: '0 24px 40px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1100px', padding: '0 32px 40px', margin: '0 auto' }}>
       <div style={{ position: 'relative', overflow: 'hidden', padding: '28px 0 22px' }}>
         <div style={{
           position: 'absolute', width: '460px', height: '460px', borderRadius: '50%',

@@ -82,7 +82,7 @@ export default async function PlanPage({
   return (
     <AppShell>
       {/* ONE wrapper, everything inside, consistent padding and max-width */}
-      <div style={{ maxWidth: "780px", padding: "0 24px 40px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1100px", padding: "0 32px 40px", margin: "0 auto" }}>
 
         {/* Hero — no card, bleeds into background */}
         <div style={{ padding: "28px 0 22px" }}>
