@@ -78,7 +78,7 @@ export default async function PlanPage({
 
   return (
     <AppShell>
-      <div style={{ maxWidth: "1150px", padding: "0 32px 40px" }}>
+      <div style={{ maxWidth: "1150px", padding: "0 32px 40px", display: "flex", flexDirection: "column", gap: "12px" }}>
         <RaceHeroCard block={block} queuedBlock={queuedBlock} />
 
         <div style={{
