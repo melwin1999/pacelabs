@@ -95,22 +95,27 @@ export default async function PlanPage({
         <RaceHeroCard block={block} queuedBlock={queuedBlock} />
 
         <div style={{
-          display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "1px", background: "#1a1a1a",
-          borderRadius: "10px", overflow: "hidden",
+          display: "flex", justifyContent: "space-around", alignItems: "center",
+          background: "#0f0f0f", borderRadius: "10px", padding: "12px 0",
+          border: "1px solid #1a1a1a",
         }}>
           {[
             { label: "Planned", value: `${plannedKm.toFixed(1)}`, unit: "km", color: "#f5f5f5" },
             { label: "Done", value: `${doneKm.toFixed(1)}`, unit: "km", color: "#10b981" },
-            { label: "Sessions", value: `${completedCount}`, unit: `/${sessionCount}`, color: "#f5f5f5" },
-            { label: "Load vs last wk", value: loadStr, unit: "", color: loadColor },
-          ].map(({ label, value, unit, color }) => (
-            <div key={label} style={{ background: "#0f0f0f", padding: "12px 16px" }}>
-              <p style={{ fontSize: "9px", color: "#52525b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "3px" }}>{label}</p>
-              <p style={{ fontSize: "18px", fontWeight: 800, color, lineHeight: 1 }}>
-                {value}
-                {unit && <span style={{ fontSize: "9px", color: "#3f3f46", fontWeight: 400 }}> {unit}</span>}
-              </p>
+            { label: "Sessions", value: `${completedCount}/${sessionCount}`, unit: "", color: "#f5f5f5" },
+            { label: "Load", value: loadStr, unit: "", color: loadColor },
+          ].map(({ label, value, unit, color }, i, arr) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", flex: 1 }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+                <p style={{ fontSize: "9px", color: "#52525b", textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</p>
+                <p style={{ fontSize: "18px", fontWeight: 800, color, lineHeight: 1 }}>
+                  {value}
+                  {unit && <span style={{ fontSize: "9px", color: "#3f3f46", fontWeight: 400 }}> {unit}</span>}
+                </p>
+              </div>
+              {i < arr.length - 1 && (
+                <div style={{ width: "1px", height: "28px", background: "#1a1a1a", flexShrink: 0 }} />
+              )}
             </div>
           ))}
         </div>
