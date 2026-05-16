@@ -104,6 +104,7 @@ export default function RaceHeroCard({
         }} />
 
         <div style={{ maxWidth: '860px' }}></div>
+        <div id="pl-hero-content"></div>
         {/* Eyebrow */}
         <p style={{
           fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
@@ -206,6 +207,7 @@ export default function RaceHeroCard({
             </p>
           </div>
         )}
+        </div>
         </div>
       </div>
     </>
