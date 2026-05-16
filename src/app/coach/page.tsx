@@ -40,26 +40,18 @@ export default function CoachPage() {
     }
   }
 
-  useEffect(() => {
-    loadHistory();
-  }, []);
+  useEffect(() => { loadHistory(); }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
-
     setSending(true);
     setInput("");
-
-    setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
-
+    setMessages(prev => [...prev, { role: "user", content: trimmed }]);
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -68,95 +60,65 @@ export default function CoachPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Request failed");
-
-      // If a draft was created, fetch it so we can render the inline card immediately
-      let draft: AdaptDraft | null = null;
       if (data.adapt_draft_id) {
-        // Easiest: reload full history so message ids + draft data are correct
         await loadHistory();
         setSending(false);
         return;
       }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.reply,
-          adapt_draft_id: data.adapt_draft_id ?? null,
-          adapt_draft: draft,
-        },
-      ]);
+      setMessages(prev => [...prev, {
+        role: "assistant", content: data.reply,
+        adapt_draft_id: data.adapt_draft_id ?? null, adapt_draft: null,
+      }]);
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Something went wrong.";
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: `Error: ${errorMessage}` },
-      ]);
+      const errorMessage = err instanceof Error ? err.message : "Something went wrong.";
+      setMessages(prev => [...prev, { role: "assistant", content: `Error: ${errorMessage}` }]);
     } finally {
       setSending(false);
     }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage(input);
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
   }
 
   return (
-    <div
-      className="flex flex-col h-screen"
-      style={{ maxWidth: '860px', margin: '0 auto', padding: '20px 24px', color: 'var(--text)' }}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <h1
-          className="text-2xl sm:text-3xl font-extrabold tracking-tight"
-          style={{ letterSpacing: "-0.04em" }}
-        >
-          Coach
-        </h1>
-        <Link
-          href="/coach/history"
-          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg"
-          style={{
-            color: "var(--text-muted)",
-            border: "1px solid var(--border)",
-          }}
-        >
-          <History size={14} />
-          History
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100vh',
+      maxWidth: '780px', margin: '0 auto', padding: '32px 32px 0',
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexShrink: 0 }}>
+        <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#f5f5f5', letterSpacing: '-0.5px' }}>Coach</h1>
+        <Link href="/coach/history" style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          fontSize: '12px', fontWeight: 500, padding: '8px 14px', borderRadius: '10px',
+          color: '#a1a1aa', border: '1px solid #1f1f1f', textDecoration: 'none',
+          background: '#111',
+        }}>
+          <History size={14} /> History
         </Link>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pb-4">
+      {/* Messages */}
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', paddingBottom: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {loadingHistory && (
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            Loading conversation...
-          </p>
+          <p style={{ fontSize: '14px', color: '#52525b' }}>Loading conversation...</p>
         )}
 
         {!loadingHistory && messages.length === 0 && (
-          <div className="space-y-3">
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              Ask me anything about your training.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {QUICK_QUESTIONS.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => sendMessage(q)}
-                  className="text-left text-sm px-3 py-2 rounded-lg transition"
-                  style={{
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border)",
-                    color: "var(--text)",
-                  }}
-                >
-                  {q}
-                </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <p style={{ fontSize: '14px', color: '#71717a' }}>Ask me anything about your training.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {QUICK_QUESTIONS.map(q => (
+                <button key={q} onClick={() => sendMessage(q)} style={{
+                  textAlign: 'left', fontSize: '13px', padding: '14px 16px',
+                  borderRadius: '12px', background: '#111', border: '1px solid #1f1f1f',
+                  color: '#a1a1aa', cursor: 'pointer', lineHeight: 1.4,
+                  transition: 'border-color 0.15s',
+                }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = '#2e2e2e')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = '#1f1f1f')}
+                >{q}</button>
               ))}
             </div>
           </div>
@@ -164,35 +126,22 @@ export default function CoachPage() {
 
         {messages.map((m, i) => (
           <div key={m.id ?? i}>
-            <div
-              className={`flex ${
-                m.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className="max-w-[85%] px-4 py-2.5 rounded-2xl whitespace-pre-wrap text-sm leading-relaxed"
-                style={
-                  m.role === "user"
-                    ? { background: "var(--accent)", color: "#09090B" }
-                    : {
-                        background: "var(--bg-card)",
-                        border: "1px solid var(--border)",
-                        color: "var(--text)",
-                      }
-                }
-              >
+            <div style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div style={{
+                maxWidth: '80%', padding: '14px 18px', borderRadius: '18px',
+                fontSize: '14px', lineHeight: 1.6, whiteSpace: 'pre-wrap',
+                ...(m.role === 'user'
+                  ? { background: '#F97316', color: '#09090B', borderBottomRightRadius: '4px' }
+                  : { background: '#111', border: '1px solid #1f1f1f', color: '#f5f5f5', borderBottomLeftRadius: '4px' }
+                ),
+              }}>
                 {m.content}
               </div>
             </div>
-
-            {/* Inline proposal card for assistant messages with a linked draft */}
-            {m.role === "assistant" && m.adapt_draft && (
-              <div className="flex justify-start mt-2">
-                <div className="max-w-[85%] w-full">
-                  <InlineProposalCard
-                    draft={m.adapt_draft}
-                    onResolved={loadHistory}
-                  />
+            {m.role === 'assistant' && m.adapt_draft && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '8px' }}>
+                <div style={{ maxWidth: '80%', width: '100%' }}>
+                  <InlineProposalCard draft={m.adapt_draft} onResolved={loadHistory} />
                 </div>
               </div>
             )}
@@ -200,45 +149,38 @@ export default function CoachPage() {
         ))}
 
         {sending && (
-          <div className="flex justify-start">
-            <div
-              className="px-4 py-2.5 rounded-2xl text-sm"
-              style={{
-                background: "var(--bg-card)",
-                color: "var(--text-muted)",
-                border: "1px solid var(--border)",
-              }}
-            >
-              Thinking...
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <div style={{
+              padding: '14px 18px', borderRadius: '18px', borderBottomLeftRadius: '4px',
+              fontSize: '14px', background: '#111', border: '1px solid #1f1f1f', color: '#52525b',
+            }}>Thinking...</div>
           </div>
         )}
       </div>
 
-      <div className="pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-        <div className="flex gap-2 items-end">
+      {/* Input */}
+      <div style={{ borderTop: '1px solid #1f1f1f', padding: '16px 0 24px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
           <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
+            value={input} onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask your coach..."
-            rows={1}
-            disabled={sending}
-            className="flex-1 resize-none px-3 py-2 rounded-lg focus:outline-none text-sm"
+            rows={1} disabled={sending}
             style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              color: "var(--text)",
+              flex: 1, resize: 'none', padding: '14px 16px', borderRadius: '14px',
+              background: '#111', border: '1px solid #1f1f1f', color: '#f5f5f5',
+              fontSize: '14px', outline: 'none', lineHeight: 1.5,
+              fontFamily: 'inherit',
             }}
           />
-          <button
-            onClick={() => sendMessage(input)}
-            disabled={sending || !input.trim()}
-            className="p-2 rounded-lg disabled:opacity-40"
-            style={{ background: "var(--accent)", color: "#09090B" }}
-            aria-label="Send message"
-          >
-            <Send size={18} />
+          <button onClick={() => sendMessage(input)} disabled={sending || !input.trim()}
+            style={{
+              padding: '14px', borderRadius: '14px', background: '#F97316',
+              border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', opacity: sending || !input.trim() ? 0.4 : 1,
+              flexShrink: 0,
+            }}>
+            <Send size={18} color="#09090B" />
           </button>
         </div>
       </div>
