@@ -89,7 +89,8 @@ export default function RaceHeroCard({
         .pl-track-dot { animation: plPulse 2s ease-in-out infinite; }
       `}</style>
 
-      <div style={{ position: 'relative', overflow: 'hidden', padding: '28px 28px 22px', maxWidth: '860px' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', padding: '28px 28px 22px' }}>
+  <div style={{ maxWidth: '860px' }}>
         {/* Orbs */}
         <div style={{
           position: 'absolute', width: '500px', height: '500px', borderRadius: '50%',
@@ -102,6 +103,7 @@ export default function RaceHeroCard({
           bottom: '-90px', left: '-40px', pointerEvents: 'none',
         }} />
 
+        <div style={{ maxWidth: '860px' }}></div>
         {/* Eyebrow */}
         <p style={{
           fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
@@ -204,6 +206,7 @@ export default function RaceHeroCard({
             </p>
           </div>
         )}
+        </div>
       </div>
     </>
   )
