@@ -11,6 +11,19 @@ import EmptyState from "@/components/plan/EmptyState";
 
 export const dynamic = "force-dynamic";
 
+async function autoAdvanceWeek() {
+  const today = new Date();
+  const { data: blocks } = await supabaseAdmin
+    .from("blocks").select("*").eq("status", "active").limit(1);
+  const block = blocks?.[0];
+  if (!block || !block.start_date) return;
+  const start = new Date(block.start_date);
+  const daysDiff = Math.floor((today.getTime() - start.getTime()) / 86400000);
+  const correctWeek = Math.min(block.total_weeks, Math.max(1, Math.floor(daysDiff / 7) + 1));
+  if (correctWeek !== block.current_week) {
+    await supabaseAdmin.from("blocks").update({ current_week: correctWeek }).eq("id", block.id);
+  }
+}
 async function autoActivateQueued() {
   const today = new Date().toISOString().split("T")[0];
   const { data: queued } = await supabaseAdmin
@@ -28,6 +41,7 @@ export default async function PlanPage({
 }: {
   searchParams: Promise<{ week?: string }>;
 }) {
+  await autoAdvanceWeek();
   await autoActivateQueued();
 
   const { data: blocks } = await supabaseAdmin
@@ -81,8 +95,8 @@ export default async function PlanPage({
   let loadColor = "#a1a1aa";
   if (prevPlannedKm > 0 && plannedKm > 0) {
     const pct = Math.round(((plannedKm - prevPlannedKm) / prevPlannedKm) * 100);
-    if (pct > 0) { loadStr = `↑${pct}%`; loadColor = "#F97316"; }
-    else if (pct < 0) { loadStr = `↓${Math.abs(pct)}%`; loadColor = "#10b981"; }
+    if (pct > 0) { loadStr = `↑${pct}%`; loadColor = "#10b981"; }
+    else if (pct < 0) { loadStr = `↓${Math.abs(pct)}%`; loadColor = "#ffffffc3"; }
     else { loadStr = "→ 0%"; loadColor = "#10b981"; }
   } else if (displayWeek === 1) {
     loadStr = "Week 1";

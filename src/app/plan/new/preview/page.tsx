@@ -55,6 +55,8 @@ function PreviewPageInner() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [hasActiveBlock, setHasActiveBlock] = useState(false);
   const [draftStates, setDraftStates] = useState<Record<string, 'pending' | 'accepted' | 'rejected'>>({});
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -66,6 +68,12 @@ function PreviewPageInner() {
     setBlock(json.block);
     setWorkouts(json.workouts);
     setLoading(false);
+    // Check if there's already an active block
+    const activeRes = await fetch('/api/blocks/active');
+    if (activeRes.ok) {
+      const activeJson = await activeRes.json();
+      setHasActiveBlock(!!activeJson.block && activeJson.block.id !== blockId);
+    }
   }, [blockId]);
 
   useEffect(() => { loadBlock(); }, [loadBlock]);
@@ -112,6 +120,11 @@ function PreviewPageInner() {
 
   async function activate() {
     if (!blockId) return;
+    if (hasActiveBlock && !showConfirm) {
+      setShowConfirm(true);
+      return;
+    }
+    setShowConfirm(false);
     setActivating(true);
     const res = await fetch(`/api/blocks/${blockId}/activate`, { method: 'POST' });
     if (res.ok) {
@@ -294,12 +307,55 @@ function PreviewPageInner() {
           </div>
         </div>
 
-        <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Happy with the plan? Accepting will archive your current active block and start this one at week 1.</p>
-          <button onClick={activate} disabled={activating} className="w-full rounded-xl py-4 font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>
-            {activating ? <><Loader2 className="w-5 h-5 animate-spin" /> Activating…</> : <><CheckCircle2 className="w-5 h-5" /> Accept plan & start training</>}
+        <div style={{ borderRadius: '12px', padding: '20px', background: '#111', border: '1px solid #1f1f1f', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <p style={{ fontSize: '14px', color: '#71717a', lineHeight: 1.5 }}>
+            Happy with the plan? Accepting will set this as your active block.
+            {hasActiveBlock && <span style={{ color: '#F97316' }}> Your current active block will be archived.</span>}
+          </p>
+          <button onClick={activate} disabled={activating} style={{
+            width: '100%', padding: '16px', borderRadius: '12px', fontSize: '15px', fontWeight: 700,
+            cursor: 'pointer', background: '#F97316', border: 'none', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            opacity: activating ? 0.7 : 1,
+          }}>
+            {activating
+              ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Activating…</>
+              : <><CheckCircle2 size={18} /> Accept plan & start training</>
+            }
           </button>
         </div>
+
+        {/* Confirmation modal */}
+        {showConfirm && (
+          <div onClick={() => setShowConfirm(false)} style={{
+            position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+          }}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%', maxWidth: '420px', borderRadius: '20px', padding: '28px',
+              background: '#111', border: '1px solid #2e2e2e', display: 'flex', flexDirection: 'column', gap: '20px',
+            }}>
+              <div>
+                <p style={{ fontSize: '18px', fontWeight: 700, color: '#f5f5f5', marginBottom: '8px' }}>Switch active plan?</p>
+                <p style={{ fontSize: '14px', color: '#a1a1aa', lineHeight: 1.5 }}>
+                  You already have an active training block. Accepting this plan will archive your current block and start this one. This cannot be undone.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => setShowConfirm(false)} style={{
+                  flex: 1, padding: '13px', borderRadius: '12px', fontSize: '14px', fontWeight: 600,
+                  cursor: 'pointer', background: '#0d0d0d', border: '1px solid #2e2e2e', color: '#71717a',
+                }}>Cancel</button>
+                <button onClick={activate} disabled={activating} style={{
+                  flex: 1, padding: '13px', borderRadius: '12px', fontSize: '14px', fontWeight: 700,
+                  cursor: 'pointer', background: '#F97316', border: 'none', color: '#fff',
+                }}>
+                  {activating ? 'Activating…' : 'Yes, switch plan'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );
