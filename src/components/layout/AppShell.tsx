@@ -82,7 +82,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content */}
-      <main id="pl-main" style={{ flex: 1, minWidth: 0, paddingBottom: '72px', minHeight: '100vh' }}>
+      <main id="pl-main" style={{ flex: 1, minWidth: 0, paddingBottom: '62px', minHeight: '100vh' }}>
         {children}
       </main>
 

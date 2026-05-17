@@ -83,7 +83,8 @@ export default function CoachPage() {
 
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', height: '100vh',
+      display: 'flex', flexDirection: 'column',
+      height: 'calc(100vh - 62px)',
       maxWidth: '780px', margin: '0 auto', padding: '32px 32px 0',
     }}>
       {/* Header */}
