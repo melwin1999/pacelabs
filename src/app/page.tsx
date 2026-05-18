@@ -24,6 +24,7 @@ async function autoAdvanceWeek() {
     await supabaseAdmin.from("blocks").update({ current_week: correctWeek }).eq("id", block.id);
   }
 }
+
 async function autoActivateQueued() {
   const today = new Date().toISOString().split("T")[0];
   const { data: queued } = await supabaseAdmin
@@ -71,7 +72,6 @@ export default async function PlanPage({
     .from("workouts").select("*").eq("block_id", block.id)
     .eq("week_number", displayWeek).order("day_of_week", { ascending: true });
 
-  // Load: fetch previous week workouts for comparison
   const { data: prevWorkouts } = await supabaseAdmin
     .from("workouts").select("*").eq("block_id", block.id)
     .eq("week_number", displayWeek - 1);
@@ -88,7 +88,6 @@ export default async function PlanPage({
   const sessionCount = nonRest.length;
   const completedCount = nonRest.filter((x) => x.is_complete).length;
 
-  // Load vs last week
   const prevNonRest = (prevWorkouts ?? []).filter((x: Workout) => x.type !== "rest" && !x.skipped);
   const prevPlannedKm = prevNonRest.reduce((sum: number, x: Workout) => sum + (x.distance_km ?? 0), 0);
   let loadStr = "—";
@@ -107,6 +106,10 @@ export default async function PlanPage({
     <AppShell>
       <div style={{ maxWidth: "1150px", padding: "0 32px 40px", display: "flex", flexDirection: "column", gap: "12px" }}>
         <RaceHeroCard block={block} queuedBlock={queuedBlock} />
+
+        {pendingDraft && <AdaptBanner draft={pendingDraft} />}
+
+        <WeekView workouts={w} weekNumber={displayWeek} blockId={block.id} totalWeeks={block.total_weeks} />
 
         <div style={{
           display: "flex", justifyContent: "space-around", alignItems: "center",
@@ -134,8 +137,6 @@ export default async function PlanPage({
           ))}
         </div>
 
-        {pendingDraft && <AdaptBanner draft={pendingDraft} />}
-        <WeekView workouts={w} weekNumber={displayWeek} blockId={block.id} totalWeeks={block.total_weeks} />
         <CoachNudge />
         <QuickQuestions />
         <PushToGarminButton />
