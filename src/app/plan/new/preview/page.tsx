@@ -68,7 +68,6 @@ function PreviewPageInner() {
     setBlock(json.block);
     setWorkouts(json.workouts);
     setLoading(false);
-    // Check if there's already an active block
     const activeRes = await fetch('/api/blocks/active');
     if (activeRes.ok) {
       const activeJson = await activeRes.json();
@@ -120,20 +119,13 @@ function PreviewPageInner() {
 
   async function activate() {
     if (!blockId) return;
-    if (hasActiveBlock && !showConfirm) {
-      setShowConfirm(true);
-      return;
-    }
+    if (hasActiveBlock && !showConfirm) { setShowConfirm(true); return; }
     setShowConfirm(false);
     setActivating(true);
     const res = await fetch(`/api/blocks/${blockId}/activate`, { method: 'POST' });
     if (res.ok) {
       const json = await res.json();
-      if (json.queued) {
-        router.push('/?queued=1');
-      } else {
-        router.push('/');
-      }
+      router.push(json.queued ? '/?queued=1' : '/');
     } else {
       setActivating(false);
     }
@@ -142,8 +134,8 @@ function PreviewPageInner() {
   if (loading) {
     return (
       <AppShell>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <Loader2 size={32} style={{ color: '#F97316', animation: 'spin 1s linear infinite' }} />
         </div>
       </AppShell>
     );
@@ -152,8 +144,8 @@ function PreviewPageInner() {
   if (!block) {
     return (
       <AppShell>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <p style={{ color: 'var(--text-muted)' }}>Plan not found.</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <p style={{ color: '#71717a' }}>Plan not found.</p>
         </div>
       </AppShell>
     );
@@ -172,72 +164,108 @@ function PreviewPageInner() {
 
   return (
     <AppShell>
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <div style={{ maxWidth: '640px', margin: '0 auto', padding: '32px 24px 60px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+        {/* Header */}
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: '#F9731622', color: 'var(--accent)' }}>
+          <div style={{ marginBottom: '8px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px', background: 'rgba(249,115,22,0.1)', color: '#F97316', letterSpacing: '0.08em' }}>
               DRAFT
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>{block.name}</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{block.total_weeks} weeks · {block.adaptation_aggressiveness}</p>
+          <h1 style={{ fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 900, color: '#f5f5f5', letterSpacing: '-0.5px', marginBottom: '4px' }}>{block.name}</h1>
+          <p style={{ fontSize: '13px', color: '#71717a' }}>{block.total_weeks} weeks · {block.adaptation_aggressiveness}</p>
         </div>
 
+        {/* Why this plan */}
         {block.goal && (
-          <div className="rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--accent)' }}>Why this plan?</p>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{block.goal}</p>
+          <div style={{ background: '#111', border: '1px solid #1f1f1f', borderRadius: '12px', padding: '16px 18px' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#F97316', marginBottom: '8px' }}>Why this plan?</p>
+            <p style={{ fontSize: '13px', color: '#a1a1aa', lineHeight: 1.6 }}>{block.goal}</p>
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-3 rounded-xl p-4" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        {/* Stat cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', background: '#111', border: '1px solid #1f1f1f', borderRadius: '12px', padding: '16px 18px' }}>
           {[
             { label: 'Est. now', value: block.est_now_seconds ? formatTime(block.est_now_seconds) : '—' },
             { label: 'Race proj.', value: block.race_proj_seconds ? formatTime(block.race_proj_seconds) : '—' },
             { label: 'Race date', value: block.race_date ? new Date(block.race_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—' },
           ].map(s => (
-            <div key={s.label} className="text-center">
-              <div className="text-lg font-extrabold" style={{ color: 'var(--text)', letterSpacing: '-0.04em' }}>{s.value}</div>
-              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{s.label}</div>
+            <div key={s.label} style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#f5f5f5', letterSpacing: '-0.5px' }}>{s.value}</div>
+              <div style={{ fontSize: '11px', color: '#52525b', marginTop: '2px' }}>{s.label}</div>
             </div>
           ))}
         </div>
 
-        <div className="space-y-2">
+        {/* Week list */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {weekSummaries.map(({ weekNumber, totalKm, sessions, phase }) => {
             const phaseColor = phase ? (PHASE_COLOURS[phase] ?? '#A3A3A3') : '#A3A3A3';
             const isExpanded = expandedWeeks.has(weekNumber);
-            const weekWorkouts = workouts.filter(w => w.week_number === weekNumber).sort((a, b) => a.day_of_week - b.day_of_week);
+            const weekWorkouts = workouts
+              .filter(w => w.week_number === weekNumber)
+              .sort((a, b) => a.day_of_week - b.day_of_week);
+
             return (
-              <div key={weekNumber} className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-                <button onClick={() => toggleWeek(weekNumber)} className="w-full px-4 py-3 flex items-center gap-3 text-left" style={{ backgroundColor: 'var(--bg-card)' }}>
-                  <div className="w-1 h-8 rounded-full shrink-0" style={{ backgroundColor: phaseColor }} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Week {weekNumber}</span>
-                      {phase && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: phaseColor + '22', color: phaseColor }}>{phase}</span>}
+              <div key={weekNumber} style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
+                <button
+                  onClick={() => toggleWeek(weekNumber)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '12px 14px', background: '#111', border: 'none', cursor: 'pointer', textAlign: 'left',
+                  }}
+                >
+                  <div style={{ width: '3px', height: '32px', borderRadius: '2px', flexShrink: 0, background: phaseColor }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#f5f5f5' }}>Week {weekNumber}</span>
+                      {phase && (
+                        <span style={{
+                          fontSize: '9px', padding: '2px 7px', borderRadius: '10px', fontWeight: 600,
+                          color: phaseColor, background: `${phaseColor}22`,
+                        }}>{phase}</span>
+                      )}
                     </div>
-                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{totalKm.toFixed(1)} km · {sessions} sessions</div>
+                    <div style={{ fontSize: '11px', color: '#52525b' }}>{totalKm.toFixed(0)} km · {sessions} sessions</div>
                   </div>
-                  {isExpanded ? <ChevronUp className="w-4 h-4 shrink-0" style={{ color: 'var(--text-muted)' }} /> : <ChevronDown className="w-4 h-4 shrink-0" style={{ color: 'var(--text-muted)' }} />}
+                  {isExpanded
+                    ? <ChevronUp size={14} style={{ color: '#52525b', flexShrink: 0 }} />
+                    : <ChevronDown size={14} style={{ color: '#52525b', flexShrink: 0 }} />
+                  }
                 </button>
+
                 {isExpanded && (
-                  <div style={{ borderTop: '1px solid var(--border)' }}>
-                    {weekWorkouts.map(w => (
-                      <div key={w.id} className="px-4 py-3 flex items-start gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                        <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: TYPE_COLOURS[w.type] ?? '#A3A3A3' }} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{DAY_LABELS[w.day_of_week]}</span>
-                            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{w.name}</span>
+                  <div style={{ borderTop: '1px solid #1a1a1a' }}>
+                    {weekWorkouts.map((w, idx) => (
+                      <div
+                        key={w.id}
+                        style={{
+                          display: 'flex', alignItems: 'flex-start', gap: '12px',
+                          padding: '12px 14px',
+                          borderBottom: idx < weekWorkouts.length - 1 ? '1px solid #1a1a1a' : 'none',
+                          background: '#0d0d0d',
+                        }}
+                      >
+                        <div style={{
+                          width: '8px', height: '8px', borderRadius: '50%', marginTop: '5px', flexShrink: 0,
+                          background: TYPE_COLOURS[w.type] ?? '#A3A3A3',
+                        }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '2px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 600, color: '#52525b' }}>{DAY_LABELS[w.day_of_week]}</span>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>{w.name}</span>
                           </div>
                           {w.type !== 'rest' && (
-                            <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                            <div style={{ fontSize: '11px', color: '#71717a', marginBottom: w.description ? '4px' : '0' }}>
                               {(w.distance_km ?? 0) > 0 ? `${w.distance_km} km` : ''}
                               {w.pace_min_seconds ? ` · ${formatWorkoutPace(w.pace_min_seconds, w.pace_max_seconds ?? w.pace_min_seconds, null)}` : ''}
                             </div>
                           )}
-                          {w.description && <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{w.description}</p>}
+                          {w.description && (
+                            <p style={{ fontSize: '12px', color: '#71717a', lineHeight: 1.5, margin: 0 }}>{w.description}</p>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -248,76 +276,126 @@ function PreviewPageInner() {
           })}
         </div>
 
-        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-          <div className="px-4 py-3 flex items-center gap-2" style={{ backgroundColor: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-            <Sparkles className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Refine with Claude</span>
+        {/* Refine with AI */}
+        <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #1f1f1f' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            padding: '12px 16px', background: '#111', borderBottom: messages.length > 0 ? '1px solid #1f1f1f' : 'none',
+          }}>
+            <Sparkles size={14} style={{ color: '#F97316' }} />
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>Refine with AI</span>
           </div>
+
           {messages.length > 0 && (
-            <div className="px-4 py-3 space-y-4 max-h-96 overflow-y-auto" style={{ backgroundColor: 'var(--bg-card)' }}>
+            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '380px', overflowY: 'auto', background: '#111' }}>
               {messages.map((m, i) => (
                 <div key={i}>
-                  <div className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className="max-w-[85%] rounded-xl px-3 py-2 text-sm" style={{ backgroundColor: m.role === 'user' ? 'var(--accent)' : 'var(--bg)', color: m.role === 'user' ? '#fff' : 'var(--text)', border: m.role === 'assistant' ? '1px solid var(--border)' : 'none' }}>
+                  <div style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                    <div style={{
+                      maxWidth: '85%', borderRadius: '14px', padding: '10px 14px',
+                      fontSize: '13px', lineHeight: 1.5,
+                      ...(m.role === 'user'
+                        ? { background: '#F97316', color: '#09090B', borderBottomRightRadius: '4px' }
+                        : { background: '#0d0d0d', border: '1px solid #1f1f1f', color: '#a1a1aa', borderBottomLeftRadius: '4px' }
+                      ),
+                    }}>
                       {m.content}
                     </div>
                   </div>
+
                   {m.draft && draftStates[m.draft.id] === 'pending' && (
-                    <div className="mt-2 rounded-xl p-3 space-y-2" style={{ border: '1.5px solid var(--accent)', backgroundColor: 'var(--bg-card)' }}>
-                      <p className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>PROPOSED CHANGES</p>
+                    <div style={{
+                      marginTop: '8px', borderRadius: '10px', padding: '12px 14px',
+                      border: '1.5px solid #F97316', background: '#111',
+                      display: 'flex', flexDirection: 'column', gap: '8px',
+                    }}>
+                      <p style={{ fontSize: '10px', fontWeight: 700, color: '#F97316', textTransform: 'uppercase', letterSpacing: '0.07em', margin: 0 }}>Proposed changes</p>
                       {m.draft.proposed_changes.map((c: ProposedChange, ci: number) => (
-                        <div key={ci} className="text-xs" style={{ color: 'var(--text)' }}>
-                          <span className="font-semibold">{c.workout_name}</span>
-                          {c.field_changed && <span style={{ color: 'var(--text-muted)' }}> — {c.field_changed}: {c.old_value} → {c.new_value}</span>}
-                          {c.reason && <span style={{ color: 'var(--text-muted)' }}> ({c.reason})</span>}
+                        <div key={ci} style={{ fontSize: '12px', color: '#f5f5f5' }}>
+                          <span style={{ fontWeight: 600 }}>{c.workout_name}</span>
+                          {c.field_changed && <span style={{ color: '#71717a' }}> — {c.field_changed}: {c.old_value} → {c.new_value}</span>}
+                          {c.reason && <span style={{ color: '#71717a' }}> ({c.reason})</span>}
                         </div>
                       ))}
-                      <div className="flex gap-2 mt-2">
-                        <button onClick={() => acceptDraft(m.draft!)} className="flex-1 rounded-lg py-1.5 text-xs font-semibold" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>Accept</button>
-                        <button onClick={() => rejectDraft(m.draft!)} className="flex-1 rounded-lg py-1.5 text-xs font-semibold" style={{ border: '1px solid var(--border)', color: 'var(--text)', backgroundColor: 'transparent' }}>Reject</button>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                        <button
+                          onClick={() => acceptDraft(m.draft!)}
+                          style={{ flex: 1, padding: '9px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, background: '#F97316', border: 'none', color: '#fff', cursor: 'pointer' }}
+                        >Accept</button>
+                        <button
+                          onClick={() => rejectDraft(m.draft!)}
+                          style={{ flex: 1, padding: '9px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, background: 'transparent', border: '1px solid #2e2e2e', color: '#71717a', cursor: 'pointer' }}
+                        >Reject</button>
                       </div>
                     </div>
                   )}
                   {m.draft && draftStates[m.draft.id] === 'accepted' && (
-                    <div className="mt-2 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--success)' }} />
-                      <span className="text-xs" style={{ color: 'var(--success)' }}>Changes accepted</span>
+                    <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CheckCircle2 size={13} style={{ color: '#10b981' }} />
+                      <span style={{ fontSize: '12px', color: '#10b981' }}>Changes accepted</span>
                     </div>
                   )}
                   {m.draft && draftStates[m.draft.id] === 'rejected' && (
-                    <div className="mt-2"><span className="text-xs" style={{ color: 'var(--text-muted)' }}>Changes rejected</span></div>
+                    <div style={{ marginTop: '6px' }}>
+                      <span style={{ fontSize: '12px', color: '#52525b' }}>Changes rejected</span>
+                    </div>
                   )}
                 </div>
               ))}
               {sending && (
-                <div className="flex justify-start">
-                  <div className="rounded-xl px-3 py-2" style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)' }}>
-                    <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--text-muted)' }} />
+                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <div style={{ padding: '10px 14px', borderRadius: '14px', borderBottomLeftRadius: '4px', background: '#0d0d0d', border: '1px solid #1f1f1f' }}>
+                    <Loader2 size={14} style={{ color: '#52525b', animation: 'spin 1s linear infinite' }} />
                   </div>
                 </div>
               )}
               <div ref={chatEndRef} />
             </div>
           )}
-          <div className="px-3 py-3 flex gap-2" style={{ backgroundColor: 'var(--bg-card)', borderTop: messages.length > 0 ? '1px solid var(--border)' : 'none' }}>
-            <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} placeholder="e.g. Make week 8 lighter, I have a wedding" className="flex-1 rounded-xl px-3 py-2 text-sm" style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-            <button onClick={sendMessage} disabled={!input.trim() || sending} className="rounded-xl px-3 py-2" style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>
-              <Send className="w-4 h-4" />
+
+          <div style={{ display: 'flex', gap: '8px', padding: '12px', background: '#111', borderTop: messages.length > 0 ? '1px solid #1f1f1f' : 'none' }}>
+            <input
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+              placeholder="e.g. Make week 8 lighter, I have a wedding"
+              style={{
+                flex: 1, padding: '11px 14px', borderRadius: '10px', fontSize: '13px',
+                background: '#0d0d0d', border: '1px solid #1f1f1f', color: '#f5f5f5', outline: 'none',
+                fontFamily: 'inherit',
+              }}
+            />
+            <button
+              onClick={sendMessage}
+              disabled={!input.trim() || sending}
+              style={{
+                padding: '11px 14px', borderRadius: '10px', background: '#F97316',
+                border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                opacity: !input.trim() || sending ? 0.4 : 1, flexShrink: 0,
+              }}
+            >
+              <Send size={16} color="#09090B" />
             </button>
           </div>
         </div>
 
+        {/* Activate */}
         <div style={{ borderRadius: '12px', padding: '20px', background: '#111', border: '1px solid #1f1f1f', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <p style={{ fontSize: '14px', color: '#71717a', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '13px', color: '#71717a', lineHeight: 1.5, margin: 0 }}>
             Happy with the plan? Accepting will set this as your active block.
             {hasActiveBlock && <span style={{ color: '#F97316' }}> Your current active block will be archived.</span>}
           </p>
-          <button onClick={activate} disabled={activating} style={{
-            width: '100%', padding: '16px', borderRadius: '12px', fontSize: '15px', fontWeight: 700,
-            cursor: 'pointer', background: '#F97316', border: 'none', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            opacity: activating ? 0.7 : 1,
-          }}>
+          <button
+            onClick={activate}
+            disabled={activating}
+            style={{
+              width: '100%', padding: '16px', borderRadius: '12px', fontSize: '15px', fontWeight: 700,
+              cursor: 'pointer', background: '#F97316', border: 'none', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              opacity: activating ? 0.7 : 1,
+            }}
+          >
             {activating
               ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Activating…</>
               : <><CheckCircle2 size={18} /> Accept plan & start training</>
@@ -327,29 +405,30 @@ function PreviewPageInner() {
 
         {/* Confirmation modal */}
         {showConfirm && (
-          <div onClick={() => setShowConfirm(false)} style={{
-            position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
-          }}>
-            <div onClick={e => e.stopPropagation()} style={{
-              width: '100%', maxWidth: '420px', borderRadius: '20px', padding: '28px',
-              background: '#111', border: '1px solid #2e2e2e', display: 'flex', flexDirection: 'column', gap: '20px',
-            }}>
+          <div
+            onClick={() => setShowConfirm(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ width: '100%', maxWidth: '420px', borderRadius: '20px', padding: '28px', background: '#111', border: '1px solid #2e2e2e', display: 'flex', flexDirection: 'column', gap: '20px' }}
+            >
               <div>
                 <p style={{ fontSize: '18px', fontWeight: 700, color: '#f5f5f5', marginBottom: '8px' }}>Switch active plan?</p>
-                <p style={{ fontSize: '14px', color: '#a1a1aa', lineHeight: 1.5 }}>
+                <p style={{ fontSize: '14px', color: '#a1a1aa', lineHeight: 1.5, margin: 0 }}>
                   You already have an active training block. Accepting this plan will archive your current block and start this one. This cannot be undone.
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => setShowConfirm(false)} style={{
-                  flex: 1, padding: '13px', borderRadius: '12px', fontSize: '14px', fontWeight: 600,
-                  cursor: 'pointer', background: '#0d0d0d', border: '1px solid #2e2e2e', color: '#71717a',
-                }}>Cancel</button>
-                <button onClick={activate} disabled={activating} style={{
-                  flex: 1, padding: '13px', borderRadius: '12px', fontSize: '14px', fontWeight: 700,
-                  cursor: 'pointer', background: '#F97316', border: 'none', color: '#fff',
-                }}>
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  style={{ flex: 1, padding: '13px', borderRadius: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', background: '#0d0d0d', border: '1px solid #2e2e2e', color: '#71717a' }}
+                >Cancel</button>
+                <button
+                  onClick={activate}
+                  disabled={activating}
+                  style={{ flex: 1, padding: '13px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', background: '#F97316', border: 'none', color: '#fff' }}
+                >
                   {activating ? 'Activating…' : 'Yes, switch plan'}
                 </button>
               </div>
@@ -363,7 +442,11 @@ function PreviewPageInner() {
 
 export default function PreviewPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} /></div>}>
+    <Suspense fallback={
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <Loader2 size={32} style={{ color: '#F97316', animation: 'spin 1s linear infinite' }} />
+      </div>
+    }>
       <PreviewPageInner />
     </Suspense>
   );
