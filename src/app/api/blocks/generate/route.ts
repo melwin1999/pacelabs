@@ -163,7 +163,23 @@ export async function POST(req: NextRequest) {
         const startDate = new Date(input.start_date || input.race_date)
         if (!input.start_date) startDate.setDate(startDate.getDate() - totalWeeks * 7)
 
-        const workoutsToInsert = allWorkouts.map((w: Record<string, unknown>) => {
+        const raceDate = new Date(skeleton.block_meta.race_date)
+        const HARD_TYPES = new Set(['race', 'intervals', 'threshold', 'tempo', 'fartlek', 'progression', 'strides'])
+
+        const validatedWorkouts = allWorkouts.filter((w: Record<string, unknown>) => {
+          const weekNum = w.week_number as number
+          const dayOfWeek = w.day_of_week as number
+          const scheduledDate = new Date(startDate)
+          scheduledDate.setDate(startDate.getDate() + (weekNum - 1) * 7 + dayOfWeek)
+          const daysBeforeRace = Math.round((raceDate.getTime() - scheduledDate.getTime()) / 86400000)
+          // Block ALL runs day before race
+          if (daysBeforeRace === 1) return false
+          // Block hard types within 4 days of race
+          if (daysBeforeRace <= 4 && HARD_TYPES.has(w.type as string)) return false
+          return true
+        })
+
+        const workoutsToInsert = validatedWorkouts.map((w: Record<string, unknown>) => {
           const weekNum = w.week_number as number
           const dayOfWeek = w.day_of_week as number
           const scheduledDate = new Date(startDate)
