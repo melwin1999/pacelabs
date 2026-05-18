@@ -19,7 +19,7 @@ export default function AdaptBanner({ draft }: Props) {
     <>
       <button
         onClick={() => setSheetOpen(true)}
-        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-opacity hover:opacity-90"
+        className="w-full flex items-center gap-3 px-4 py-4 rounded-xl text-left transition-opacity hover:opacity-90"
         style={{
           background: 'linear-gradient(135deg, rgba(249,115,22,0.15) 0%, rgba(249,115,22,0.05) 100%)',
           border: '1px solid rgba(249,115,22,0.4)',
@@ -35,7 +35,7 @@ export default function AdaptBanner({ draft }: Props) {
           <div className="text-sm font-semibold" style={{ color: 'var(--accent)' }}>
             Claude has {count} proposed {count === 1 ? 'adjustment' : 'adjustments'}
           </div>
-          <div className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+          <div className="text-xs truncate" style={{ color: 'var(--text-muted)', marginTop: '3px' }}>
             {draft.rationale ?? 'Tap to review'}
           </div>
         </div>
