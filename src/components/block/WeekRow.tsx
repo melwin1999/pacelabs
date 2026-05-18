@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Workout } from '@/lib/types';
 import WorkoutModal, { ModalMode } from './WorkoutModal';
 
@@ -42,6 +42,9 @@ export default function WeekRow({
   const [compareMode, setCompareMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [modal, setModal] = useState<ModalMode | null>(null);
+  const [hovered, setHovered] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState<number>(0);
 
   const phaseColor = phaseName ? (PHASE_COLORS[phaseName] ?? '#71717a') : '#71717a';
   const phaseBg = phaseName ? (PHASE_BG[phaseName] ?? 'transparent') : 'transparent';
@@ -54,6 +57,13 @@ export default function WeekRow({
   const progressPct = sessionsTotal > 0 ? Math.round((sessionsDone / sessionsTotal) * 100) : 0;
   const statusText = isCurrent ? 'in progress' : completedKm > 0 ? 'done' : 'upcoming';
   const statusColor = isCurrent ? '#F97316' : completedKm > 0 ? '#10b981' : '#3f3f46';
+
+  // Measure content height for smooth animation
+  useEffect(() => {
+    if (contentRef.current) {
+      setContentHeight(contentRef.current.scrollHeight);
+    }
+  }, [open, compareMode, nonRest.length]);
 
   function toggleSelect(id: string) {
     setSelected(prev => {
@@ -86,17 +96,25 @@ export default function WeekRow({
     <>
       {modal && <WorkoutModal mode={modal} onClose={() => setModal(null)} />}
 
-      <div style={{
-        borderRadius: '8px',
-        background: isCurrent ? 'rgba(249,115,22,0.04)' : '#111',
-        border: isCurrent ? '1px solid rgba(249,115,22,0.18)' : '1px solid #1a1a1a',
-        marginBottom: '4px', overflow: 'hidden',
-        transition: 'border-color 0.15s',
-      }}>
-        {/* Header row — outer flex container */}
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          borderRadius: '8px',
+          background: isCurrent
+            ? 'rgba(249,115,22,0.04)'
+            : hovered ? 'rgba(255,255,255,0.02)' : '#111',
+          border: isCurrent
+            ? '1px solid rgba(249,115,22,0.18)'
+            : hovered ? '1px solid #2e2e2e' : '1px solid #1a1a1a',
+          marginBottom: '4px',
+          overflow: 'hidden',
+          transition: 'border-color 0.2s, background 0.2s',
+          transform: hovered && !open ? 'translateX(2px)' : 'translateX(0)',
+        }}
+      >
+        {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 14px' }}>
-
-          {/* Main clickable area */}
           <button
             onClick={() => setOpen(!open)}
             style={{
@@ -108,7 +126,8 @@ export default function WeekRow({
             <div style={{
               width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '28px',
               flexShrink: 0, background: phaseColor, opacity: upcoming ? 0.3 : 1,
-              boxShadow: isCurrent ? `0 0 6px ${phaseColor}80` : 'none',
+              boxShadow: isCurrent ? `0 0 6px ${phaseColor}80` : hovered ? `0 0 8px ${phaseColor}60` : 'none',
+              transition: 'box-shadow 0.2s',
             }} />
 
             {/* Week label */}
@@ -130,7 +149,7 @@ export default function WeekRow({
               </span>
             )}
 
-            {/* Spacer + km */}
+            {/* km */}
             <span style={{
               fontSize: '12px', color: upcoming ? '#52525b' : '#a1a1aa',
               flex: 1, textAlign: 'right', whiteSpace: 'nowrap',
@@ -146,12 +165,12 @@ export default function WeekRow({
             {/* Chevron */}
             <span style={{
               fontSize: '12px', color: '#3f3f46', flexShrink: 0,
-              transition: 'transform 0.25s', display: 'inline-block',
+              transition: 'transform 0.3s ease', display: 'inline-block',
               transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
             }}>▾</span>
           </button>
 
-          {/* Compare button — outside the main button, only when open */}
+          {/* Compare button */}
           {open && nonRest.length > 1 && (
             <button
               onClick={() => { setCompareMode(!compareMode); setSelected(new Set()); }}
@@ -168,11 +187,15 @@ export default function WeekRow({
           )}
         </div>
 
-        {/* Expanded content */}
-        {open && (
-          <div style={{ borderTop: '1px solid #1a1a1a', padding: '12px 14px 14px' }}>
+        {/* Animated expand/collapse wrapper */}
+        <div style={{
+          maxHeight: open ? `${contentHeight || 2000}px` : '0px',
+          overflow: 'hidden',
+          transition: 'max-height 0.35s ease',
+        }}>
+          <div ref={contentRef} style={{ borderTop: '1px solid #1a1a1a', padding: '12px 14px 14px' }}>
 
-            {/* Summary strip — centred */}
+            {/* Summary strip */}
             <div style={{
               display: 'flex', justifyContent: 'center', gap: '0',
               paddingBottom: '10px', borderBottom: '1px solid #1a1a1a', marginBottom: '10px',
@@ -254,8 +277,8 @@ export default function WeekRow({
                     opacity: upcoming ? 0.65 : 1,
                     animation: `fadeIn 0.2s ease ${idx * 40}ms both`,
                   }}
-                  onMouseEnter={e => { if (!compareMode) e.currentTarget.style.background = '#161616'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(249,115,22,0.08)' : '#0d0d0d'; }}
+                  onMouseEnter={e => { if (!compareMode) { e.currentTarget.style.background = '#161616'; e.currentTarget.style.borderColor = '#2e2e2e'; }}}
+                  onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(249,115,22,0.08)' : '#0d0d0d'; e.currentTarget.style.borderColor = isSelected ? 'rgba(249,115,22,0.35)' : '#1f1f1f'; }}
                 >
                   {compareMode && (
                     <div style={{
@@ -292,7 +315,7 @@ export default function WeekRow({
               );
             })}
           </div>
-        )}
+        </div>
       </div>
 
       <style>{`
