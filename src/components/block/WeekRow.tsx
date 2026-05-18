@@ -93,16 +93,10 @@ export default function WeekRow({
         marginBottom: '4px', overflow: 'hidden',
         transition: 'border-color 0.15s',
       }}>
-        {/* Header row */}
+        {/* Header row — outer flex container */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 14px' }}>
-          {/* Left: colour bar */}
-          <div style={{
-            width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '28px',
-            flexShrink: 0, background: phaseColor, opacity: upcoming ? 0.3 : 1,
-            boxShadow: isCurrent ? `0 0 6px ${phaseColor}80` : 'none',
-          }} />
 
-          {/* Week label — fixed width so it never wraps */}
+          {/* Main clickable area */}
           <button
             onClick={() => setOpen(!open)}
             style={{
@@ -110,6 +104,14 @@ export default function WeekRow({
               padding: 0, display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0,
             }}
           >
+            {/* Colour bar */}
+            <div style={{
+              width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '28px',
+              flexShrink: 0, background: phaseColor, opacity: upcoming ? 0.3 : 1,
+              boxShadow: isCurrent ? `0 0 6px ${phaseColor}80` : 'none',
+            }} />
+
+            {/* Week label */}
             <span style={{
               fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0,
               color: isCurrent ? '#F97316' : upcoming ? '#52525b' : '#f5f5f5',
@@ -117,6 +119,7 @@ export default function WeekRow({
               Week {weekNumber}{isCurrent ? <span style={{ fontSize: '10px', color: '#52525b', fontWeight: 400 }}> · now</span> : ''}
             </span>
 
+            {/* Phase pill */}
             {phaseName && (
               <span style={{
                 fontSize: '9px', padding: '2px 7px', borderRadius: '10px', fontWeight: 600,
@@ -126,7 +129,7 @@ export default function WeekRow({
               </span>
             )}
 
-            {/* km — nowrap so it never clips onto two lines */}
+            {/* Spacer + km */}
             <span style={{
               fontSize: '12px', color: upcoming ? '#52525b' : '#a1a1aa',
               flex: 1, textAlign: 'right', whiteSpace: 'nowrap',
@@ -134,13 +137,12 @@ export default function WeekRow({
               {plannedKm.toFixed(0)} km
             </span>
 
-            <span style={{
-              fontSize: '11px', color: statusColor,
-              whiteSpace: 'nowrap', flexShrink: 0,
-            }}>
+            {/* Status */}
+            <span style={{ fontSize: '11px', color: statusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>
               {statusText}
             </span>
 
+            {/* Chevron */}
             <span style={{
               fontSize: '12px', color: '#3f3f46', flexShrink: 0,
               transition: 'transform 0.25s', display: 'inline-block',
@@ -148,7 +150,7 @@ export default function WeekRow({
             }}>▾</span>
           </button>
 
-          {/* Compare button — only when open */}
+          {/* Compare button — outside the main button, only when open */}
           {open && nonRest.length > 1 && (
             <button
               onClick={() => { setCompareMode(!compareMode); setSelected(new Set()); }}
@@ -269,7 +271,7 @@ export default function WeekRow({
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5', margin: 0 }}>{w.name}</p>
-                    <p style={{ fontSize: '11px', color: '#71717a', marginTop: '2px', margin: '2px 0 0' }}>
+                    <p style={{ fontSize: '11px', color: '#71717a', margin: '2px 0 0' }}>
                       {dayName}{w.description ? ` · ${w.description.slice(0, 60)}${w.description.length > 60 ? '…' : ''}` : ''}
                     </p>
                   </div>
@@ -278,7 +280,7 @@ export default function WeekRow({
                     <p style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5', margin: 0 }}>
                       {w.distance_km ? `${Number(w.distance_km).toFixed(0)} km` : ''}
                     </p>
-                    {pace && <p style={{ fontSize: '11px', color: '#71717a', marginTop: '1px', margin: '1px 0 0' }}>{pace}</p>}
+                    {pace && <p style={{ fontSize: '11px', color: '#71717a', margin: '1px 0 0' }}>{pace}</p>}
                   </div>
 
                   {w.is_complete
