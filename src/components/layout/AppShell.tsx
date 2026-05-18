@@ -115,7 +115,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <button onClick={() => { setFabOpen(false); setShowArchived(true); }}
             style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'transparent', border: 'none', cursor: 'pointer', animation: 'fabItemIn 0.18s ease 0.04s both' }}>
             <div style={{ background: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: '20px', padding: '7px 14px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>Archived</span>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>My Blocks</span>
             </div>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#1a1a1a', border: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Archive size={20} color="#a1a1aa" strokeWidth={1.8} />
