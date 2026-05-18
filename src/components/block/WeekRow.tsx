@@ -114,6 +114,7 @@ export default function WeekRow({
             {/* Week label */}
             <span style={{
               fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0,
+              minWidth: '64px',
               color: isCurrent ? '#F97316' : upcoming ? '#52525b' : '#f5f5f5',
             }}>
               Week {weekNumber}{isCurrent ? <span style={{ fontSize: '10px', color: '#52525b', fontWeight: 400 }}> · now</span> : ''}
