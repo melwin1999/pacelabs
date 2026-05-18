@@ -205,8 +205,8 @@ function PreviewPageInner() {
             const phaseColor = phase ? (PHASE_COLOURS[phase] ?? '#A3A3A3') : '#A3A3A3';
             const isExpanded = expandedWeeks.has(weekNumber);
             const weekWorkouts = workouts
-              .filter(w => w.week_number === weekNumber)
-              .sort((a, b) => a.day_of_week - b.day_of_week);
+                      .filter(w => w.week_number === weekNumber && w.type !== 'rest')
+                      .sort((a, b) => a.day_of_week - b.day_of_week);
 
             return (
               <div key={weekNumber} style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
