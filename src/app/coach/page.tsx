@@ -136,15 +136,14 @@ export default function CoachPage() {
         @media (min-width: 768px) {
           #coach-outer {
             height: 100vh;
-          }
-          #coach-input-row {
-            padding-right: 0 !important;
+            padding-left: 32px !important;
+            padding-right: 32px !important;
           }
         }
       `}</style>
       <div id="coach-outer" style={{
         display: 'flex', flexDirection: 'column',
-        maxWidth: '780px', margin: '0 auto', padding: '32px 32px 0',
+        maxWidth: '780px', margin: '0 auto', padding: '32px 16px 0',
         overflow: 'hidden',
       }}>
         {/* Header */}
@@ -221,7 +220,7 @@ export default function CoachPage() {
 
         {/* Input */}
         <div style={{ borderTop: '1px solid #1f1f1f', padding: '16px 0 24px', flexShrink: 0 }}>
-          <div id="coach-input-row" style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', paddingRight: '64px' }}>
+          <div id="coach-input-row" style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
             <textarea
               value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
