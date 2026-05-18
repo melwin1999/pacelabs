@@ -13,7 +13,7 @@ const METHODOLOGY_DESCRIPTIONS: Record<string, string> = {
   hansons: `Hansons: Cumulative fatigue model. No single run >26km. SOS days: speed, strength (tempo at MP+10s), long run (easy). 6 days/week ideally.`,
   higdon: `Higdon: Accessible, lower intensity. Long run is the centrepiece. 1 mid-week medium run. Quality work is moderate. Rest days strictly rest.`,
   norwegian: `Norwegian: Double-threshold model. Two threshold sessions/week at lactate threshold. High easy volume. HR-controlled. Sessions often 4-6x1km at threshold with 1-2min jog recovery.`,
-  claude: `Claude's Own: Balanced approach. Long run + 1-2 quality sessions depending on phase. Mix of tempo, threshold, and interval work. Adapts to runner's history and notes.`,
+  claude: `PaceLabs: Balanced approach. Long run + 1-2 quality sessions depending on phase. Mix of tempo, threshold, and interval work. Adapts to runner's history and notes.`,
 }
 
 function buildWeekPrompt(input: WizardInput, skeleton: ReturnType<typeof buildPlanSkeleton>, weekNumbers: number[]): string {

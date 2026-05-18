@@ -46,7 +46,7 @@ export default function AdaptBanner({ draft }: Props) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--accent)' }}>
-            Claude has {count} proposed {count === 1 ? 'adjustment' : 'adjustments'}
+            PaceLabs has {count} proposed {count === 1 ? 'adjustment' : 'adjustments'}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {draft.rationale ?? 'Tap to review'}

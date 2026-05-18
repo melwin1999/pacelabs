@@ -31,7 +31,7 @@ const BENCHMARK_DISTANCES = [
 ];
 
 const TEMPLATES = [
-  { value: 'claude', label: "Claude's Own", badge: 'Fully Customised', badgeColor: '#F97316', description: "Hybrid approach built from scratch based on your inputs. Borrows from published methodologies and optimises for your specific situation, fitness level, and schedule." },
+  { value: 'claude', label: "PaceLabs", badge: 'Fully Customised', badgeColor: '#F97316', description: "Hybrid approach built from scratch based on your inputs. Borrows from published methodologies and optimises for your specific situation, fitness level, and schedule." },
   { value: 'higdon', label: 'Hal Higdon', badge: 'Beginner-friendly', badgeColor: '#22C55E', description: 'Long runs are the centrepiece, almost everything else is easy. Built around consistency and finishing feeling good. The most accessible marathon methodology.' },
   { value: 'hansons', label: 'Hansons', badge: 'Intermediate', badgeColor: '#FB923C', description: 'Cumulative fatigue philosophy. Long runs capped at 26km, but you run 6 days/week and rarely feel fresh. Two quality sessions per week. More demanding than it looks.' },
   { value: 'daniels', label: 'Daniels 2Q', badge: 'Intermediate–Advanced', badgeColor: '#22C55E', description: 'Two structured Quality sessions per week (Q1 = long quality run, Q2 = threshold/intervals). Everything else is strictly easy filler. VDOT-based paces scale to your fitness.' },
