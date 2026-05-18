@@ -26,6 +26,18 @@ export default function BlockAnimations() {
         width: 0%;
         animation: trackFillGrow 1.1s ease-out 0.1s forwards;
       }
+
+      .block-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      @media (min-width: 480px) {
+        .block-stat-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
     `}</style>
   );
 }

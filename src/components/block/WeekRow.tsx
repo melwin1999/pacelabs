@@ -65,11 +65,8 @@ export default function WeekRow({
   }
 
   function openCompare() {
-    // Find matching workout types from other weeks
     const selectedWorkouts = nonRest.filter(w => selected.has(w.id));
     if (selectedWorkouts.length === 0) return;
-
-    // For cross-week: find same type workouts in other weeks
     const types = selectedWorkouts.map(w => w.type);
     const crossWeek = allWorkouts.filter(w =>
       w.week_number !== weekNumber &&
@@ -77,7 +74,6 @@ export default function WeekRow({
       w.type !== 'rest' &&
       !w.skipped
     );
-
     const toCompare = [...selectedWorkouts, ...crossWeek].slice(0, 3);
     setModal({ type: 'compare', workouts: toCompare });
     setCompareMode(false);
@@ -98,38 +94,50 @@ export default function WeekRow({
         transition: 'border-color 0.15s',
       }}>
         {/* Header row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 14px' }}>
+          {/* Left: colour bar */}
+          <div style={{
+            width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '28px',
+            flexShrink: 0, background: phaseColor, opacity: upcoming ? 0.3 : 1,
+            boxShadow: isCurrent ? `0 0 6px ${phaseColor}80` : 'none',
+          }} />
+
+          {/* Week label — fixed width so it never wraps */}
           <button
             onClick={() => setOpen(!open)}
             style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              flex: 1, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              padding: 0, display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0,
             }}
           >
-            <div style={{
-              width: '3px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '28px',
-              flexShrink: 0, background: phaseColor, opacity: upcoming ? 0.3 : 1,
-              boxShadow: isCurrent ? `0 0 6px ${phaseColor}80` : 'none',
-            }} />
-
-            <span style={{ fontSize: '12px', fontWeight: 700, color: isCurrent ? '#F97316' : upcoming ? '#52525b' : '#f5f5f5', minWidth: '64px' }}>
+            <span style={{
+              fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0,
+              color: isCurrent ? '#F97316' : upcoming ? '#52525b' : '#f5f5f5',
+            }}>
               Week {weekNumber}{isCurrent ? <span style={{ fontSize: '10px', color: '#52525b', fontWeight: 400 }}> · now</span> : ''}
             </span>
 
             {phaseName && (
               <span style={{
                 fontSize: '9px', padding: '2px 7px', borderRadius: '10px', fontWeight: 600,
-                color: phaseColor, background: phaseBg, flexShrink: 0,
+                color: phaseColor, background: phaseBg, flexShrink: 0, whiteSpace: 'nowrap',
               }}>
                 {phaseName}
               </span>
             )}
 
-            <span style={{ fontSize: '12px', color: upcoming ? '#52525b' : '#a1a1aa', flex: 1, textAlign: 'right' }}>
+            {/* km — nowrap so it never clips onto two lines */}
+            <span style={{
+              fontSize: '12px', color: upcoming ? '#52525b' : '#a1a1aa',
+              flex: 1, textAlign: 'right', whiteSpace: 'nowrap',
+            }}>
               {plannedKm.toFixed(0)} km
             </span>
 
-            <span style={{ fontSize: '11px', color: statusColor, minWidth: '70px', textAlign: 'right', flexShrink: 0 }}>
+            <span style={{
+              fontSize: '11px', color: statusColor,
+              whiteSpace: 'nowrap', flexShrink: 0,
+            }}>
               {statusText}
             </span>
 
@@ -140,7 +148,7 @@ export default function WeekRow({
             }}>▾</span>
           </button>
 
-          {/* Compare toggle button */}
+          {/* Compare button — only when open */}
           {open && nonRest.length > 1 && (
             <button
               onClick={() => { setCompareMode(!compareMode); setSelected(new Set()); }}
@@ -148,8 +156,8 @@ export default function WeekRow({
                 padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 600,
                 background: compareMode ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.06)',
                 border: compareMode ? '1px solid rgba(249,115,22,0.4)' : '1px solid rgba(249,115,22,0.2)',
-                color: compareMode ? '#F97316' : '#F97316', cursor: 'pointer',
-                flexShrink: 0, transition: 'all 0.15s',
+                color: '#F97316', cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
               }}
             >
               {compareMode ? 'Cancel' : 'Compare'}
@@ -161,15 +169,23 @@ export default function WeekRow({
         {open && (
           <div style={{ borderTop: '1px solid #1a1a1a', padding: '12px 14px 14px' }}>
 
-            {/* Summary strip */}
-            <div style={{ display: 'flex', gap: '20px', paddingBottom: '10px', borderBottom: '1px solid #1a1a1a', marginBottom: '10px' }}>
+            {/* Summary strip — centred */}
+            <div style={{
+              display: 'flex', justifyContent: 'center', gap: '0',
+              paddingBottom: '10px', borderBottom: '1px solid #1a1a1a', marginBottom: '10px',
+            }}>
               {[
                 { label: 'Total', value: `${plannedKm.toFixed(0)} km` },
                 { label: 'Done', value: `${completedKm.toFixed(0)} km`, color: completedKm > 0 ? '#10b981' : undefined },
                 { label: 'Sessions', value: `${sessionsDone}/${sessionsTotal}` },
                 { label: 'Phase', value: phaseName ?? '—', color: phaseColor },
-              ].map(({ label, value, color }) => (
-                <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              ].map(({ label, value, color }, idx, arr) => (
+                <div key={label} style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                  flex: 1, textAlign: 'center',
+                  borderRight: idx < arr.length - 1 ? '1px solid #1f1f1f' : 'none',
+                  padding: '0 8px',
+                }}>
                   <span style={{ fontSize: '9px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{label}</span>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: color ?? '#f5f5f5' }}>{value}</span>
                 </div>
@@ -193,7 +209,7 @@ export default function WeekRow({
                 background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.15)',
                 borderRadius: '8px', padding: '8px 12px', marginBottom: '10px',
               }}>
-                <p style={{ fontSize: '12px', color: '#a1a1aa' }}>
+                <p style={{ fontSize: '12px', color: '#a1a1aa', margin: 0 }}>
                   Select runs — comparing across all weeks by type
                 </p>
                 {selected.size >= 1 && (
@@ -238,7 +254,6 @@ export default function WeekRow({
                   onMouseEnter={e => { if (!compareMode) e.currentTarget.style.background = '#161616'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = isSelected ? 'rgba(249,115,22,0.08)' : '#0d0d0d'; }}
                 >
-                  {/* Compare checkbox */}
                   {compareMode && (
                     <div style={{
                       width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
@@ -250,26 +265,22 @@ export default function WeekRow({
                     </div>
                   )}
 
-                  {/* Colour bar */}
                   <div style={{ width: '4px', borderRadius: '2px', alignSelf: 'stretch', minHeight: '36px', flexShrink: 0, background: wColor }} />
 
-                  {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>{w.name}</p>
-                    <p style={{ fontSize: '11px', color: '#71717a', marginTop: '2px' }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5', margin: 0 }}>{w.name}</p>
+                    <p style={{ fontSize: '11px', color: '#71717a', marginTop: '2px', margin: '2px 0 0' }}>
                       {dayName}{w.description ? ` · ${w.description.slice(0, 60)}${w.description.length > 60 ? '…' : ''}` : ''}
                     </p>
                   </div>
 
-                  {/* Meta */}
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5', margin: 0 }}>
                       {w.distance_km ? `${Number(w.distance_km).toFixed(0)} km` : ''}
                     </p>
-                    {pace && <p style={{ fontSize: '11px', color: '#71717a', marginTop: '1px' }}>{pace}</p>}
+                    {pace && <p style={{ fontSize: '11px', color: '#71717a', marginTop: '1px', margin: '1px 0 0' }}>{pace}</p>}
                   </div>
 
-                  {/* Status */}
                   {w.is_complete
                     ? <span style={{ fontSize: '16px', color: '#10b981', flexShrink: 0 }}>✓</span>
                     : !compareMode && <span style={{ fontSize: '14px', color: '#2e2e2e', flexShrink: 0 }}>›</span>
