@@ -33,23 +33,25 @@ function ChangeRow({ change }: { change: ProposedChange }) {
 
   return (
     <div
-      className="p-3 rounded-lg"
       style={{
+        padding: '12px',
+        borderRadius: '8px',
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid var(--border)',
+        marginBottom: '8px',
       }}
     >
-      <div className="flex items-start gap-2">
-        <ChevronRight size={14} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+        <ChevronRight size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
             {change.workout_name}
           </div>
-          <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          <div style={{ fontSize: '12px', marginTop: '4px', color: 'var(--text-muted)' }}>
             {label()}
           </div>
           {change.reason && (
-            <div className="text-xs mt-1 italic" style={{ color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '12px', marginTop: '6px', fontStyle: 'italic', color: 'var(--text-muted)' }}>
               {change.reason}
             </div>
           )}
@@ -95,42 +97,59 @@ export default function AdaptSheet({ draft, open, onClose }: Props) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40"
-        style={{ background: 'rgba(0,0,0,0.6)' }}
         onClick={onClose}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 40,
+          background: 'rgba(0,0,0,0.6)',
+        }}
       />
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl flex flex-col"
         style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          borderRadius: '16px 16px 0 0',
+          display: 'flex',
+          flexDirection: 'column',
           background: 'var(--bg-card)',
           border: '1px solid var(--border)',
           maxHeight: '85vh',
         }}
       >
         {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div
-            className="w-10 h-1 rounded-full"
-            style={{ background: 'var(--border)' }}
-          />
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '12px', paddingBottom: '4px' }}>
+          <div style={{ width: '40px', height: '4px', borderRadius: '9999px', background: 'var(--border)' }} />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px 16px' }}>
           <div>
-            <h2 className="text-base font-bold" style={{ color: 'var(--text)' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
               Proposed adjustments
             </h2>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: '12px', marginTop: '4px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
               {draft.proposed_changes.length} change{draft.proposed_changes.length !== 1 ? 's' : ''}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full"
-            style={{ background: 'rgba(255,255,255,0.05)' }}
+            style={{
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '9999px',
+              background: 'rgba(255,255,255,0.05)',
+              border: 'none',
+              cursor: 'pointer',
+            }}
           >
             <X size={16} style={{ color: 'var(--text-muted)' }} />
           </button>
@@ -139,8 +158,12 @@ export default function AdaptSheet({ draft, open, onClose }: Props) {
         {/* Rationale */}
         {draft.rationale && (
           <div
-            className="mx-5 mb-3 p-3 rounded-lg text-sm"
             style={{
+              margin: '0 20px 16px',
+              padding: '12px 14px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              lineHeight: '1.5',
               background: 'rgba(249,115,22,0.08)',
               border: '1px solid rgba(249,115,22,0.2)',
               color: 'var(--text-muted)',
@@ -151,22 +174,28 @@ export default function AdaptSheet({ draft, open, onClose }: Props) {
         )}
 
         {/* Changes list */}
-        <div className="flex-1 overflow-y-auto px-5 space-y-2 pb-2">
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 8px' }}>
           {draft.proposed_changes.map((change, i) => (
             <ChangeRow key={i} change={change} />
           ))}
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 space-y-2" style={{ borderTop: '1px solid var(--border)' }}>
+        <div style={{ padding: '16px 20px 24px', borderTop: '1px solid var(--border)' }}>
           {showRejectInput && (
             <textarea
-              className="w-full px-3 py-2 rounded-lg text-sm resize-none"
               style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                resize: 'none',
                 background: 'rgba(255,255,255,0.05)',
                 border: '1px solid var(--border)',
                 color: 'var(--text)',
                 outline: 'none',
+                marginBottom: '10px',
+                boxSizing: 'border-box',
               }}
               rows={2}
               placeholder="Why are you rejecting this? (optional)"
@@ -174,15 +203,21 @@ export default function AdaptSheet({ draft, open, onClose }: Props) {
               onChange={(e) => setRejectionReason(e.target.value)}
             />
           )}
-          <div className="flex gap-3">
+          <div style={{ display: 'flex', gap: '12px' }}>
             <button
               onClick={handleReject}
               disabled={loading !== null}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-opacity disabled:opacity-50"
               style={{
+                flex: 1,
+                padding: '12px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: 600,
                 border: '1px solid var(--border)',
                 color: 'var(--text-muted)',
                 background: 'transparent',
+                cursor: loading !== null ? 'not-allowed' : 'pointer',
+                opacity: loading !== null ? 0.5 : 1,
               }}
             >
               {loading === 'reject' ? 'Rejecting…' : showRejectInput ? 'Confirm reject' : 'Reject'}
@@ -190,10 +225,17 @@ export default function AdaptSheet({ draft, open, onClose }: Props) {
             <button
               onClick={handleAccept}
               disabled={loading !== null}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-opacity disabled:opacity-50"
               style={{
+                flex: 1,
+                padding: '12px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: 600,
                 background: 'var(--accent)',
                 color: '#09090B',
+                border: 'none',
+                cursor: loading !== null ? 'not-allowed' : 'pointer',
+                opacity: loading !== null ? 0.5 : 1,
               }}
             >
               {loading === 'accept' ? 'Applying…' : 'Accept all'}
