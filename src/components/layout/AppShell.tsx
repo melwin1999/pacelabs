@@ -95,7 +95,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* FAB menu — order: New Plan, Archived, Settings */}
-      {fabOpen && (
+      {fabOpen && !pathname.startsWith('/coach') && (
         <div id="pl-fab-menu" style={{
           position: 'fixed', bottom: '134px', right: '16px', zIndex: 40,
           display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px',
@@ -140,7 +140,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         position: 'fixed', bottom: '74px', right: '16px', zIndex: 41,
         width: '48px', height: '48px', borderRadius: '50%',
         background: '#F97316', border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        display: pathname.startsWith('/coach') ? 'none' : 'flex',
+        alignItems: 'center', justifyContent: 'center',
         boxShadow: fabOpen ? '0 4px 20px rgba(249,115,22,0.7)' : '0 4px 16px rgba(249,115,22,0.45)',
         transition: 'box-shadow 0.2s, transform 0.2s',
         transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
