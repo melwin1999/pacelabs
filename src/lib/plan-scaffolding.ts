@@ -129,7 +129,8 @@ function buildVolumeCurve(input: WizardInput, phases: Phase[]): number[] {
 
     cutbackCounter++
     if (cutbackCounter % 4 === 0) {
-      const cutback = Math.round(target * 0.80)
+      const prevWeekVol = volumes.length > 0 ? volumes[volumes.length - 1] : target
+      const cutback = Math.round(prevWeekVol * 0.75)
       volumes.push(cutback)
       base = cutback
     } else {
