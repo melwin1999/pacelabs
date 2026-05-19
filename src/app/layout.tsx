@@ -11,7 +11,7 @@ const inter = Inter({
 
 export const metadata = {
   title: 'PaceLabs',
-  description: 'Claude-powered running coach',
+  description: 'Every Mile. Perfectly Calculated',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
