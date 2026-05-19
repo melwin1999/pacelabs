@@ -88,7 +88,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         .pl-track-fill { width: 0%; animation: trackFillGrow 1.1s ease-out 0.1s forwards; }
       `}</style>
 
-      <div style={{ position: 'relative', padding: '28px 0 24px', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', padding: '28px 0 24px' }}>
         {/* Orbs */}
         <div style={{
           position: 'absolute', width: '500px', height: '500px', borderRadius: '50%',
