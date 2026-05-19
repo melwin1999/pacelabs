@@ -88,12 +88,12 @@ export default function RaceHeroCard({ block }: { block: Block }) {
         .pl-track-fill { width: 0%; animation: trackFillGrow 1.1s ease-out 0.1s forwards; }
       `}</style>
 
-      <div style={{ position: 'relative', padding: '28px 0 24px' }}>
+      <div style={{ position: 'relative', padding: '28px 0 24px', overflow: 'hidden' }}>
         {/* Orbs */}
         <div style={{
           position: 'absolute', width: '500px', height: '500px', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(249,115,22,0.24) 0%, rgba(249,115,22,0.07) 38%, transparent 65%)',
-          top: '-210px', right: '-110px', pointerEvents: 'none',
+          top: '-210px', right: '0px', pointerEvents: 'none', overflow: 'hidden',
         }} />
         <div style={{
           position: 'absolute', width: '220px', height: '220px', borderRadius: '50%',
@@ -101,7 +101,7 @@ export default function RaceHeroCard({ block }: { block: Block }) {
           bottom: '-90px', left: '-40px', pointerEvents: 'none',
         }} />
 
-        <div id="pl-hero-content">
+        <div id="pl-hero-content" style={{ overflow: 'hidden' }}>
           <p style={{
             fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
             color: 'rgba(249,115,22,0.85)', textTransform: 'uppercase', marginBottom: '10px',
