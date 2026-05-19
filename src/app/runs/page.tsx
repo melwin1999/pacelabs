@@ -22,7 +22,12 @@ function fmtDuration(secs: number | null): string {
 }
 
 function fmtWeekLabel(isoMonday: string): string {
-  return new Date(isoMonday).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  const start = new Date(isoMonday)
+  const end = new Date(isoMonday)
+  end.setDate(end.getDate() + 6)
+  const startStr = start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  const endStr = end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  return `${startStr} – ${endStr}`
 }
 
 function fmtRowDate(iso: string): string {
