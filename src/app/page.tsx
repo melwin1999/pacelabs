@@ -104,7 +104,7 @@ export default async function PlanPage({
 
   return (
     <AppShell>
-      <div style={{ width: "100%", maxWidth: "1150px", padding: "0 32px 40px", display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div style={{ width: "100%", maxWidth: "860px", padding: "0 32px 40px", display: "flex", flexDirection: "column", gap: "12px" }}>
         <RaceHeroCard block={block} />
 
         {pendingDraft && <AdaptBanner draft={pendingDraft} />}
