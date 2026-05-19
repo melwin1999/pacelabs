@@ -98,7 +98,7 @@ export default function RunsPage() {
 
   function buildStravaAuthUrl() {
     const clientId = 247863
-    const redirectUri = `${window.location.origin}/api/strava/callback`
+    const redirectUri = `https://pacelabs-psi.vercel.app/api/strava/callback`
     const scope = 'activity:read_all'
     return `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&approval_prompt=auto`
   }
