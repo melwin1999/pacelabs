@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import {
@@ -451,22 +451,6 @@ function WeekSection({ week, isCurrentWeek, allUnmatchedWorkouts, onUnlink, onLi
             ))}
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-          {collapsed ? <ChevronDown size={14} color={isCurrentWeek ? '#F97316' : '#3f3f46'} style={{ flexShrink: 0 }} /> : <ChevronUp size={14} color={isCurrentWeek ? '#F97316' : '#3f3f46'} style={{ flexShrink: 0 }} />}
-        </button>
-
-        {/* Expanded rows */}
-        {!collapsed && (
-          <div style={{ borderTop: '1px solid #1a1a1a', padding: '10px 12px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {week.rows.map(row => (
-              <RunRow key={row.id} row={row} onUnlink={onUnlink} allUnmatchedWorkouts={allUnmatchedWorkouts} onLink={onLink} />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   )
