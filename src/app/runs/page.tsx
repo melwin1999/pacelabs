@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   RefreshCw, Check, AlertCircle, ChevronDown, ChevronUp,
   Unlink, X, CheckCircle, Activity,
@@ -30,16 +30,37 @@ function fmtRowDate(iso: string): string {
 }
 
 function deltaColour(pct: number): string {
-  if (Math.abs(pct) < 5) return '#10b981'
-  if (Math.abs(pct) < 20) return '#FB923C'
+  if (Math.abs(pct) < 10) return '#10b981'
+  if (Math.abs(pct) < 30) return '#FB923C'
   return '#F87171'
+}
+
+function deltaBg(pct: number): string {
+  if (Math.abs(pct) < 10) return 'rgba(16,185,129,0.06)'
+  if (Math.abs(pct) < 30) return 'rgba(251,146,60,0.06)'
+  return 'rgba(248,113,113,0.06)'
+}
+
+function deltaBorder(pct: number): string {
+  if (Math.abs(pct) < 10) return 'rgba(16,185,129,0.2)'
+  if (Math.abs(pct) < 30) return 'rgba(251,146,60,0.2)'
+  return 'rgba(248,113,113,0.2)'
+}
+
+function hrZoneLabel(hr: number | null): { label: string; colour: string } | null {
+  if (!hr) return null
+  if (hr < 114) return { label: 'Z1 Recovery', colour: '#93C5FD' }
+  if (hr < 133) return { label: 'Z2 Easy', colour: '#86EFAC' }
+  if (hr < 152) return { label: 'Z3 Tempo', colour: '#FCD34D' }
+  if (hr < 171) return { label: 'Z4 Threshold', colour: '#FB923C' }
+  return { label: 'Z5 VO2 Max', colour: '#F87171' }
 }
 
 const WORKOUT_COLOURS: Record<string, string> = {
   easy: '#86EFAC', long: '#FCD34D', tempo: '#FB923C',
   threshold: '#F87171', intervals: '#C084FC', recovery: '#93C5FD',
   race: '#F97316', strides: '#86EFAC', fartlek: '#67E8F9',
-  progression: '#A3E635', custom: '#A3A3A3', free_run: '#3F3F46',
+  progression: '#A3E635', custom: '#A3A3A3', free_run: '#71717a',
 }
 
 interface WorkoutRow {
@@ -85,6 +106,43 @@ interface Candidate {
   actual_avg_pace_seconds: number | null
   actual_avg_hr: number | null
 }
+
+// ── DistanceBar ───────────────────────────────────────────────────────────────
+
+function DistanceBar({ planned, actual }: { planned: number; actual: number }) {
+  const max = Math.max(planned, actual) * 1.08
+  const plannedPct = (planned / max) * 100
+  const actualPct = (actual / max) * 100
+  const diff = planned > 0 ? ((actual - planned) / planned) * 100 : 0
+  const barColour = deltaColour(diff)
+
+  return (
+    <div style={{ marginBottom: '14px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span style={{ fontSize: '10px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Planned</span>
+            <span style={{ fontSize: '11px', color: '#71717a', fontWeight: 500 }}>{planned.toFixed(1)} km</span>
+          </div>
+          <div style={{ height: '6px', background: '#1f1f1f', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${plannedPct}%`, background: '#3f3f46', borderRadius: '3px', transition: 'width 0.4s ease' }} />
+          </div>
+        </div>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span style={{ fontSize: '10px', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Actual</span>
+            <span style={{ fontSize: '11px', color: barColour, fontWeight: 500 }}>{actual.toFixed(1)} km <span style={{ fontSize: '10px' }}>({diff > 0 ? '+' : ''}{diff.toFixed(0)}%)</span></span>
+          </div>
+          <div style={{ height: '6px', background: '#1f1f1f', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${actualPct}%`, background: barColour, borderRadius: '3px', transition: 'width 0.4s ease' }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── MatchModal ────────────────────────────────────────────────────────────────
 
 function MatchModal({ candidates, onConfirm, onDismiss }: {
   candidates: Candidate[]
@@ -145,14 +203,7 @@ function MatchModal({ candidates, onConfirm, onDismiss }: {
                 </div>
                 {isSelected && (
                   <div style={{ marginTop: '10px', paddingLeft: '33px' }}>
-                    <input
-                      type="text"
-                      placeholder="Add a note (optional)…"
-                      value={notes[c.workout_id] ?? ''}
-                      onChange={e => setNotes(prev => ({ ...prev, [c.workout_id]: e.target.value }))}
-                      onClick={e => e.stopPropagation()}
-                      style={{ width: '100%', background: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: '6px', padding: '7px 10px', color: '#f5f5f5', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }}
-                    />
+                    <input type="text" placeholder="Add a note (optional)…" value={notes[c.workout_id] ?? ''} onChange={e => setNotes(prev => ({ ...prev, [c.workout_id]: e.target.value }))} onClick={e => e.stopPropagation()} style={{ width: '100%', background: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: '6px', padding: '7px 10px', color: '#f5f5f5', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 )}
               </div>
@@ -172,6 +223,8 @@ function MatchModal({ candidates, onConfirm, onDismiss }: {
   )
 }
 
+// ── RunRow ────────────────────────────────────────────────────────────────────
+
 function RunRow({ row, onUnlink, allUnmatchedWorkouts, onLink }: {
   row: WorkoutRow
   onUnlink: (id: string) => void
@@ -187,11 +240,19 @@ function RunRow({ row, onUnlink, allUnmatchedWorkouts, onLink }: {
   const isFreeRun = row.type === 'free_run'
   const isMatched = !!row.strava_activity_id && !isFreeRun
   const isUnrecorded = !row.strava_activity_id && !isFreeRun
+  const hasActualData = isFreeRun || isMatched
+
   const colour = WORKOUT_COLOURS[row.type] ?? '#A3A3A3'
   const displayName = isFreeRun ? (row.free_run_name ?? row.name ?? 'Free Run') : (row.name ?? row.type)
-  const distDiff = isMatched && row.distance_km && row.actual_distance_km
+
+  const distDiff = hasActualData && row.distance_km && row.actual_distance_km && !isFreeRun
     ? ((row.actual_distance_km - row.distance_km) / row.distance_km) * 100
     : null
+
+  const hrZone = hrZoneLabel(row.actual_avg_hr ?? null)
+
+  const cardBg = isMatched && distDiff !== null ? deltaBg(distDiff) : isFreeRun ? 'rgba(113,113,122,0.05)' : 'transparent'
+  const cardBorder = isMatched && distDiff !== null ? deltaBorder(distDiff) : isFreeRun ? '1px solid #1f1f1f' : '1px solid #1a1a1a'
 
   function handleNoteChange(val: string) {
     setNote(val)
@@ -204,21 +265,28 @@ function RunRow({ row, onUnlink, allUnmatchedWorkouts, onLink }: {
   }
 
   return (
-    <div style={{ background: isUnrecorded ? 'transparent' : '#111', borderRadius: '10px', opacity: isUnrecorded ? 0.45 : 1, border: isUnrecorded ? '1px solid #1a1a1a' : 'none' }}>
+    <div style={{ background: isUnrecorded ? 'transparent' : cardBg, borderRadius: '10px', opacity: isUnrecorded ? 0.4 : 1, border: isUnrecorded ? '1px solid #1a1a1a' : cardBorder, overflow: 'hidden' }}>
+
+      {/* Main row */}
       <div onClick={() => !isUnrecorded && setExpanded(e => !e)} style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px', cursor: isUnrecorded ? 'default' : 'pointer' }}>
-        <div style={{ width: '3px', height: '36px', borderRadius: '2px', background: colour, flexShrink: 0 }} />
+        <div style={{ width: '3px', alignSelf: 'stretch', minHeight: '36px', borderRadius: '2px', background: colour, flexShrink: 0 }} />
+
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '13px', fontWeight: 500, color: '#f5f5f5' }}>{displayName}</span>
-            {isFreeRun && <span style={{ fontSize: '11px', background: 'rgba(161,161,170,0.1)', color: '#71717a', padding: '2px 7px', borderRadius: '4px' }}>Unplanned</span>}
+            {isFreeRun && <span style={{ fontSize: '11px', background: 'rgba(113,113,122,0.15)', color: '#71717a', padding: '2px 7px', borderRadius: '4px' }}>Unplanned</span>}
             {isMatched && distDiff !== null && (
-              <span style={{ fontSize: '11px', background: Math.abs(distDiff) < 5 ? 'rgba(16,185,129,0.12)' : Math.abs(distDiff) < 20 ? 'rgba(251,146,60,0.12)' : 'rgba(248,113,113,0.12)', color: deltaColour(distDiff), padding: '2px 7px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '11px', background: Math.abs(distDiff) < 10 ? 'rgba(16,185,129,0.12)' : Math.abs(distDiff) < 30 ? 'rgba(251,146,60,0.12)' : 'rgba(248,113,113,0.12)', color: deltaColour(distDiff), padding: '2px 7px', borderRadius: '4px' }}>
                 {distDiff > 0 ? '+' : ''}{distDiff.toFixed(0)}%
               </span>
+            )}
+            {hrZone && !isUnrecorded && (
+              <span style={{ fontSize: '11px', color: hrZone.colour, background: `${hrZone.colour}18`, padding: '2px 7px', borderRadius: '4px' }}>{hrZone.label}</span>
             )}
             {isUnrecorded && <span style={{ fontSize: '11px', background: 'rgba(161,161,170,0.08)', color: '#52525b', padding: '2px 7px', borderRadius: '4px' }}>No run recorded</span>}
             <span style={{ fontSize: '11px', color: '#52525b' }}>{fmtRowDate(row.scheduled_date)}</span>
           </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '12px', color: '#a1a1aa', flexWrap: 'wrap' }}>
             {row.actual_distance_km != null && (
               <span>{row.actual_distance_km.toFixed(1)} km{!isFreeRun && row.distance_km && <span style={{ color: '#52525b' }}> / {row.distance_km.toFixed(1)} planned</span>}</span>
@@ -229,6 +297,7 @@ function RunRow({ row, onUnlink, allUnmatchedWorkouts, onLink }: {
             {row.actual_duration_seconds != null && <span>{fmtDuration(row.actual_duration_seconds)}</span>}
           </div>
         </div>
+
         {isFreeRun && !showLinkPicker && (
           <button onClick={e => { e.stopPropagation(); setShowLinkPicker(true) }} style={{ fontSize: '11px', color: '#F97316', background: 'rgba(249,115,22,0.1)', border: '0.5px solid rgba(249,115,22,0.2)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
             Link to workout
@@ -237,11 +306,15 @@ function RunRow({ row, onUnlink, allUnmatchedWorkouts, onLink }: {
         {!isUnrecorded && !isFreeRun && (
           <ChevronDown size={15} color="#52525b" style={{ flexShrink: 0, transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
         )}
+        {isFreeRun && !showLinkPicker && (
+          <ChevronDown size={15} color="#52525b" style={{ flexShrink: 0, transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        )}
       </div>
 
+      {/* Link picker */}
       {isFreeRun && showLinkPicker && (
-        <div style={{ padding: '0 14px 12px 29px' }}>
-          <div style={{ fontSize: '11px', color: '#71717a', marginBottom: '6px' }}>Link to which planned workout?</div>
+        <div style={{ padding: '0 14px 12px 29px', borderTop: '1px solid #1a1a1a' }}>
+          <div style={{ fontSize: '11px', color: '#71717a', margin: '10px 0 6px' }}>Link to which planned workout?</div>
           {allUnmatchedWorkouts.length === 0
             ? <div style={{ fontSize: '12px', color: '#52525b' }}>No unmatched workouts available.</div>
             : (
@@ -260,31 +333,78 @@ function RunRow({ row, onUnlink, allUnmatchedWorkouts, onLink }: {
         </div>
       )}
 
+      {/* Expanded detail — matched workouts */}
       {expanded && isMatched && (
-        <div style={{ padding: '0 14px 14px 29px', borderTop: '1px solid #1a1a1a' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '8px', paddingTop: '12px' }}>
-            {[
-              { label: 'Distance', val: row.actual_distance_km != null ? `${row.actual_distance_km.toFixed(2)} km` : '—' },
-              { label: 'Planned', val: row.distance_km != null ? `${row.distance_km.toFixed(1)} km` : '—' },
-              { label: 'Pace', val: fmtPace(row.actual_avg_pace_seconds) },
-              { label: 'Avg HR', val: row.actual_avg_hr != null ? `${row.actual_avg_hr} bpm` : '—' },
-              { label: 'Duration', val: fmtDuration(row.actual_duration_seconds) },
-            ].map(({ label, val }) => (
-              <div key={label} style={{ background: '#1a1a1a', borderRadius: '8px', padding: '8px 10px' }}>
-                <div style={{ fontSize: '10px', color: '#52525b', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
-                <div style={{ fontSize: '13px', fontWeight: 500, color: '#f5f5f5' }}>{val}</div>
+        <div style={{ padding: '0 14px 16px 14px', borderTop: '1px solid #1a1a1a' }}>
+          <div style={{ paddingTop: '14px' }}>
+            {row.distance_km && row.actual_distance_km && (
+              <DistanceBar planned={row.distance_km} actual={row.actual_distance_km} />
+            )}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+              {[
+                { label: 'Pace', val: fmtPace(row.actual_avg_pace_seconds), colour: '#FB923C' },
+                { label: 'Avg HR', val: row.actual_avg_hr != null ? `${row.actual_avg_hr} bpm` : '—', colour: hrZone?.colour ?? '#a1a1aa' },
+                { label: 'Duration', val: fmtDuration(row.actual_duration_seconds), colour: '#a1a1aa' },
+              ].map(({ label, val, colour: c }) => (
+                <div key={label} style={{ background: '#1a1a1a', borderRadius: '8px', padding: '10px 12px', borderLeft: `3px solid ${c}` }}>
+                  <div style={{ fontSize: '10px', color: '#52525b', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>{val}</div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: '#52525b', marginBottom: '5px' }}>
+                Notes {savingNote && <span style={{ color: '#3f3f46' }}>· saving…</span>}
               </div>
-            ))}
+              <textarea value={note} onChange={e => handleNoteChange(e.target.value)} placeholder="How did this feel? Add anything for Coach…" rows={2} style={{ width: '100%', background: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: '6px', padding: '8px 10px', color: '#f5f5f5', fontSize: '12px', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5, fontFamily: 'inherit' }} />
+            </div>
+            <button onClick={() => onUnlink(row.id)} style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#71717a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <Unlink size={11} /> Unlink from Strava
+            </button>
           </div>
-          <div style={{ marginTop: '10px' }}>
-            <div style={{ fontSize: '11px', color: '#52525b', marginBottom: '5px' }}>Notes {savingNote && <span style={{ color: '#3f3f46' }}>· saving…</span>}</div>
-            <textarea value={note} onChange={e => handleNoteChange(e.target.value)} placeholder="How did this feel? Add anything for Coach…" rows={2} style={{ width: '100%', background: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: '6px', padding: '8px 10px', color: '#f5f5f5', fontSize: '12px', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5, fontFamily: 'inherit' }} />
-          </div>
-          <button onClick={() => onUnlink(row.id)} style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#71717a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <Unlink size={11} /> Unlink from Strava
-          </button>
         </div>
       )}
+
+      {/* Expanded detail — free runs */}
+      {expanded && isFreeRun && (
+        <div style={{ padding: '0 14px 16px 14px', borderTop: '1px solid #1a1a1a' }}>
+          <div style={{ paddingTop: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+              {[
+                { label: 'Distance', val: row.actual_distance_km != null ? `${row.actual_distance_km.toFixed(2)} km` : '—', colour: '#71717a' },
+                { label: 'Pace', val: fmtPace(row.actual_avg_pace_seconds), colour: '#FB923C' },
+                { label: 'Avg HR', val: row.actual_avg_hr != null ? `${row.actual_avg_hr} bpm` : '—', colour: hrZone?.colour ?? '#a1a1aa' },
+                { label: 'Duration', val: fmtDuration(row.actual_duration_seconds), colour: '#a1a1aa' },
+              ].map(({ label, val, colour: c }) => (
+                <div key={label} style={{ background: '#1a1a1a', borderRadius: '8px', padding: '10px 12px', borderLeft: `3px solid ${c}` }}>
+                  <div style={{ fontSize: '10px', color: '#52525b', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>{val}</div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', color: '#52525b', marginBottom: '5px' }}>
+                Notes {savingNote && <span style={{ color: '#3f3f46' }}>· saving…</span>}
+              </div>
+              <textarea value={note} onChange={e => handleNoteChange(e.target.value)} placeholder="Unplanned run — add context for Coach…" rows={2} style={{ width: '100%', background: '#1a1a1a', border: '1px solid #2e2e2e', borderRadius: '6px', padding: '8px 10px', color: '#f5f5f5', fontSize: '12px', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5, fontFamily: 'inherit' }} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── WeekSection ───────────────────────────────────────────────────────────────
+
+function WeekDots({ rows }: { rows: WorkoutRow[] }) {
+  const recorded = rows.filter(r => r.strava_activity_id || r.type === 'free_run')
+  if (recorded.length === 0) return null
+  return (
+    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+      {recorded.map(r => (
+        <div key={r.id} title={r.name ?? r.type} style={{ width: '8px', height: '8px', borderRadius: '50%', background: WORKOUT_COLOURS[r.type] ?? '#A3A3A3', flexShrink: 0 }} />
+      ))}
     </div>
   )
 }
@@ -303,12 +423,20 @@ function WeekSection({ week, isCurrentWeek, allUnmatchedWorkouts, onUnlink, onLi
   return (
     <div style={{ marginBottom: '16px' }}>
       <button onClick={() => setCollapsed(c => !c)} style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 8px 0', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '0.5px solid #1f1f1f', marginBottom: '10px' }}>
-        <span style={{ fontSize: '11px', fontWeight: 500, color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          Week of {fmtWeekLabel(week.weekStart)}
-          {matchedCount > 0 && <span style={{ color: '#3f3f46', fontWeight: 400 }}> · {matchedCount} run{matchedCount !== 1 ? 's' : ''} · {totalKm.toFixed(1)} km</span>}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 500, color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            Week of {fmtWeekLabel(week.weekStart)}
+          </span>
+          <WeekDots rows={week.rows} />
+          {matchedCount > 0 && (
+            <span style={{ fontSize: '11px', color: '#3f3f46' }}>
+              {totalKm.toFixed(1)} km
+            </span>
+          )}
+        </div>
         {collapsed ? <ChevronDown size={13} color="#3f3f46" /> : <ChevronUp size={13} color="#3f3f46" />}
       </button>
+
       {!collapsed && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {week.rows.map(row => (
@@ -319,6 +447,8 @@ function WeekSection({ week, isCurrentWeek, allUnmatchedWorkouts, onUnlink, onLi
     </div>
   )
 }
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function RunsPage() {
   const [status, setStatus] = useState<{ connected: boolean; athlete_name?: string; last_synced?: string } | null>(null)
@@ -487,6 +617,7 @@ export default function RunsPage() {
                 </div>
                 {collapsedBlocks.has(section.block_id) ? <ChevronDown size={14} color="#52525b" /> : <ChevronUp size={14} color="#52525b" />}
               </button>
+
               {!collapsedBlocks.has(section.block_id) && section.weeks.map((week, i) => (
                 <WeekSection key={week.weekStart} week={week} isCurrentWeek={i === 0 && section.block_status === 'active'} allUnmatchedWorkouts={allUnmatched} onUnlink={handleUnlink} onLink={handleLink} />
               ))}
