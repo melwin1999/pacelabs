@@ -441,9 +441,9 @@ function WeekSection({ week, isCurrentWeek, allUnmatchedWorkouts, onUnlink, onLi
 
         {/* Smooth expand */}
         <div style={{
-          maxHeight: collapsed ? '0px' : `${contentHeight || 2000}px`,
+          maxHeight: collapsed ? '0px' : '9999px',
           overflow: 'hidden',
-          transition: 'max-height 0.35s ease',
+          transition: 'max-height 0.5s ease',
         }}>
           <div ref={contentRef} style={{ borderTop: '1px solid #1a1a1a', padding: '10px 12px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {week.rows.map(row => (
