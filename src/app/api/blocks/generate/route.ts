@@ -40,7 +40,7 @@ FUELLING (only runs >90min): 60-90min=30-60g carbs/hr, 90-180min=60-90g carbs/hr
 
 WEEKS:
 ${weeks.map(w => `Week ${w.week_number} (${w.phase}${w.cutback ? ', CUTBACK' : ''}${w.is_b_race_week ? ', B-RACE' : ''}):
-  volume: ${w.target_volume_km}km, long_run: ${w.long_run_km}km, quality: ${w.quality_session_count}
+  volume: ${w.target_volume_km}km, long_run: ${w.long_run_km}km, quality: ${w.quality_session_count}${w.quality_session_types.length > 0 ? ` [${w.quality_session_types.map(t => t === 'tempo_at_marathon_pace' ? 'tempo (run at marathon pace, NOT threshold pace — use the marathon pace_zone value)' : t).join(', ')}]` : ''}
   paces (s/km): easy ${w.pace_zones.easy_min}-${w.pace_zones.easy_max}, marathon ${w.pace_zones.marathon}, threshold ${w.pace_zones.threshold}, interval ${w.pace_zones.interval}
   notes: ${w.notes || 'none'}`).join('\n')}
 

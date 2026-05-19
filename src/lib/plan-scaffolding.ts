@@ -7,10 +7,10 @@ import { estimateVdot, getRaceTime, interpolatePaceZones } from '@/lib/vdot-tabl
 type Tier = {
   label: string
   peakKm: number
-  minBaseKm: number       // soft warning below this
-  hardBlockKm: number     // hard block below this — plan is unsafe
+  minBaseKm: number
+  hardBlockKm: number
   peakLongRunKm: number
-  canOverride: boolean    // can user override the hard block with warning?
+  canOverride: boolean
 }
 
 const METHODOLOGY_TIERS: Record<string, Record<string, Tier>> = {
@@ -96,12 +96,11 @@ function buildVolumeCurve(input: WizardInput, phases: Phase[]): number[] {
   const { total_weeks, current_weekly_km, aggressiveness, template } = input
   const tier = METHODOLOGY_TIERS[template][aggressiveness]
   const targetPeak = tier.peakKm
-  const baseLevel = current_weekly_km
-  const rampRate = baseLevel < 30 ? 0.15 : baseLevel < 60 ? 0.12 : 0.10
   const week1Volume = Math.max(8, Math.round(current_weekly_km * 0.9))
   const peakVolume = targetPeak
   const taperStart = phases.find(p => p.name === 'Taper')!.start_week
   const buildUpWeeks = taperStart - 1
+  const rampRate = current_weekly_km < 30 ? 0.15 : current_weekly_km < 60 ? 0.12 : 0.10
 
   const volumes: number[] = []
   let base = week1Volume
@@ -120,15 +119,18 @@ function buildVolumeCurve(input: WizardInput, phases: Phase[]): number[] {
 
     if (phase === 'Peak') {
       cutbackCounter++
-      volumes.push(cutbackCounter % 4 === 0 ? Math.round(peakVolume * 0.80) : peakVolume)
+      volumes.push(cutbackCounter % 3 === 0 ? Math.round(peakVolume * 0.80) : peakVolume)
       continue
     }
 
     const progressFraction = Math.min(1, (w - 1) / Math.max(1, buildUpWeeks - 1))
     const target = Math.round(week1Volume + (peakVolume - week1Volume) * progressFraction)
 
+    // Do not place a cutback in the week immediately before taper starts
+    const isLastWeekBeforeTaper = w === taperStart - 1
+
     cutbackCounter++
-    if (cutbackCounter % 4 === 0) {
+    if (cutbackCounter % 4 === 0 && !isLastWeekBeforeTaper) {
       const prevWeekVol = volumes.length > 0 ? volumes[volumes.length - 1] : target
       const cutback = Math.round(prevWeekVol * 0.75)
       volumes.push(cutback)
@@ -174,9 +176,9 @@ function longRunKm(
 
   const tier = METHODOLOGY_TIERS[template][aggressiveness]
   const peakLongRun = raceDistanceKm >= 42 ? tier.peakLongRunKm
-    : raceDistanceKm >= 21 ? 18   // HM: peak long run 18km (shorter than race dist)
-    : raceDistanceKm >= 10 ? 13   // 10K: peak long run 13km
-    : 10                           // 5K: peak long run 10km
+    : raceDistanceKm >= 21 ? 18
+    : raceDistanceKm >= 10 ? 13
+    : 10
 
   const startLongRun = raceDistanceKm >= 42 ? 12 : raceDistanceKm >= 21 ? 8 : 6
   const planFraction = (weekNumber - 1) / Math.max(1, totalWeeks - 1)
@@ -196,25 +198,80 @@ function longRunKm(
   return Math.round(Math.min(targetLongRun, volumeCap, peakLongRun))
 }
 
-// ─── 4. Quality session count ─────────────────────────────────────────────────
+// ─── 4. Quality session types ─────────────────────────────────────────────────
 
-function qualityCount(
+function qualitySessions(
   phase: string,
   weekNumber: number,
   taperEndWeek: number,
-  template: WizardInput['template'],
-  daysPerWeek: number
-): number {
-  if (template === 'hansons') return Math.min(2, daysPerWeek - 2)
-  if (template === 'higdon') return daysPerWeek <= 4 ? 0 : 1
-  if (template === 'pfitzinger') return Math.min(2, daysPerWeek - 3)
-  if (template === 'daniels') return 2 // Always 2Q — that's the whole point
+  template: string,
+  daysPerWeek: number,
+  raceDistanceKm: number
+): { count: number; types: string[] } {
 
-  const base: Record<string, number> = { Base: 1, Build: 2, Peak: 2, Taper: 1 }
-  let count = base[phase] ?? 1
-  if (weekNumber === taperEndWeek) count = 0
-  if (daysPerWeek < 4) count = Math.min(count, 1)
-  return count
+  // Race week — no quality sessions
+  if (weekNumber === taperEndWeek) return { count: 0, types: [] }
+
+  // Daniels 2Q: always exactly 2 quality sessions
+  if (template === 'daniels') {
+    if (daysPerWeek < 4) return { count: 1, types: ['threshold'] }
+    if (phase === 'Base') return { count: 2, types: ['threshold', 'tempo_at_marathon_pace'] }
+    if (phase === 'Build') return { count: 2, types: ['threshold', 'intervals'] }
+    if (phase === 'Peak') return { count: 2, types: ['intervals', 'threshold'] }
+    return { count: 1, types: ['threshold'] } // taper
+  }
+
+  // Higdon: minimal quality, mostly aerobic
+  if (template === 'higdon') {
+    if (daysPerWeek <= 4) return { count: 0, types: [] }
+    if (phase === 'Base' || phase === 'Build') return { count: 1, types: ['tempo'] }
+    if (phase === 'Peak') return { count: 1, types: ['tempo'] }
+    return { count: 0, types: [] }
+  }
+
+  // Pfitzinger: architecture kept, implementation deferred — see master doc
+  if (template === 'pfitzinger') {
+    const maxQuality = Math.min(2, daysPerWeek - 3)
+    if (maxQuality < 1) return { count: 0, types: [] }
+    if (phase === 'Base') return { count: 1, types: ['tempo_at_marathon_pace'] }
+    if (phase === 'Build') return maxQuality >= 2
+      ? { count: 2, types: ['threshold', 'tempo_at_marathon_pace'] }
+      : { count: 1, types: ['threshold'] }
+    if (phase === 'Peak') return maxQuality >= 2
+      ? { count: 2, types: ['intervals', 'threshold'] }
+      : { count: 1, types: ['intervals'] }
+    return { count: 1, types: ['tempo_at_marathon_pace'] }
+  }
+
+  // Hansons: two SOS days — tempo (strength) and intervals (speed)
+  if (template === 'hansons') {
+    const maxQuality = Math.min(2, daysPerWeek - 2)
+    if (phase === 'Base') return { count: Math.min(1, maxQuality), types: ['tempo'] }
+    if (phase === 'Build') return { count: maxQuality, types: ['tempo', 'intervals'] }
+    if (phase === 'Peak') return { count: maxQuality, types: ['intervals', 'tempo'] }
+    return { count: 1, types: ['tempo'] }
+  }
+
+  // Norwegian: double threshold — defining feature of the methodology
+  if (template === 'norwegian') {
+    const maxQuality = Math.min(2, daysPerWeek - 3)
+    if (phase === 'Base') return { count: Math.min(1, maxQuality), types: ['threshold'] }
+    return { count: maxQuality, types: ['threshold', 'threshold'] }
+  }
+
+  // PaceLabs (claude): balanced, marathon-focused for now
+  // TODO: revisit session types for 5K/10K/HM plans pre-V1
+  const isMarathon = raceDistanceKm >= 42
+  if (phase === 'Base') return { count: 1, types: ['tempo'] }
+  if (phase === 'Build') {
+    if (daysPerWeek < 4) return { count: 1, types: ['tempo'] }
+    return { count: 2, types: isMarathon ? ['threshold', 'tempo_at_marathon_pace'] : ['threshold', 'tempo'] }
+  }
+  if (phase === 'Peak') {
+    if (daysPerWeek < 4) return { count: 1, types: ['intervals'] }
+    return { count: 2, types: ['intervals', 'threshold'] }
+  }
+  return { count: 1, types: ['tempo'] }
 }
 
 // ─── 5. B-race adjustments ────────────────────────────────────────────────────
@@ -316,8 +373,8 @@ const MIN_DAYS_FOR_METHODOLOGY: Record<string, number> = {
 export function validateWizardInput(input: WizardInput): string | null {
   const minDays = MIN_DAYS_FOR_METHODOLOGY[input.template]
   if (input.days_per_week < minDays) {
-    const labels: Record<string, string> = { pfitzinger: 'Pfitzinger', norwegian: 'Norwegian', daniels: 'Daniels 2Q', hansons: 'Hansons', higdon: 'Higdon', claude: "Claude's Own" }
-    return `${labels[input.template]} requires at least ${minDays} running days per week. Consider Higdon, Daniels, or Claude's Own for ${input.days_per_week} days per week.`
+    const labels: Record<string, string> = { pfitzinger: 'Pfitzinger', norwegian: 'Norwegian', daniels: 'Daniels 2Q', hansons: 'Hansons', higdon: 'Higdon', claude: "PaceLabs" }
+    return `${labels[input.template]} requires at least ${minDays} running days per week. Consider Higdon, Daniels, or PaceLabs for ${input.days_per_week} days per week.`
   }
   if (input.total_weeks < 6) return 'Plan must be at least 6 weeks.'
   if (input.total_weeks > 24) return 'Plan cannot exceed 24 weeks. For longer plans (true beginner couch-to-marathon), we recommend Higdon\'s Novice Supreme (30 weeks) at halhigdon.com.'
@@ -325,10 +382,9 @@ export function validateWizardInput(input: WizardInput): string | null {
   if (!input.start_date) return 'Start date is required.'
   if (input.benchmark_time_seconds <= 0) return 'Please enter a benchmark time.'
 
-  // Hard base mileage blocks
   const tier = METHODOLOGY_TIERS[input.template]?.[input.aggressiveness]
   if (tier && tier.hardBlockKm > 0 && input.current_weekly_km < tier.hardBlockKm) {
-    const methodLabels: Record<string, string> = { pfitzinger: 'Pfitzinger', norwegian: 'Norwegian', daniels: 'Daniels 2Q', hansons: 'Hansons', higdon: 'Higdon', claude: "Claude's Own" }
+    const methodLabels: Record<string, string> = { pfitzinger: 'Pfitzinger', norwegian: 'Norwegian', daniels: 'Daniels 2Q', hansons: 'Hansons', higdon: 'Higdon', claude: "PaceLabs" }
     return `${methodLabels[input.template]} ${tier.label} requires a base of at least ${tier.hardBlockKm}km/week before starting. You're currently at ${input.current_weekly_km}km/week. ${tier.canOverride ? 'Consider a more conservative aggressiveness level, or build your base first.' : 'Build your base first, or choose a less demanding methodology.'}`
   }
 
@@ -370,6 +426,7 @@ export function buildPlanSkeleton(input: WizardInput): PlanSkeleton {
     const isCutback = w > 1 && targetVolumeKm < volumeCurve[w - 2] * 0.95
     const vdotFraction = vdotFractionForWeek(phase, phases, w)
     const paceZones = interpolatePaceZones(startVdot, targetVdot, vdotFraction)
+    const qs = qualitySessions(phase, w, taperPhase.end_week, input.template, input.days_per_week, input.race_distance_km)
 
     weeks.push({
       week_number: w,
@@ -380,7 +437,8 @@ export function buildPlanSkeleton(input: WizardInput): PlanSkeleton {
       is_b_race_recovery_week: false,
       target_volume_km: targetVolumeKm,
       long_run_km: longRunKm(targetVolumeKm, input.race_distance_km, input.template, input.aggressiveness, w, input.total_weeks, phase, isCutback),
-      quality_session_count: qualityCount(phase, w, taperPhase.end_week, input.template, input.days_per_week),
+      quality_session_count: qs.count,
+      quality_session_types: qs.types,
       pace_zones: paceZones,
       hr_zones: hrZonesForPhase(phase),
       notes: isCutback ? 'Cutback week — reduced volume for recovery' : '',

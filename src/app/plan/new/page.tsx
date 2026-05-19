@@ -30,13 +30,13 @@ const BENCHMARK_DISTANCES = [
   { label: 'Other', value: 0 },
 ];
 
-const TEMPLATES = [
+const TEMPLATES: { value: string; label: string; badge: string; badgeColor: string; description: string; disabled?: boolean }[] = [
   { value: 'claude', label: "PaceLabs", badge: 'Fully Customised', badgeColor: '#F97316', description: "Hybrid approach built from scratch based on your inputs. Borrows from published methodologies and optimises for your specific situation, fitness level, and schedule." },
   { value: 'higdon', label: 'Hal Higdon', badge: 'Beginner-friendly', badgeColor: '#22C55E', description: 'Long runs are the centrepiece, almost everything else is easy. Built around consistency and finishing feeling good. The most accessible marathon methodology.' },
   { value: 'hansons', label: 'Hansons', badge: 'Intermediate', badgeColor: '#FB923C', description: 'Cumulative fatigue philosophy. Long runs capped at 26km, but you run 6 days/week and rarely feel fresh. Two quality sessions per week. More demanding than it looks.' },
   { value: 'daniels', label: 'Daniels 2Q', badge: 'Intermediate–Advanced', badgeColor: '#22C55E', description: 'Two structured Quality sessions per week (Q1 = long quality run, Q2 = threshold/intervals). Everything else is strictly easy filler. VDOT-based paces scale to your fitness.' },
   { value: 'norwegian', label: 'Norwegian', badge: 'Advanced', badgeColor: '#F87171', description: 'High-volume, double-threshold model. Two threshold sessions at lactate threshold per week. High easy volume, HR-controlled. Assumes a very strong aerobic base.' },
-  { value: 'pfitzinger', label: 'Pfitzinger', badge: 'Advanced', badgeColor: '#F87171', description: 'Medium-long midweek runs, lactate threshold sessions, long runs with marathon-pace segments. High volume. Pfitz himself says you should be within 5-10mi of peak before starting.' },
+  { value: 'pfitzinger', label: 'Pfitzinger', badge: 'Coming soon', badgeColor: '#52525b', description: 'Medium-long midweek runs, lactate threshold sessions, long runs with marathon-pace segments. High volume. Full implementation in progress — available in a future update.', disabled: true },
 ];
 
 const TIER_LABELS: Record<string, Record<string, string>> = {
@@ -463,15 +463,18 @@ export default function NewPlanPage() {
             <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#f5f5f5', letterSpacing: '-0.5px' }}>Training methodology</h1>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {TEMPLATES.map(t => (
-                <button key={t.value} onClick={() => { update('template', t.value as WizardInput['template']); setMethodologyError(''); }}
+                <button key={t.value}
+                  onClick={() => { if (t.disabled) return; update('template', t.value as WizardInput['template']); setMethodologyError(''); }}
                   style={{
-                    borderRadius: '14px', padding: '18px 16px', textAlign: 'left', cursor: 'pointer',
+                    borderRadius: '14px', padding: '18px 16px', textAlign: 'left',
+                    cursor: t.disabled ? 'default' : 'pointer',
+                    opacity: t.disabled ? 0.45 : 1,
                     background: data.template === t.value ? 'rgba(249,115,22,0.08)' : '#111',
                     border: `1.5px solid ${data.template === t.value ? '#F97316' : '#1f1f1f'}`,
                     transition: 'all 0.15s',
                   }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '15px', fontWeight: 700, color: '#f5f5f5' }}>{t.label}</span>
+                    <span style={{ fontSize: '15px', fontWeight: 700, color: t.disabled ? '#52525b' : '#f5f5f5' }}>{t.label}</span>
                     <span style={{ fontSize: '11px', padding: '2px 10px', borderRadius: '20px', fontWeight: 600, background: t.badgeColor + '22', color: t.badgeColor }}>{t.badge}</span>
                   </div>
                   <p style={{ fontSize: '13px', color: '#71717a', lineHeight: 1.5 }}>{t.description}</p>

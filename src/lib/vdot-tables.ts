@@ -22,7 +22,7 @@ const VDOT_TABLE: Record<number, VdotPaces> = {
   27: { easy_min: 472, easy_max: 425, marathon: 393, threshold: 366, interval: 345, repetition: 323 },
   28: { easy_min: 461, easy_max: 415, marathon: 383, threshold: 357, interval: 336, repetition: 315 },
   29: { easy_min: 450, easy_max: 405, marathon: 374, threshold: 348, interval: 328, repetition: 307 },
-  30: { easy_min: 480, easy_max: 432, marathon: 403, threshold: 375, interval: 354, repetition: 330 },
+  30: { easy_min: 460, easy_max: 414, marathon: 384, threshold: 358, interval: 337, repetition: 315 },
   31: { easy_min: 470, easy_max: 423, marathon: 394, threshold: 367, interval: 346, repetition: 323 },
   32: { easy_min: 461, easy_max: 415, marathon: 385, threshold: 359, interval: 338, repetition: 316 },
   33: { easy_min: 452, easy_max: 407, marathon: 377, threshold: 351, interval: 331, repetition: 309 },

@@ -189,6 +189,7 @@ export type PlanSkeletonWeek = {
   target_volume_km: number;
   long_run_km: number;
   quality_session_count: number;
+  quality_session_types: string[];
   pace_zones: {
     easy_min: number;
     easy_max: number;
