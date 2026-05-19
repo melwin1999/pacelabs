@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
-  const { matches } = await request.json()
-  // matches: Array<{ workout_id, strava_activity_id, actual_km, actual_duration_seconds, actual_avg_pace_seconds, actual_avg_hr }>
+  const { matches, notes } = await request.json()
 
   if (!Array.isArray(matches) || matches.length === 0) {
     return NextResponse.json({ error: 'no matches' }, { status: 400 })
@@ -19,6 +18,7 @@ export async function POST(request: NextRequest) {
         actual_avg_pace_seconds: m.actual_avg_pace_seconds,
         actual_avg_hr: m.actual_avg_hr,
         is_complete: true,
+        run_notes: notes?.[m.workout_id] ?? null,
       })
       .eq('id', m.workout_id)
   )
