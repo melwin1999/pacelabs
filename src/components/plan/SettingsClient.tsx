@@ -1,20 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlanChange } from "@/lib/types";
 
 const SOURCE_LABELS: Record<string, string> = {
-  manual_drag: "Manual drag", coach_chat: "Coach chat",
-  auto_adapt: "Auto-adapt", skip: "Skipped",
+  manual_drag: "Manual drag",
+  coach_chat: "Coach chat",
+  auto_adapt: "Auto-adapt",
+  skip: "Skipped",
 };
+
 const SOURCE_COLORS: Record<string, string> = {
-  manual_drag: "#60A5FA", coach_chat: "#C084FC",
-  auto_adapt: "#F97316", skip: "#A3A3A3",
+  manual_drag: "#60A5FA",
+  coach_chat: "#C084FC",
+  auto_adapt: "#F97316",
+  skip: "#A3A3A3",
 };
+
 const CHANGE_TYPE_LABELS: Record<string, string> = {
-  moved: "Moved", swapped: "Swapped", skipped: "Skipped",
-  edited: "Edited", added: "Added", removed: "Removed",
+  moved: "Moved",
+  swapped: "Swapped",
+  skipped: "Skipped",
+  edited: "Edited",
+  added: "Added",
+  removed: "Removed",
 };
+
 const SOURCE_FILTERS = [
   { key: "all", label: "All" },
   { key: "manual_drag", label: "Manual" },
@@ -30,39 +41,140 @@ type Props = {
   workoutsById: Record<string, { name: string }>;
 };
 
-export default function SettingsClient({ blockName, aggressiveness, changes, workoutsById }: Props) {
-  const [filter, setFilter] = useState("all");
-  const filtered = changes.filter(c => filter === "all" || c.source === filter);
+function buildStravaAuthUrl() {
+  const clientId = '247863'
+  const redirectUri = 'https://pacelabs.run/api/strava/callback'
+  const scope = 'activity:read_all'
+  return `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&approval_prompt=auto`
+}
+
+function StravaCard() {
+  const [status, setStatus] = useState<{ connected: boolean; athlete_name?: string; last_synced?: string } | null>(null)
+  const [disconnecting, setDisconnecting] = useState(false)
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+
+  function showToast(msg: string, ok: boolean) {
+    setToast({ msg, ok })
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  useEffect(() => {
+    fetch('/api/strava/status').then(r => r.json()).then(setStatus)
+  }, [])
+
+  async function handleDisconnect() {
+    setDisconnecting(true)
+    await fetch('/api/strava/disconnect', { method: 'POST' })
+    const res = await fetch('/api/strava/status')
+    const data = await res.json()
+    setStatus(data)
+    setDisconnecting(false)
+    showToast('Strava disconnected', true)
+  }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', paddingBottom: '80px' }}>
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '40px 32px' }}>
+    <div style={{ marginBottom: '32px' }}>
+      {toast && (
+        <div style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 200, background: toast.ok ? '#10b981' : '#F87171', color: '#fff', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 500 }}>
+          {toast.msg}
+        </div>
+      )}
 
-        <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#f5f5f5', letterSpacing: '-0.5px', marginBottom: '6px' }}>
+      <div style={{ fontSize: '11px', fontWeight: 600, color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
+        Integrations
+      </div>
+
+      <div style={{ background: '#111', border: '1px solid #1f1f1f', borderRadius: '12px', padding: '18px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#FC4C02', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>Strava</div>
+              {status === null && (
+                <div style={{ fontSize: '12px', color: '#52525b', marginTop: '2px' }}>Loading…</div>
+              )}
+              {status?.connected && (
+                <div style={{ fontSize: '12px', color: '#10b981', marginTop: '2px' }}>
+                  ● Connected{status.athlete_name ? ` · ${status.athlete_name}` : ''}
+                </div>
+              )}
+              {status !== null && !status.connected && (
+                <div style={{ fontSize: '12px', color: '#71717a', marginTop: '2px' }}>Not connected</div>
+              )}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {status?.connected ? (
+              <button
+                onClick={handleDisconnect}
+                disabled={disconnecting}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #2e2e2e', background: 'transparent', color: '#71717a', fontSize: '13px', cursor: 'pointer', opacity: disconnecting ? 0.6 : 1 }}
+              >
+                Disconnect
+              </button>
+            ) : status !== null && (
+              <button
+                onClick={() => window.location.href = buildStravaAuthUrl()}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#FC4C02', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Connect Strava
+              </button>
+            )}
+          </div>
+        </div>
+
+        {status?.connected && status.last_synced && (
+          <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #1f1f1f', fontSize: '12px', color: '#52525b' }}>
+            Last synced: {new Date(status.last_synced).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default function SettingsClient({ blockName, aggressiveness, changes, workoutsById }: Props) {
+  const [filter, setFilter] = useState("all");
+  const filtered = changes.filter((c) => filter === "all" || c.source === filter);
+
+  return (
+    <div style={{ minHeight: '100vh', paddingBottom: '80px', color: '#f5f5f5' }}>
+      <div style={{ maxWidth: '860px', padding: '28px 24px 0' }}>
+
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#f5f5f5', marginBottom: '4px', letterSpacing: '-0.02em' }}>
           Settings
         </h1>
         {blockName && (
-          <p style={{ fontSize: '14px', color: '#71717a', marginBottom: '36px' }}>
+          <p style={{ fontSize: '13px', color: '#71717a', marginBottom: '28px' }}>
             {blockName} · Aggressiveness: <strong style={{ color: '#a1a1aa' }}>{aggressiveness}</strong>
           </p>
         )}
 
-        <p style={{ fontSize: '11px', fontWeight: 700, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
-          Plan changes log
-        </p>
+        <StravaCard />
 
-        {/* Filter chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
-          {SOURCE_FILTERS.map(f => {
+        <div style={{ fontSize: '11px', fontWeight: 600, color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
+          Plan changes log
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+          {SOURCE_FILTERS.map((f) => {
             const active = filter === f.key;
             return (
-              <button key={f.key} onClick={() => setFilter(f.key)} style={{
-                padding: '7px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 500,
-                cursor: 'pointer', transition: 'all 0.15s',
-                background: active ? '#F97316' : '#111',
-                color: active ? '#09090B' : '#a1a1aa',
-                border: active ? '1px solid #F97316' : '1px solid #1f1f1f',
-              }}>
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                style={{
+                  padding: '5px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 500, cursor: 'pointer',
+                  background: active ? '#F97316' : '#1a1a1a',
+                  color: active ? '#fff' : '#71717a',
+                  border: active ? '1px solid #F97316' : '1px solid #2e2e2e',
+                }}
+              >
                 {f.label}
               </button>
             );
@@ -70,39 +182,31 @@ export default function SettingsClient({ blockName, aggressiveness, changes, wor
         </div>
 
         {filtered.length === 0 && (
-          <p style={{ fontSize: '14px', color: '#52525b', padding: '24px 0' }}>
+          <p style={{ fontSize: '13px', color: '#52525b' }}>
             No changes logged{filter !== "all" ? " for this filter" : ""} yet.
           </p>
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {filtered.map(c => {
+          {filtered.map((c) => {
             const wo = c.workout_id ? workoutsById[c.workout_id] : null;
             const col = SOURCE_COLORS[c.source] ?? "#71717A";
             const date = new Date(c.created_at).toLocaleString("en-GB", {
               day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
             });
             return (
-              <div key={c.id} style={{
-                display: 'flex', alignItems: 'flex-start', gap: '14px',
-                padding: '14px 16px', borderRadius: '12px',
-                background: '#111', border: '1px solid #1a1a1a',
-              }}>
-                <div style={{ width: '3px', flexShrink: 0, alignSelf: 'stretch', borderRadius: '2px', background: col, minHeight: '20px' }} />
+              <div key={c.id} style={{ background: '#111', border: '1px solid #1f1f1f', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{ width: '3px', flexShrink: 0, alignSelf: 'stretch', borderRadius: '2px', background: col }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{
-                        fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-                        letterSpacing: '0.07em', padding: '2px 8px', borderRadius: '6px',
-                        color: col, border: `1px solid ${col}`, background: 'rgba(255,255,255,0.04)',
-                      }}>
+                      <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, color: col, border: `1px solid ${col}`, padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.03)' }}>
                         {SOURCE_LABELS[c.source] ?? c.source}
                       </span>
-                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#f5f5f5' }}>
                         {CHANGE_TYPE_LABELS[c.change_type] ?? c.change_type}
                       </span>
-                      {wo && <span style={{ fontSize: '13px', color: '#71717a' }}>· {wo.name}</span>}
+                      {wo && <span style={{ fontSize: '12px', color: '#71717a' }}>· {wo.name}</span>}
                     </div>
                     <span style={{ fontSize: '11px', color: '#52525b' }}>{date}</span>
                   </div>
@@ -110,11 +214,15 @@ export default function SettingsClient({ blockName, aggressiveness, changes, wor
                     {c.change_type === "edited" && c.field_changed && (
                       <span>{c.field_changed.replace("_", " ")}: {c.old_value} → {c.new_value}</span>
                     )}
-                    {c.change_type === "moved" && <span>{c.from_date} → {c.to_date}</span>}
-                    {c.change_type === "skipped" && c.reason && <span>Reason: {c.reason}</span>}
+                    {c.change_type === "moved" && (
+                      <span>{c.from_date} → {c.to_date}</span>
+                    )}
+                    {c.change_type === "skipped" && c.reason && (
+                      <span>Reason: {c.reason}</span>
+                    )}
                   </div>
                   {c.reason && c.change_type !== "skipped" && (
-                    <p style={{ fontSize: '12px', color: '#71717a', fontStyle: 'italic', marginTop: '3px' }}>{c.reason}</p>
+                    <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#52525b', marginTop: '3px' }}>{c.reason}</div>
                   )}
                 </div>
               </div>
