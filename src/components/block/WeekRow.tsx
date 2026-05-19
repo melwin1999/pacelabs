@@ -42,6 +42,22 @@ export default function WeekRow({
   const [compareMode, setCompareMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [modal, setModal] = useState<ModalMode | null>(null);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(
+    new Set(workouts.filter(w => w.is_complete).map(w => w.id))
+  )
+
+  async function handleToggleComplete(workoutId: string) {
+    const nowComplete = !completedIds.has(workoutId)
+    setCompletedIds(prev => { const n = new Set(prev); nowComplete ? n.add(workoutId) : n.delete(workoutId); return n })
+    try {
+      await fetch('/api/workouts/complete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workoutId, isComplete: nowComplete }),
+      })
+    } catch {
+      setCompletedIds(prev => { const n = new Set(prev); nowComplete ? n.delete(workoutId) : n.add(workoutId); return n })
+    }
+  }
   const [hovered, setHovered] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState<number>(0);
@@ -307,10 +323,22 @@ export default function WeekRow({
                     {pace && <p style={{ fontSize: '11px', color: '#71717a', margin: '1px 0 0' }}>{pace}</p>}
                   </div>
 
-                  {w.is_complete
-                    ? <span style={{ fontSize: '16px', color: '#10b981', flexShrink: 0 }}>✓</span>
-                    : !compareMode && <span style={{ fontSize: '14px', color: '#2e2e2e', flexShrink: 0 }}>›</span>
-                  }
+                  {!compareMode && (
+                    <button
+                      onClick={e => { e.stopPropagation(); handleToggleComplete(w.id) }}
+                      style={{
+                        width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
+                        border: completedIds.has(w.id) ? '1.5px solid #10b981' : '1.5px solid #2e2e2e',
+                        background: completedIds.has(w.id) ? 'rgba(16,185,129,0.12)' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', fontSize: '13px',
+                        color: completedIds.has(w.id) ? '#10b981' : '#52525b',
+                        transition: 'all 0.18s ease',
+                      }}
+                    >
+                      {completedIds.has(w.id) ? '✓' : '○'}
+                    </button>
+                  )}
                 </div>
               );
             })}
