@@ -108,12 +108,13 @@ interface Candidate {
   actual_avg_hr: number | null
 }
 
-function DistanceBar({ planned, actual }: { planned: number; actual: number }) {
+function DistanceBar({ planned, actual, workoutColour }: { planned: number; actual: number; workoutColour: string }) {
   const max = Math.max(planned, actual) * 1.08
   const plannedPct = (planned / max) * 100
   const actualPct = (actual / max) * 100
   const diff = planned > 0 ? ((actual - planned) / planned) * 100 : 0
   const barColour = deltaColour(diff)
+
   return (
     <div style={{ marginBottom: '14px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -123,7 +124,7 @@ function DistanceBar({ planned, actual }: { planned: number; actual: number }) {
             <span style={{ fontSize: '11px', color: '#71717a', fontWeight: 500 }}>{planned.toFixed(1)} km</span>
           </div>
           <div style={{ height: '6px', background: '#1f1f1f', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${plannedPct}%`, background: '#3f3f46', borderRadius: '3px', transition: 'width 0.4s ease' }} />
+            <div style={{ height: '100%', width: `${plannedPct}%`, background: workoutColour, opacity: 0.3, borderRadius: '3px', transition: 'width 0.4s ease' }} />
           </div>
         </div>
         <div>
@@ -298,7 +299,7 @@ function RunRow({ row, onUnlink, allUnmatchedWorkouts, onLink }: {
       {expanded && isMatched && (
         <div style={{ padding: '0 14px 16px 14px', borderTop: '1px solid #1a1a1a' }}>
           <div style={{ paddingTop: '14px' }}>
-            {row.distance_km && row.actual_distance_km && <DistanceBar planned={row.distance_km} actual={row.actual_distance_km} />}
+            {row.distance_km && row.actual_distance_km && <DistanceBar planned={row.distance_km} actual={row.actual_distance_km} workoutColour={colour} />}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
                 { label: 'Pace', val: fmtPace(row.actual_avg_pace_seconds), colour: '#FB923C' },
@@ -359,20 +360,24 @@ function WeekSection({ week, isCurrentWeek, allUnmatchedWorkouts, onUnlink, onLi
   onLink: (freeRunId: string, workoutId: string) => void
 }) {
   const [collapsed, setCollapsed] = useState(!isCurrentWeek)
+  const [contentHeight, setContentHeight] = useState(0)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (contentRef.current) setContentHeight(contentRef.current.scrollHeight)
+  }, [collapsed, week.rows.length])
 
   const recorded = week.rows.filter(r => r.strava_activity_id || r.type === 'free_run')
   const totalKm = recorded.reduce((sum, r) => sum + (r.actual_distance_km ?? 0), 0)
   const maxKm = Math.max(...recorded.map(r => r.actual_distance_km ?? 0), 0.1)
+  const totalActualKm = recorded.reduce((sum, r) => sum + (r.actual_distance_km ?? 0), 0)
 
-  // Gradient left bar colour from run types
   const colours = recorded.map(r => WORKOUT_COLOURS[r.type] ?? '#A3A3A3')
   const barGradient = colours.length === 0
     ? '#2e2e2e'
     : colours.length === 1
       ? colours[0]
       : `linear-gradient(180deg, ${colours.join(', ')})`
-
-  const isCurrentStyle = isCurrentWeek && !collapsed
 
   return (
     <div style={{ marginBottom: '8px' }}>
@@ -382,16 +387,13 @@ function WeekSection({ week, isCurrentWeek, allUnmatchedWorkouts, onUnlink, onLi
         borderRadius: '12px',
         overflow: 'hidden',
       }}>
-        {/* Header */}
         <button
           onClick={() => setCollapsed(c => !c)}
           style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '14px 16px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '12px' }}
         >
-          {/* Colour bar */}
           <div style={{ width: '3px', alignSelf: 'stretch', minHeight: '40px', borderRadius: '2px', background: barGradient, flexShrink: 0, boxShadow: isCurrentWeek ? '0 0 6px rgba(249,115,22,0.4)' : 'none' }} />
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Top row: label + dots + km */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: recorded.length > 0 ? '8px' : '0' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: isCurrentWeek ? '#F97316' : '#f5f5f5', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Week of {fmtWeekLabel(week.weekStart)}
@@ -405,30 +407,54 @@ function WeekSection({ week, isCurrentWeek, allUnmatchedWorkouts, onUnlink, onLi
               {totalKm > 0 && <span style={{ fontSize: '11px', color: '#52525b' }}>{totalKm.toFixed(1)} km</span>}
             </div>
 
-            {/* Mini bar chart */}
+            {/* Option B — horizontal distance strip */}
             {recorded.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '28px' }}>
-                {recorded.map(r => {
-                  const km = r.actual_distance_km ?? 0
-                  const heightPct = Math.max(15, Math.round((km / maxKm) * 100))
-                  return (
-                    <div
-                      key={r.id}
-                      title={`${r.name ?? r.type} · ${km.toFixed(1)} km`}
-                      style={{
-                        flex: Math.max(km, 0.5),
-                        height: `${heightPct}%`,
-                        background: WORKOUT_COLOURS[r.type] ?? '#A3A3A3',
-                        borderRadius: '2px 2px 0 0',
-                        opacity: 0.75,
-                        minWidth: '6px',
-                      }}
-                    />
-                  )
-                })}
+              <div>
+                <div style={{ display: 'flex', gap: '2px', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
+                  {recorded.map(r => {
+                    const km = r.actual_distance_km ?? 0
+                    return (
+                      <div
+                        key={r.id}
+                        title={`${r.name ?? r.type} · ${km.toFixed(1)} km`}
+                        style={{ flex: Math.max(km, 0.5), background: WORKOUT_COLOURS[r.type] ?? '#A3A3A3', opacity: 0.75 }}
+                      />
+                    )
+                  })}
+                </div>
+                <div style={{ display: 'flex', gap: '2px', marginTop: '3px' }}>
+                  {recorded.map(r => {
+                    const km = r.actual_distance_km ?? 0
+                    return (
+                      <div key={r.id} style={{ flex: Math.max(km, 0.5), fontSize: '9px', color: '#3f3f46', textAlign: 'center' }}>
+                        {km > 0 ? `${km.toFixed(0)}km` : ''}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )}
           </div>
+
+          {collapsed ? <ChevronDown size={14} color={isCurrentWeek ? '#F97316' : '#3f3f46'} style={{ flexShrink: 0 }} /> : <ChevronUp size={14} color={isCurrentWeek ? '#F97316' : '#3f3f46'} style={{ flexShrink: 0 }} />}
+        </button>
+
+        {/* Smooth expand */}
+        <div style={{
+          maxHeight: collapsed ? '0px' : `${contentHeight || 2000}px`,
+          overflow: 'hidden',
+          transition: 'max-height 0.35s ease',
+        }}>
+          <div ref={contentRef} style={{ borderTop: '1px solid #1a1a1a', padding: '10px 12px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {week.rows.map(row => (
+              <RunRow key={row.id} row={row} onUnlink={onUnlink} allUnmatchedWorkouts={allUnmatchedWorkouts} onLink={onLink} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
           {collapsed ? <ChevronDown size={14} color={isCurrentWeek ? '#F97316' : '#3f3f46'} style={{ flexShrink: 0 }} /> : <ChevronUp size={14} color={isCurrentWeek ? '#F97316' : '#3f3f46'} style={{ flexShrink: 0 }} />}
         </button>
