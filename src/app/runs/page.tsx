@@ -97,8 +97,7 @@ export default function RunsPage() {
   }
 
   function buildStravaAuthUrl() {
-    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID || ''
-    console.log('Strava client ID:', clientId)
+    const clientId = 247863
     const redirectUri = `${window.location.origin}/api/strava/callback`
     const scope = 'activity:read_all'
     return `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&approval_prompt=auto`
