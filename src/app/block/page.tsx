@@ -79,7 +79,7 @@ export default async function BlockPage() {
   return (
     <AppShell>
       <BlockAnimations />
-      <div style={{ width: '100%', maxWidth: '950px', padding: '0 16px 40px' }}>
+      <div style={{ width: '100%', maxWidth: '950px', padding: '0 16px 40px 0px' }}>
         <div style={{ position: 'relative', padding: '28px 0 22px' }}>
           {/* Orbs */}
           <div style={{
