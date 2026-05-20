@@ -32,15 +32,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href)
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) router.push('/login')
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      if (!session) router.push('/login')
-    })
-    return () => subscription.unsubscribe()
-  }, [])
+
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -52,7 +44,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Desktop sidebar */}
       <aside className="hidden md:flex" style={{
-        width: '220px', flexShrink: 0, position: 'fixed',
+        width: '190px', flexShrink: 0, position: 'fixed',
         top: 0, left: 0, height: '100%', zIndex: 30,
         background: '#0d0d0d', borderRight: '1px solid #1f1f1f',
         flexDirection: 'column',
