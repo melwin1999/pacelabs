@@ -22,29 +22,50 @@ export async function POST(req: NextRequest) {
   const avgSpeedMs = 1000 / avgPace
   const durationSecs = Math.round(distanceM / avgSpeedMs)
 
+  // Garmin Connect expects a completed activity TCX, not a workout plan
+  const startTime = new Date(`${dateStr}T08:00:00Z`).toISOString()
+  const endTime = new Date(new Date(`${dateStr}T08:00:00Z`).getTime() + durationSecs * 1000).toISOString()
+
   const tcx = `<?xml version="1.0" encoding="UTF-8"?>
-<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Workouts>
-    <Workout Sport="Running">
-      <Name>${workout.name}</Name>
-      <Step xsi:type="Step_t">
-        <StepId>1</StepId>
-        <Name>${workout.name}</Name>
-        <Duration xsi:type="Distance_t">
-          <Meters>${Math.round(distanceM)}</Meters>
-        </Duration>
+<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd">
+  <Activities>
+    <Activity Sport="Running">
+      <Id>${startTime}</Id>
+      <Lap StartTime="${startTime}">
+        <TotalTimeSeconds>${durationSecs}</TotalTimeSeconds>
+        <DistanceMeters>${Math.round(distanceM)}</DistanceMeters>
+        <MaximumSpeed>${(avgSpeedMs * 1.1).toFixed(4)}</MaximumSpeed>
+        <Calories>${Math.round(distanceM * 0.06)}</Calories>
+        <AverageHeartRateBpm><Value>145</Value></AverageHeartRateBpm>
+        <MaximumHeartRateBpm><Value>165</Value></MaximumHeartRateBpm>
         <Intensity>Active</Intensity>
-        <Target xsi:type="Speed_t">
-          <SpeedZone xsi:type="CustomSpeedZone_t">
-            <LowInMetersPerSecond>${(1000 / (workout.pace_max_seconds ?? avgPace)).toFixed(4)}</LowInMetersPerSecond>
-            <HighInMetersPerSecond>${(1000 / (workout.pace_min_seconds ?? avgPace)).toFixed(4)}</HighInMetersPerSecond>
-          </SpeedZone>
-        </Target>
-      </Step>
-      <ScheduledOn>${dateStr}</ScheduledOn>
-      <Notes>${workout.description ?? ''}</Notes>
-    </Workout>
-  </Workouts>
+        <TriggerMethod>Manual</TriggerMethod>
+        <Track>
+          <Trackpoint>
+            <Time>${startTime}</Time>
+            <DistanceMeters>0</DistanceMeters>
+            <HeartRateBpm><Value>140</Value></HeartRateBpm>
+            <Extensions>
+              <ns3:TPX xmlns:ns3="http://www.garmin.com/xmlschemas/ActivityExtension/v2">
+                <ns3:Speed>${avgSpeedMs.toFixed(4)}</ns3:Speed>
+              </ns3:TPX>
+            </Extensions>
+          </Trackpoint>
+          <Trackpoint>
+            <Time>${endTime}</Time>
+            <DistanceMeters>${Math.round(distanceM)}</DistanceMeters>
+            <HeartRateBpm><Value>150</Value></HeartRateBpm>
+            <Extensions>
+              <ns3:TPX xmlns:ns3="http://www.garmin.com/xmlschemas/ActivityExtension/v2">
+                <ns3:Speed>${avgSpeedMs.toFixed(4)}</ns3:Speed>
+              </ns3:TPX>
+            </Extensions>
+          </Trackpoint>
+        </Track>
+      </Lap>
+      <Notes>${workout.name}${workout.description ? ' — ' + workout.description : ''}</Notes>
+    </Activity>
+  </Activities>
 </TrainingCenterDatabase>`
 
   const filename = `${workout.name?.replace(/[^a-zA-Z0-9]/g, '_') ?? 'workout'}.tcx`
