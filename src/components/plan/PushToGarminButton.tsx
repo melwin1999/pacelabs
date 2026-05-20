@@ -16,21 +16,38 @@ type Props = {
 }
 
 export default function PushToGarminButton({ workouts = [] }: Props) {
+  const [syncing, setSyncing] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   function showToast(msg: string) {
     setToast(msg)
-    setTimeout(() => setToast(null), 3000)
+    setTimeout(() => setToast(null), 3500)
+  }
+
+  async function handleSyncWeek() {
+    const eligible = workouts.filter(w => w.type !== 'rest' && w.distance_km)
+    if (!eligible.length) { showToast('No workouts to sync'); return }
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/garmin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'push_week', workouts: eligible }),
+      })
+      const data = await res.json()
+      const failed = data.results?.filter((r: { ok: boolean }) => !r.ok).length ?? 0
+      const succeeded = data.results?.filter((r: { ok: boolean }) => r.ok).length ?? 0
+      showToast(failed ? `${succeeded} synced, ${failed} failed` : `${succeeded} workout${succeeded > 1 ? 's' : ''} pushed to Garmin!`)
+    } catch {
+      showToast('Sync failed')
+    }
+    setSyncing(false)
   }
 
   async function handleDownloadWeek() {
     const eligible = workouts.filter(w => w.type !== 'rest' && w.distance_km)
-    if (!eligible.length) {
-      showToast('No workouts to download')
-      return
-    }
-
+    if (!eligible.length) { showToast('No workouts to download'); return }
     setDownloading(true)
     try {
       for (const workout of eligible) {
@@ -46,7 +63,7 @@ export default function PushToGarminButton({ workouts = [] }: Props) {
         a.href = url
         const disposition = res.headers.get('Content-Disposition') ?? ''
         const match = disposition.match(/filename="(.+)"/)
-        a.download = match?.[1] ?? `${workout.name}.fit`
+        a.download = match?.[1] ?? `${workout.name}.tcx`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
@@ -83,18 +100,22 @@ export default function PushToGarminButton({ workouts = [] }: Props) {
       </div>
       <div style={{ flex: 1 }}>
         <p style={{ fontSize: '13px', fontWeight: 700, color: '#e2e8f0', marginBottom: '1px' }}>Garmin</p>
-        <p style={{ fontSize: '11px', color: '#52525b' }}>Download this week as .FIT files</p>
+        <p style={{ fontSize: '11px', color: '#52525b' }}>Sync or download this week's workouts</p>
       </div>
       <div style={{ display: 'flex', gap: '8px' }}>
         <button
-          onClick={() => showToast('Auto-sync coming soon')}
+          onClick={handleSyncWeek}
+          disabled={syncing}
           style={{
             padding: '8px 14px', background: 'transparent',
-            color: '#52525b', border: '1px solid #2e2e2e', borderRadius: '10px',
-            fontSize: '12px', fontWeight: 600, cursor: 'not-allowed',
+            color: syncing ? '#52525b' : '#f5f5f5',
+            border: '1px solid #2e2e2e', borderRadius: '10px',
+            fontSize: '12px', fontWeight: 600,
+            cursor: syncing ? 'not-allowed' : 'pointer',
+            opacity: syncing ? 0.6 : 1,
           }}
         >
-          Sync
+          {syncing ? 'Syncing…' : 'Sync'}
         </button>
         <button
           onClick={handleDownloadWeek}
@@ -102,7 +123,8 @@ export default function PushToGarminButton({ workouts = [] }: Props) {
           style={{
             padding: '8px 18px', background: downloading ? '#52525b' : '#f97316',
             color: '#fff', border: 'none', borderRadius: '10px',
-            fontSize: '13px', fontWeight: 700, cursor: downloading ? 'not-allowed' : 'pointer',
+            fontSize: '13px', fontWeight: 700,
+            cursor: downloading ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', gap: '6px',
           }}
         >
