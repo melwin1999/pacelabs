@@ -1,7 +1,7 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { PlanChange } from "@/lib/types";
+import AppShell from "@/components/layout/AppShell";
 
 const SOURCE_LABELS: Record<string, string> = {
   manual_drag: "Manual drag",
@@ -248,6 +248,7 @@ export default function SettingsClient({ blockName, aggressiveness, changes, wor
   const filtered = changes.filter((c) => filter === "all" || c.source === filter);
 
   return (
+    <AppShell>
     <div style={{ minHeight: '100vh', paddingBottom: '80px', color: '#f5f5f5' }}>
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '28px 24px 0' }}>
 
@@ -341,5 +342,6 @@ export default function SettingsClient({ blockName, aggressiveness, changes, wor
         </div>
       </div>
     </div>
+    </AppShell>
   );
 }

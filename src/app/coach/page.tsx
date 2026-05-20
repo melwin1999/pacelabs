@@ -1,6 +1,6 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
+import AppShell from "@/components/layout/AppShell";
 import Link from "next/link";
 import { Send, History } from "lucide-react";
 import InlineProposalCard from "@/components/coach/InlineProposalCard";
@@ -128,7 +128,7 @@ export default function CoachPage() {
   }
 
   return (
-    <>
+    <AppShell>
       <style>{`
         #coach-outer {
           height: calc(100vh - 62px);
@@ -245,6 +245,6 @@ export default function CoachPage() {
           </div>
         </div>
       </div>
-    </>
+    </AppShell>
   );
 }
