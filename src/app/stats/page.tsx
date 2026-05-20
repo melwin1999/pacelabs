@@ -3,7 +3,7 @@ import AppShell from "@/components/layout/AppShell";
 export default function StatsPage() {
   return (
     <AppShell>
-      <div style={{ maxWidth: "1150px", padding: "0 32px 40px" }}>
+      <div style={{ maxWidth: "860px", padding: "0 32px 40px" }}>
         <div style={{ padding: "40px 0 20px" }}>
           <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", color: "rgba(249,115,22,0.85)", textTransform: "uppercase", marginBottom: "8px" }}>
             Coming soon
