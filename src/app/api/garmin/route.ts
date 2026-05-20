@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   // For connect + push actions, call the Python function
   const base = `https://pacelabs.run`
-  const resp = await fetch(`${base}/api/garmin/push`, {
+  const resp = await fetch(`${base}/api/garmin/push/route`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
