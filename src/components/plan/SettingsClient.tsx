@@ -73,67 +73,172 @@ function StravaCard() {
   }
 
   return (
-    <div style={{ marginBottom: '32px' }}>
+    <div style={{ background: '#111', border: '1px solid #1f1f1f', borderRadius: '12px', padding: '18px 20px', marginBottom: '12px' }}>
+      {toast && (
+        <div style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 200, background: toast.ok ? '#10b981' : '#F87171', color: '#fff', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 500 }}>
+          {toast.msg}
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#FC4C02', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+              <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>Strava</div>
+            {status === null && <div style={{ fontSize: '12px', color: '#52525b', marginTop: '2px' }}>Loading…</div>}
+            {status?.connected && <div style={{ fontSize: '12px', color: '#10b981', marginTop: '2px' }}>● Connected{status.athlete_name ? ` · ${status.athlete_name}` : ''}</div>}
+            {status !== null && !status.connected && <div style={{ fontSize: '12px', color: '#71717a', marginTop: '2px' }}>Not connected</div>}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {status?.connected ? (
+            <button onClick={handleDisconnect} disabled={disconnecting} style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid #2e2e2e', background: 'transparent', color: '#71717a', fontSize: '13px', cursor: 'pointer', opacity: disconnecting ? 0.6 : 1 }}>
+              Disconnect
+            </button>
+          ) : status !== null && (
+            <button onClick={() => window.location.href = buildStravaAuthUrl()} style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#FC4C02', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+              Connect Strava
+            </button>
+          )}
+        </div>
+      </div>
+      {status?.connected && status.last_synced && (
+        <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #1f1f1f', fontSize: '12px', color: '#52525b' }}>
+          Last synced: {new Date(status.last_synced).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function GarminCard() {
+  const [status, setStatus] = useState<{ connected: boolean; email?: string; name?: string } | null>(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showForm, setShowForm] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+
+  function showToast(msg: string, ok: boolean) {
+    setToast({ msg, ok })
+    setTimeout(() => setToast(null), 3500)
+  }
+
+  useEffect(() => {
+    fetch('/api/garmin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'status' }) })
+      .then(r => r.json()).then(setStatus)
+  }, [])
+
+  async function handleConnect() {
+    if (!email || !password) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/garmin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'connect', email, password }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        showToast(data.error || 'Connection failed', false)
+      } else {
+        setStatus({ connected: true, email, name: data.name })
+        setShowForm(false)
+        setPassword('')
+        showToast('Garmin connected!', true)
+      }
+    } catch {
+      showToast('Connection failed', false)
+    }
+    setLoading(false)
+  }
+
+  async function handleDisconnect() {
+    setLoading(true)
+    await fetch('/api/garmin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'disconnect' }) })
+    setStatus({ connected: false })
+    setLoading(false)
+    showToast('Garmin disconnected', true)
+  }
+
+  return (
+    <div style={{ background: '#111', border: '1px solid #1f1f1f', borderRadius: '12px', padding: '18px 20px', marginBottom: '32px' }}>
       {toast && (
         <div style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 200, background: toast.ok ? '#10b981' : '#F87171', color: '#fff', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 500 }}>
           {toast.msg}
         </div>
       )}
 
-      <div style={{ fontSize: '11px', fontWeight: 600, color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
-        Integrations
-      </div>
-
-      <div style={{ background: '#111', border: '1px solid #1f1f1f', borderRadius: '12px', padding: '18px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#FC4C02', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
-                <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>Strava</div>
-              {status === null && (
-                <div style={{ fontSize: '12px', color: '#52525b', marginTop: '2px' }}>Loading…</div>
-              )}
-              {status?.connected && (
-                <div style={{ fontSize: '12px', color: '#10b981', marginTop: '2px' }}>
-                  ● Connected{status.athlete_name ? ` · ${status.athlete_name}` : ''}
-                </div>
-              )}
-              {status !== null && !status.connected && (
-                <div style={{ fontSize: '12px', color: '#71717a', marginTop: '2px' }}>Not connected</div>
-              )}
-            </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Garmin logo mark */}
+          <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#007CC3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2" fill="none"/>
+              <path d="M12 7v5l3 3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </div>
-
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {status?.connected ? (
-              <button
-                onClick={handleDisconnect}
-                disabled={disconnecting}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #2e2e2e', background: 'transparent', color: '#71717a', fontSize: '13px', cursor: 'pointer', opacity: disconnecting ? 0.6 : 1 }}
-              >
-                Disconnect
-              </button>
-            ) : status !== null && (
-              <button
-                onClick={() => window.location.href = buildStravaAuthUrl()}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#FC4C02', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-              >
-                Connect Strava
-              </button>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>Garmin Connect</div>
+            {status === null && <div style={{ fontSize: '12px', color: '#52525b', marginTop: '2px' }}>Loading…</div>}
+            {status?.connected && (
+              <div style={{ fontSize: '12px', color: '#10b981', marginTop: '2px' }}>
+                ● Connected{status.name ? ` · ${status.name}` : ''}
+              </div>
+            )}
+            {status !== null && !status.connected && (
+              <div style={{ fontSize: '12px', color: '#71717a', marginTop: '2px' }}>Not connected</div>
             )}
           </div>
         </div>
 
-        {status?.connected && status.last_synced && (
-          <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #1f1f1f', fontSize: '12px', color: '#52525b' }}>
-            Last synced: {new Date(status.last_synced).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {status?.connected ? (
+            <button onClick={handleDisconnect} disabled={loading} style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid #2e2e2e', background: 'transparent', color: '#71717a', fontSize: '13px', cursor: 'pointer', opacity: loading ? 0.6 : 1 }}>
+              Disconnect
+            </button>
+          ) : status !== null && (
+            <button onClick={() => setShowForm(f => !f)} style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#007CC3', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+              {showForm ? 'Cancel' : 'Connect Garmin'}
+            </button>
+          )}
+        </div>
       </div>
+
+      {showForm && !status?.connected && (
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #1f1f1f' }}>
+          <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '12px' }}>
+            Enter your Garmin Connect credentials. These are stored securely and used only to push workouts to your calendar.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <input
+              type="email"
+              placeholder="Garmin Connect email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #2e2e2e', background: '#0d0d0d', color: '#f5f5f5', fontSize: '13px', outline: 'none' }}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleConnect()}
+              style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #2e2e2e', background: '#0d0d0d', color: '#f5f5f5', fontSize: '13px', outline: 'none' }}
+            />
+            <button
+              onClick={handleConnect}
+              disabled={loading || !email || !password}
+              style={{ padding: '10px', borderRadius: '8px', border: 'none', background: '#007CC3', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading || !email || !password ? 0.6 : 1 }}
+            >
+              {loading ? 'Connecting…' : 'Connect'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -155,7 +260,12 @@ export default function SettingsClient({ blockName, aggressiveness, changes, wor
           </p>
         )}
 
+        <div style={{ fontSize: '11px', fontWeight: 600, color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
+          Integrations
+        </div>
+
         <StravaCard />
+        <GarminCard />
 
         <div style={{ fontSize: '11px', fontWeight: 600, color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
           Plan changes log
