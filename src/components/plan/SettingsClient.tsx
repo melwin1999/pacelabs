@@ -249,7 +249,7 @@ export default function SettingsClient({ blockName, aggressiveness, changes, wor
 
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '80px', color: '#f5f5f5' }}>
-      <div style={{ maxWidth: '860px', padding: '28px 24px 0' }}>
+      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '28px 24px 0' }}>
 
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#f5f5f5', marginBottom: '4px', letterSpacing: '-0.02em' }}>
           Settings

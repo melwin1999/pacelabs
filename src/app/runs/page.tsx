@@ -533,7 +533,7 @@ export default function RunsPage() {
     : null
 
   return (
-    <div style={{ width: '100%', maxWidth: '860px', margin: '0 auto', padding: '0 16px 40px' }}>
+    <div style={{ width: '100%', maxWidth: '720px', margin: '0 auto', padding: '0 16px 40px' }}>
       {toast && (
         <div style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 200, background: toast.ok ? '#10b981' : '#F87171', color: '#fff', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
           {toast.ok ? <Check size={15} /> : <AlertCircle size={15} />}
