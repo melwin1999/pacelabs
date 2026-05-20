@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sunday-adapt",
+      "schedule": "0 17 * * 0"
+    }
+  ],
+  "functions": {
+    "api/garmin/push.py": {
+      "runtime": "python3.12"
+    }
+  }
+}
