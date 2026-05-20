@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   // For connect + push actions, call the Python function
-  const base = `https://${process.env.VERCEL_URL}`
+  const base = `https://pacelabs.run`
   const resp = await fetch(`${base}/api/garmin/push`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
