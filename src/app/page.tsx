@@ -139,7 +139,7 @@ export default async function PlanPage({
 
         <CoachNudge />
         <QuickQuestions />
-        <PushToGarminButton />
+        <PushToGarminButton workouts={w} />
       </div>
     </AppShell>
   );

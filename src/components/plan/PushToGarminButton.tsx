@@ -1,8 +1,65 @@
 'use client'
 
-import { Upload } from 'lucide-react'
+import { Upload, Download } from 'lucide-react'
+import { useState } from 'react'
 
-export default function PushToGarminButton() {
+type Workout = {
+  id: string
+  name: string
+  type: string
+  scheduled_date: string | null
+  distance_km: number | null
+}
+
+type Props = {
+  workouts?: Workout[]
+}
+
+export default function PushToGarminButton({ workouts = [] }: Props) {
+  const [downloading, setDownloading] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  async function handleDownloadWeek() {
+    const eligible = workouts.filter(w => w.type !== 'rest' && w.distance_km)
+    if (!eligible.length) {
+      showToast('No workouts to download')
+      return
+    }
+
+    setDownloading(true)
+    try {
+      for (const workout of eligible) {
+        const res = await fetch('/api/garmin/fit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workout_id: workout.id }),
+        })
+        if (!res.ok) continue
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        const disposition = res.headers.get('Content-Disposition') ?? ''
+        const match = disposition.match(/filename="(.+)"/)
+        a.download = match?.[1] ?? `${workout.name}.fit`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        await new Promise(r => setTimeout(r, 300))
+      }
+      showToast(`Downloaded ${eligible.length} workout${eligible.length > 1 ? 's' : ''}`)
+    } catch {
+      showToast('Download failed')
+    }
+    setDownloading(false)
+  }
+
   return (
     <div style={{
       background: '#111111',
@@ -11,6 +68,11 @@ export default function PushToGarminButton() {
       display: 'flex', alignItems: 'center', gap: '12px',
       marginBottom: '8px',
     }}>
+      {toast && (
+        <div style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 200, background: '#10b981', color: '#fff', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 500 }}>
+          {toast}
+        </div>
+      )}
       <div style={{
         width: '38px', height: '38px',
         background: 'rgba(249,115,22,0.1)',
@@ -20,23 +82,34 @@ export default function PushToGarminButton() {
         <Upload size={17} style={{ color: '#f97316' }} />
       </div>
       <div style={{ flex: 1 }}>
-        <p style={{ fontSize: '13px', fontWeight: 700, color: '#e2e8f0', marginBottom: '1px' }}>Push to Garmin</p>
-        <p style={{ fontSize: '11px', color: '#2d3a50' }}>Generates .FIT files · Mon–Sun</p>
+        <p style={{ fontSize: '13px', fontWeight: 700, color: '#e2e8f0', marginBottom: '1px' }}>Garmin</p>
+        <p style={{ fontSize: '11px', color: '#52525b' }}>Download this week as .FIT files</p>
       </div>
-      <button
-        onClick={() => alert('Garmin push coming in Phase 7')}
-        style={{
-          padding: '8px 18px', background: '#f97316',
-          color: '#fff', border: 'none', borderRadius: '10px',
-          fontSize: '13px', fontWeight: 700, cursor: 'pointer',
-          boxShadow: '0 0 20px rgba(249,115,22,0.25)',
-          transition: 'box-shadow 0.15s ease',
-        }}
-        onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 32px rgba(249,115,22,0.45)')}
-        onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 20px rgba(249,115,22,0.25)')}
-      >
-        Push
-      </button>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => showToast('Auto-sync coming soon')}
+          style={{
+            padding: '8px 14px', background: 'transparent',
+            color: '#52525b', border: '1px solid #2e2e2e', borderRadius: '10px',
+            fontSize: '12px', fontWeight: 600, cursor: 'not-allowed',
+          }}
+        >
+          Sync
+        </button>
+        <button
+          onClick={handleDownloadWeek}
+          disabled={downloading}
+          style={{
+            padding: '8px 18px', background: downloading ? '#52525b' : '#f97316',
+            color: '#fff', border: 'none', borderRadius: '10px',
+            fontSize: '13px', fontWeight: 700, cursor: downloading ? 'not-allowed' : 'pointer',
+            display: 'flex', alignItems: 'center', gap: '6px',
+          }}
+        >
+          <Download size={13} />
+          {downloading ? 'Downloading…' : 'Download'}
+        </button>
+      </div>
     </div>
   )
 }
