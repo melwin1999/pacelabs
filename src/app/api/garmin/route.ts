@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+const GARMIN_BACKEND = 'https://pacelabs-garmin.onrender.com'
+
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const action = body.action
 
-  // Handle status + disconnect directly in Node — no Python needed
   if (action === 'status') {
     const { data } = await supabaseAdmin
       .from('user_integrations')
@@ -24,13 +25,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  // For connect + push actions, call the Python function
-  const base = `https://pacelabs.run`
-  const resp = await fetch(`${base}/api/garmin/push/route`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  const data = await resp.json()
-  return NextResponse.json(data, { status: resp.status })
+  if (action === 'connect') {
+    const resp = await fetch(`${GARMIN_BACKEND}/connect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: body.email, password: body.password }),
+    })
+    const data = await resp.json()
+    return NextResponse.json(data, { status: resp.status })
+  }
+
+  if (action === 'push_workout') {
+    const resp = await fetch(`${GARMIN_BACKEND}/push-workout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workout: body.workout, date: body.date }),
+    })
+    const data = await resp.json()
+    return NextResponse.json(data, { status: resp.status })
+  }
+
+  if (action === 'push_week') {
+    const resp = await fetch(`${GARMIN_BACKEND}/push-week`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workouts: body.workouts }),
+    })
+    const data = await resp.json()
+    return NextResponse.json(data, { status: resp.status })
+  }
+
+  return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
