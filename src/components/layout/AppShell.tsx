@@ -1,9 +1,10 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
-import { Calendar, LayoutGrid, Activity, BarChart3, MessageCircle, Settings, Plus, X, Archive } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { Calendar, LayoutGrid, Activity, BarChart3, MessageCircle, Settings, Plus, X, Archive, LogOut } from 'lucide-react'
 import ArchivedBlocksSheet from '@/components/plan/ArchivedBlocksSheet'
+import { createClient } from '@/lib/supabase-browser'
 
 const NAV_ITEMS = [
   { href: '/',         label: 'Plan',     icon: Calendar      },
@@ -24,10 +25,27 @@ const MOBILE_NAV = [
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = createClient()
   const [fabOpen, setFabOpen] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) router.push('/login')
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      if (!session) router.push('/login')
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0a' }}>
@@ -66,7 +84,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             )
           })}
         </nav>
-        <div style={{ padding: '16px 12px 24px' }}>
+        <div style={{ padding: '16px 12px 24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <Link href="/plan/new" style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: '8px', padding: '10px', borderRadius: '10px',
@@ -78,6 +96,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Plus size={15} strokeWidth={2.5} /> New plan
           </Link>
+          <button onClick={handleLogout} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '8px', padding: '10px', borderRadius: '10px',
+            fontSize: '13px', fontWeight: 500, color: '#71717a',
+            background: 'transparent', border: '1px solid #1f1f1f',
+            cursor: 'pointer', transition: 'all 0.15s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#f5f5f5'; e.currentTarget.style.borderColor = '#3f3f46' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#71717a'; e.currentTarget.style.borderColor = '#1f1f1f' }}
+          >
+            <LogOut size={14} /> Sign out
+          </button>
         </div>
       </aside>
 

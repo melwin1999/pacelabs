@@ -134,6 +134,12 @@ export async function POST(req: NextRequest) {
 
         send({ type: 'progress', stage: 'saving', message: 'Saving your plan…', percent: 88 })
 
+        // Get user from session cookie
+        const { createClient } = await import('@/lib/supabase-server')
+        const supabaseUser = await createClient()
+        const { data: { user } } = await supabaseUser.auth.getUser()
+        const userId = user?.id ?? null
+
         // Insert block
         const { data: block, error: blockError } = await supabaseAdmin
           .from('blocks')
@@ -149,6 +155,7 @@ export async function POST(req: NextRequest) {
             race_proj_seconds: skeleton.block_meta.race_proj_seconds,
             status: 'draft',
             phases: skeleton.block_meta.phases,
+            user_id: userId,
             adaptation_aggressiveness: input.aggressiveness,
             start_date: input.start_date || null,
           })
@@ -201,6 +208,7 @@ export async function POST(req: NextRequest) {
             structure: w.structure ?? null,
             is_complete: false,
             skipped: false,
+            user_id: userId,
           }
         })
 
