@@ -59,7 +59,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (min-width: 768px) {
-  #pl-main { margin-left: 220px; padding-bottom: 0 !important; max-width: calc(100vw - 220px); }
+  #pl-main { margin-left: 175px; padding-bottom: 0 !important; max-width: calc(100vw - 175px); }
   #pl-mobile-nav { display: none !important; }
   #pl-fab { display: none !important; }
   #pl-fab-menu { display: none !important; }
